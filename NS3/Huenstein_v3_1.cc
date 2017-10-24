@@ -414,6 +414,7 @@ int main (int argc, char *argv[])
         anim.UpdateNodeDescription (wifiApNodes.Get(i), "AP"); // Optional
         anim.UpdateNodeColor (wifiApNodes.Get(i), 255, 255, 0); // Coloração
       }
+      anim.EnablePacketMetadata (); // Optional
   Simulator::Stop (Seconds (simulationTime));
   Simulator::Run ();
 

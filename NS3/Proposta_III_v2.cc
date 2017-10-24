@@ -67,6 +67,101 @@ main (int argc, char *argv[])
 		p2pInterface = addressp2p.Assign (p2pDevices);
 
 
+		
+
+
+
+//Configure WIFI
+		// uint32_t payloadSize = 1472;//bytes
+		// uint64_t simulationTime = 10; //seconds
+		uint32_t nAp = 1;
+		uint32_t nSta = 2;
+
+		  NodeContainer wifiApNodes = p2pNodes.Get(1);
+		  wifiApNodes.Create (nAp);
+		  		
+ 		  NodeContainer wifiStaNodes;
+		  wifiStaNodes.Create (nSta);
+
+		  YansWifiChannelHelper channel = YansWifiChannelHelper::Default ();
+		  YansWifiPhyHelper phy = YansWifiPhyHelper::Default ();
+		  phy.SetPcapDataLinkType (YansWifiPhyHelper::DLT_IEEE802_11_RADIO);
+		  phy.SetChannel (channel.Create ());
+
+		  WifiHelper wifi;
+		  wifi.SetStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
+		  wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue ("HtMcs7"), "ControlMode", StringValue ("HtMcs0"));
+		  WifiMacHelper mac;
+
+		  NetDeviceContainer staDeviceA, staDeviceAa, apDeviceA;
+		  Ssid ssid;
+
+		  //Network A
+		  ssid = Ssid ("network-A");
+		  phy.Set ("ChannelNumber", UintegerValue (36));
+		  mac.SetType ("ns3::StaWifiMac",
+		               "Ssid", SsidValue (ssid));
+		  apDeviceA = wifi.Install (phy, mac, wifiApNodes.Get (0));
+
+		  mac.SetType ("ns3::ApWifiMac",
+		               "Ssid", SsidValue (ssid),
+		               "EnableBeaconJitter", BooleanValue (false));
+		  staDeviceA = wifi.Install (phy, mac, wifiStaNodes.Get (0));
+		  staDeviceAa = wifi.Install (phy, mac, wifiStaNodes.Get (1));
+		  
+		  /* Setting mobility model */
+		  MobilityHelper mobilitywifi;
+		  mobilitywifi.SetPositionAllocator ("ns3::GridPositionAllocator",
+		                                 "MinX", DoubleValue (10.0),
+		                                 "MinY", DoubleValue (50.0),
+		                                 "DeltaX", DoubleValue (20.0),
+		                                 "DeltaY", DoubleValue (10.0),
+		                                 "GridWidth", UintegerValue (3),
+		                                 "LayoutType", StringValue ("RowFirst"));
+
+		  mobilitywifi.SetMobilityModel ("ns3::RandomWalk2dMobilityModel",
+		                             "Bounds", RectangleValue (Rectangle (-50, 50, -50, 50)));
+		  mobilitywifi.Install (wifiApNodes);
+
+		  mobilitywifi.SetPositionAllocator ("ns3::GridPositionAllocator",
+		                                 "MinX", DoubleValue (10.0),
+		                                 "MinY", DoubleValue (60.0),
+		                                 "DeltaX", DoubleValue (20.0),
+		                                 "DeltaY", DoubleValue (10.0),
+		                                 "GridWidth", UintegerValue (3),
+		                                 "LayoutType", StringValue ("RowFirst"));
+
+		  mobilitywifi.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+		  mobilitywifi.Install (wifiStaNodes);
+		  
+
+		  /* Internet stack */
+		  InternetStackHelper stack;
+		  stack.Install (wifiApNodes);
+		  stack.Install (wifiStaNodes);
+		  stack.Install (p2pNodes);
+
+		  Ipv4AddressHelper addresswifi;
+		  addresswifi.SetBase ("7.0.1.3", "255.255.255.255");
+		  Ipv4InterfaceContainer apInterfaceA;
+		  apInterfaceA = addresswifi.Assign (apDeviceA);
+
+		  Ipv4InterfaceContainer staInterfaceA;
+		  staInterfaceA = addresswifi.Assign (staDeviceA);
+
+		  Ipv4InterfaceContainer staInterfaceAa;
+		  staInterfaceAa = addresswifi.Assign (staDeviceAa);
+
+
+
+
+
+
+
+
+
+
+
 
 //Configure LTE
 		uint16_t numberOfNodes = 1;
@@ -172,86 +267,6 @@ main (int argc, char *argv[])
 
 
 
-//Configure WIFI
-		// uint32_t payloadSize = 1472;//bytes
-		// uint64_t simulationTime = 10; //seconds
-		uint32_t nAp = 1;
-		uint32_t nSta = 2;
-
-		  NodeContainer wifiApNodes = p2pNodes.Get(1);
-		  wifiApNodes.Create (nAp);
-		  		
- 		  NodeContainer wifiStaNodes;
-		  wifiStaNodes.Create (nSta);
-
-		  YansWifiChannelHelper channel = YansWifiChannelHelper::Default ();
-		  YansWifiPhyHelper phy = YansWifiPhyHelper::Default ();
-		  phy.SetPcapDataLinkType (YansWifiPhyHelper::DLT_IEEE802_11_RADIO);
-		  phy.SetChannel (channel.Create ());
-
-		  WifiHelper wifi;
-		  wifi.SetStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
-		  wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue ("HtMcs7"), "ControlMode", StringValue ("HtMcs0"));
-		  WifiMacHelper mac;
-
-		  NetDeviceContainer staDeviceA, staDeviceAa, apDeviceA;
-		  Ssid ssid;
-
-		  //Network A
-		  ssid = Ssid ("network-A");
-		  phy.Set ("ChannelNumber", UintegerValue (36));
-		  mac.SetType ("ns3::StaWifiMac",
-		               "Ssid", SsidValue (ssid));
-		  apDeviceA = wifi.Install (phy, mac, wifiApNodes.Get (0));
-
-		  mac.SetType ("ns3::ApWifiMac",
-		               "Ssid", SsidValue (ssid),
-		               "EnableBeaconJitter", BooleanValue (false));
-		  staDeviceA = wifi.Install (phy, mac, wifiStaNodes.Get (0));
-		  staDeviceAa = wifi.Install (phy, mac, wifiStaNodes.Get (1));
-		  
-		  /* Setting mobility model */
-		  MobilityHelper mobilitywifi;
-		  mobilitywifi.SetPositionAllocator ("ns3::GridPositionAllocator",
-		                                 "MinX", DoubleValue (10.0),
-		                                 "MinY", DoubleValue (50.0),
-		                                 "DeltaX", DoubleValue (20.0),
-		                                 "DeltaY", DoubleValue (10.0),
-		                                 "GridWidth", UintegerValue (3),
-		                                 "LayoutType", StringValue ("RowFirst"));
-
-		  mobilitywifi.SetMobilityModel ("ns3::RandomWalk2dMobilityModel",
-		                             "Bounds", RectangleValue (Rectangle (-50, 50, -50, 50)));
-		  mobilitywifi.Install (wifiApNodes);
-
-		  mobilitywifi.SetPositionAllocator ("ns3::GridPositionAllocator",
-		                                 "MinX", DoubleValue (10.0),
-		                                 "MinY", DoubleValue (60.0),
-		                                 "DeltaX", DoubleValue (20.0),
-		                                 "DeltaY", DoubleValue (10.0),
-		                                 "GridWidth", UintegerValue (3),
-		                                 "LayoutType", StringValue ("RowFirst"));
-
-		  mobilitywifi.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-		  mobilitywifi.Install (wifiStaNodes);
-		  
-
-		  /* Internet stack */
-		  InternetStackHelper stack;
-		  stack.Install (wifiApNodes);
-		  stack.Install (wifiStaNodes);
-		  stack.Install (p2pNodes);
-
-		  Ipv4AddressHelper address;
-		  address.SetBase ("7.0.1.3", "255.255.255.255");
-		  Ipv4InterfaceContainer apInterfaceA;
-		  apInterfaceA = address.Assign (apDeviceA);
-
-		  Ipv4InterfaceContainer staInterfaceA;
-		  staInterfaceA = address.Assign (staDeviceA);
-
-		  Ipv4InterfaceContainer staInterfaceAa;
-		  staInterfaceAa = address.Assign (staDeviceAa);
 
 
 
@@ -283,7 +298,7 @@ main (int argc, char *argv[])
 
 		//lteHelper->ActivateEpsBearer (ueLteDevs, EpsBearer (EpsBearer::NGBR_VIDEO_TCP_DEFAULT), EpcTft::Default ());
 
-
+  Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
   
   NS_LOG_INFO ("Create Applications.");
   
