@@ -42,15 +42,22 @@
 #include "ns3/flow-monitor-module.h"
 #include <ns3/flow-monitor-helper.h>
 
+#include <stdio.h>
+#include <iostream>
+#include <fstream>
+
+
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("MasterCode");
 
 
 //Proposta Conexão por P2P
+
 		void ThroughputMonitor (FlowMonitorHelper *fmhelper, Ptr<FlowMonitor> flowMon,Gnuplot2dDataset DataSet);
 		void JitterMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset2);
 		void DelayMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset3);
+		void avalParam();
 
 int main (int argc, char *argv[])
 {
@@ -151,7 +158,7 @@ int main (int argc, char *argv[])
 		  staInterfaceAa = addresswifi.Assign (staDeviceAa);
 
 
-		  /* Setting applications */
+//APLICATIONS
 		  uint16_t port = 9;
 		  
 
@@ -178,7 +185,7 @@ int main (int argc, char *argv[])
 		  clientAppAa.Start (Seconds (1.0));
 		  clientAppAa.Stop (Seconds (simulationTime - 1));
 
-	//FLOW-MONITOR
+//FLOW-MONITOR
 
 
 	//-----------------FlowMonitor-THROUGHPUT----------------
@@ -256,7 +263,7 @@ int main (int argc, char *argv[])
 
       DelayMonitor(&fmHelper, allMon, dataset3);
 
-		 //Metodo Animation
+//Metodo Animation
 
 		      AnimationInterface anim ("MasterCode_p1.xml"); // Mandatory
 		      
@@ -398,18 +405,152 @@ int main (int argc, char *argv[])
 
 
 
-//APLICATIONS
-
-
-
-
-
-
-
 // Step 2: Analise dos Parametros e avaliação do nó mestre.
+			
+
+	  void avalParam(int nAp)
+	  {
+//Determinar quantidade de parâmetros
+				int nPar = 5;
+
+//Determinar os Parametros utilizados
+				int LostPackets [nAp][0];
+				int Throughput [nAp][0];
+				int Energy [nAp][0];
+				int Delay [nAp][0];
+				int Alcance [nAp][0];
+
+//Atribuir valores dos Parâmetros
+				for (int l = 0; l<nAp; ++l){
+					switch(l){
+							case 1:
+							LostPackets [l][0] = 1;	
+							break;				
+							case 2:
+							Throughput [l][0] = 2;
+							break;
+							case 3:
+							Energy [l][0] = 3;
+							break;
+							case 4:
+							Delay [l][0] = 4;
+							break;
+							case 5:
+							Alcance [l][0] = 5;
+							break;
+							default:
+							break;
+
+				}
+
+//Criar Matriz dos nós de retransmissão
+				int mMR [nAp][nPar];
+
+				for (int l = 0; l < nAp; ++l)
+				{
+					for (int c = 0; c < nPar; ++c)
+					{
+						switch(c){
+							case 1:
+							mMR [l][c] = LostPackets [l][0];	
+							break;				
+							case 2:
+							mMR [l][c] = Throughput [l][0];
+							break;
+							case 3:
+							mMR [l][c] = Energy [l][0];
+							break;
+							case 4:
+							mMR [l][c] = Delay [l][0];
+							break;
+							case 5:
+							mMR [l][c] = Alcance [l][0];
+							break;
+							default:
+							break;
+						}
+					}
+				}
+//Comparar Parâmetros
+				int low_LostPckt = 2147483647;
+				int high_Thoughput = 0;
+				int high_Energy = 0;
+				int low_Delay = 2147483647;
+				int high_Alcance = 0;
+
+				for (int l = 0; l < nAp; ++l){
+					for (int c = 0; c < nPar; ++c){
+						
+						if(LostPackets[l][0] < low_LostPckt){
+							low_LostPckt = LostPackets[l][0];
+						}
+
+						if(Throughput[l][0] > high_Thoughput){
+							high_Thoughput = Throughput[l][0];
+						}
+
+						if(Energy[l][0]>high_Energy){
+							high_Energy = Energy[l][0];
+						}
+
+						if(Delay[l][0] < low_Delay){
+							low_Delay = Delay[l][0];
+						}
+
+						if(Alcance[l][0]< high_Alcance){
+							high_Alcance = Alcance[l][0];
+						}
+
+					}
+				}
+
+//Atribuir Pontuação aos MRs
+				int sum [nAp][0];
+
+				for (int l = 0; l < nAp; ++l){
+					for (int c = 1; c < nPar; ++c){
+						switch(c){
+							case 1:
+								if(mMR[l][c]==low_LostPckt){
+									sum[l][0] = sum[l][0] + 30;
+								}
+							break;				
+							case 2:
+								if(mMR[l][c]==high_Thoughput){
+									sum[l][0] = sum[l][0] + 25;
+								}
+							break;
+							case 3:
+								if(mMR[l][c]==high_Energy){
+									sum[l][0] = sum[l][0] + 20;
+								}
+							break;
+							case 4:
+								if(mMR[l][c]==low_Delay){
+									sum[l][0] = sum[l][0] + 15;
+								}
+							break;
+							case 5:
+								if(mMR[l][c]==high_Alcance){
+									sum[l][0] = sum[l][0] + 10;
+								}
+							break;
+							default:
+							break;
+						}
 
 
+					}
+				}
 
+//Imprimir Resultados
+				for (int l=0; l<nAp; ++l){
+					for (int c=0; c<nPar; ++c){
+						 std::cout<<"Nó de Retransmissão " <<mMR[l][0]<< " Pontuação: "<< sum[l]<<std::endl;
+					}
+				}
+	}
+}
 
 
 
