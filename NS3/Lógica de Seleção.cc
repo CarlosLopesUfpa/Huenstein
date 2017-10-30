@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <iostream>
+#include <time.h>
+#include <cstdlib>
 
 using namespace std;
 
@@ -21,34 +23,48 @@ avalParam();
 				int nPar = 5;
 
 //Determinar os Parametros utilizados
-				int LostPackets [nAp][0];
-				int Throughput [nAp][0];
-				int Energy [nAp][0];
-				int Delay [nAp][0];
-				int Alcance [nAp][0];
+				int LostPackets [nAp][1];
+				int Throughput [nAp][1];
+				int Energy [nAp][1];
+				int Delay [nAp][1];
+				int Alcance [nAp][1];
 
 // Determinar fluxo
-				int flow[nAp][0];
+				// int flow[nAp+1][0];
 				for(int l=0; l<nAp; ++l){
-					
+					LostPackets [nAp][0] = 0;
+			 		Throughput [nAp][0] = 0;
+					Energy [nAp][0] = 0;
+					Delay [nAp][0] = 0;
+					Alcance [nAp][0] = 0;
 				}
 
 //Atribuir valores dos Parâmetros
+				srand((unsigned)time(0));
 				for (int l = 0; l<nAp; ++l){
 
-					for (int p = 0; p<nAp; ++p){
-					LostPackets[l][0]=flow[p][0];
-					}
-					
-					Throughput [l][0]=2;
+					LostPackets [l][0]= rand()%(10);
+														
+					Throughput [l][0]= rand()%(10);
 
-					Energy [l][0]=3;
+					Energy [l][0]= rand()%(10);
 
-					Delay [l][0]=4;
+					Delay [l][0]= rand()%(10);
 
-					Alcance [l][0]=5;
-					}
+					Alcance [l][0]= rand()%(10);
+				}
 				
+				std::cout << "Valor de parametros: " <<std::endl;
+				for(int l=0;l<nAp; l++){
+				std::cout << " " <<std::endl;
+				std::cout << " " <<std::endl;
+				std::cout << "Cont " << l <<std::endl;
+				std::cout << "LostPackets " << LostPackets [l][0] << " " <<std::endl;
+				std::cout << "Throughput " << Throughput[l][0] << " " <<std::endl;
+				std::cout << "Energy " << Energy[l][0] << " " <<std::endl;
+				std::cout << "Delay " << Delay[l][0]<< " " <<std::endl;
+				std::cout << "Alcance " << Alcance[l][0] << " " <<std::endl;
+				}
 				
 							
 				
@@ -58,7 +74,7 @@ avalParam();
 
 				for (int l = 0; l < nAp; ++l)
 				{
-					for (int c = 0; c < nPar; ++c)
+					for (int c = 0; c <= nPar; ++c)
 					{
 						switch(c){
 							case 0:
@@ -92,7 +108,7 @@ avalParam();
 				int high_Alcance = 0;
 
 				for (int l = 0; l < nAp; ++l){
-					for (int c = 0; c < nPar; ++c){
+					for (int c = 0; c <= nPar; ++c){
 						
 						if(LostPackets[l][0] < low_LostPckt){
 							low_LostPckt = LostPackets[l][0];
@@ -116,9 +132,16 @@ avalParam();
 
 					}
 				}
+				std::cout << " " << " " <<std::endl;
+				std::cout << " " << " " <<std::endl;
+				std::cout << "LOW_LostPackets " << low_LostPckt << " " <<std::endl;
+				std::cout << "HIGH_Throughput " << high_Thoughput << " " <<std::endl;
+				std::cout << "HIGH_Energy " << high_Energy << " " <<std::endl;
+				std::cout << "LOW_Delay " << low_Delay<< " " <<std::endl;
+				std::cout << "HIGH_Alcance " << high_Alcance << " " <<std::endl;
 
 //Atribuir Pontuação aos MRs
-				int sum [nAp][0];
+				int sum [nAp][1];
 
 				for (int l = 0; l < nAp; ++l){
 					
@@ -127,40 +150,28 @@ avalParam();
 				}
 
 				for (int l = 0; l < nAp; ++l){
-					for (int c = 1; c < nPar; ++c){
-						switch(c){
-							case 1:
-								if(mMR[l][c]==low_LostPckt){
+								if(mMR[l][1]==low_LostPckt){
 									sum[l][0] = sum[l][0] + 30;
 								}
-							break;				
-							case 2:
-								if(mMR[l][c]==high_Thoughput){
+								std::cout << "Cont: "<< l << "Sum: "<< sum[l][0] <<std::endl;
+								if(mMR[l][2]==high_Thoughput){
 									sum[l][0] = sum[l][0] + 25;
 								}
-							break;
-							case 3:
-								if(mMR[l][c]==high_Energy){
+								std::cout << "Cont: "<< l << "Sum: "<< sum[l][0] <<std::endl;
+								if(mMR[l][3]==high_Energy){
 									sum[l][0] = sum[l][0] + 20;
-								}
-							break;
-							case 4:
-								if(mMR[l][c]==low_Delay){
+								}std::cout << "Cont: "<< l << "Sum: "<< sum[l][0] <<std::endl;
+								if(mMR[l][4]==low_Delay){
 									sum[l][0] = sum[l][0] + 15;
-								}
-							break;
-							case 5:
-								if(mMR[l][c]==high_Alcance){
+								}std::cout << "Cont: "<< l << "Sum: "<< sum[l][0] <<std::endl;
+								if(mMR[l][5]==high_Alcance){
 									sum[l][0] = sum[l][0] + 10;
-								}
-							break;
-							default:
-							break;
-						}
+								}std::cout << "Cont: "<< l << "Sum: "<< sum[l][0] <<std::endl;
+						
 
 
 					}
-				}
+				
 
 //Imprimir Resultados
 				for (int l=0; l<nAp; ++l){
