@@ -57,7 +57,7 @@ NS_LOG_COMPONENT_DEFINE ("MasterCode");
 		void ThroughputMonitor (FlowMonitorHelper *fmhelper, Ptr<FlowMonitor> flowMon,Gnuplot2dDataset DataSet);
 		void JitterMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset2);
 		void DelayMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset3);
-		void avalParam();
+		void avalParam(int nAp, double localDelay, double localThrou, double txPackets, double rxPackets);
 
 int main (int argc, char *argv[])
 {
@@ -217,7 +217,7 @@ int main (int argc, char *argv[])
 	  Ptr<FlowMonitor> allMon = fmHelper.InstallAll();
 	  // call the flow monitor function
 	  ThroughputMonitor(&fmHelper, allMon, dataset); 
-
+	   
 	//-----------------FlowMonitor-JITTER--------------------
 
 	    std::string fileNameWithNoExtension2 = "FlowVSJitter_Huenstein";
@@ -262,6 +262,7 @@ int main (int argc, char *argv[])
       dataset3.SetStyle(Gnuplot2dDataset::LINES_POINTS);
 
       DelayMonitor(&fmHelper, allMon, dataset3);
+
 
 //Metodo Animation
 
@@ -309,17 +310,18 @@ int main (int argc, char *argv[])
 }
 
 
-
 //-------------------------Metodo-VAZÃO---------------------------
 
   void ThroughputMonitor (FlowMonitorHelper *fmhelper, Ptr<FlowMonitor> flowMon,Gnuplot2dDataset DataSet)
     {
+
           double localThrou=0;
       std::map<FlowId, FlowMonitor::FlowStats> flowStats = flowMon->GetFlowStats();
       Ptr<Ipv4FlowClassifier> classing = DynamicCast<Ipv4FlowClassifier> (fmhelper->GetClassifier());
       for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator stats = flowStats.begin (); stats != flowStats.end (); ++stats)
       {
-                        if(stats->first == 1){//IFFFFFFFFFFFFFFFFFFFFFFF
+
+        if(stats->first == 1){//IFFFFFFFFFFFFFFFFFFFFFFF
         Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
         std::cout<<"Flow ID     : " << stats->first <<" ; "<< fiveTuple.sourceAddress <<" -----> "<<fiveTuple.destinationAddress<<std::endl;
         std::cout<<"Tx Packets = " << stats->second.txPackets<<std::endl;
@@ -331,6 +333,7 @@ int main (int argc, char *argv[])
         // updata gnuplot data
               DataSet.Add((double)Simulator::Now().GetSeconds(),(double) localThrou);
         std::cout<<"---------------------------------------------------------------------------"<<std::endl;
+   
     }//IFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF  
   }
         Simulator::Schedule(Seconds(1),&ThroughputMonitor, fmhelper, flowMon,DataSet);
@@ -338,11 +341,9 @@ int main (int argc, char *argv[])
         {
     flowMon->SerializeToXmlFile ("ThroughputMonitor_Huenstein.xml", true, true);
         }
-
     }
 
-//-------------------------Metodo-JINTTER-------------------------
-
+//-------------------------Metodo-JITTER-------------------------
   double atraso1=0;
   void JitterMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset2)
   {
@@ -375,6 +376,11 @@ int main (int argc, char *argv[])
          {
            flowMon->SerializeToXmlFile("JitterMonitor_Huenstein.xml", true, true);
          }
+         // avalParam (double localJitter){
+
+
+         // }
+
   }
 
 //-------------------------Metodo-DELAY---------------------------
@@ -408,7 +414,7 @@ int main (int argc, char *argv[])
 // Step 2: Analise dos Parametros e avaliação do nó mestre.
 			
 
-	  void avalParam(int nAp)
+	  void avalParam(int nAp, double localDelay, double localThrou, double txPackets, double rxPackets)
 	  {
 //Determinar quantidade de parâmetros
 				int nPar = 5;
@@ -419,6 +425,10 @@ int main (int argc, char *argv[])
 				int Energy [nAp][0];
 				int Delay [nAp][0];
 				int Alcance [nAp][0];
+// Determinar fluxo
+
+
+
 
 //Atribuir valores dos Parâmetros
 				for (int l = 0; l<nAp; ++l){
@@ -451,6 +461,9 @@ int main (int argc, char *argv[])
 					for (int c = 0; c < nPar; ++c)
 					{
 						switch(c){
+							case 0:
+							mMR [l][c] = l;
+							break;
 							case 1:
 							mMR [l][c] = LostPackets [l][0];	
 							break;				
