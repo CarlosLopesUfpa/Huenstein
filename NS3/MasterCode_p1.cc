@@ -44,7 +44,8 @@
 
 #include <stdio.h>
 #include <iostream>
-#include <fstream>
+#include <time.h>
+#include <cstdlib>
 
 
 using namespace ns3;
@@ -57,15 +58,14 @@ NS_LOG_COMPONENT_DEFINE ("MasterCode");
 		void ThroughputMonitor (FlowMonitorHelper *fmhelper, Ptr<FlowMonitor> flowMon,Gnuplot2dDataset DataSet);
 		void JitterMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset2);
 		void DelayMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset3);
-		void avalParam(int nAp, double localDelay, double localThrou, double txPackets, double rxPackets);
-
+		void avalParam(int nAp);
 int main (int argc, char *argv[])
 {
 // Step 1: Reconhecimento da rede.
 
 //WIFI
 //Configure WIFI
-		uint32_t payloadSize = 1024;//bytes
+		uint32_t payloadSize = 4096;//bytes
 		uint64_t simulationTime = 10; //seconds
 		uint32_t nAp = 1;
 		uint32_t nSta = 2;
@@ -167,7 +167,7 @@ int main (int argc, char *argv[])
 		  serverAppA.Start (Seconds (0.0));
 		  serverAppA.Stop (Seconds (simulationTime - 1));
   
-  		  Time interPacketInterval = Seconds (1.);
+  		  Time interPacketInterval = Seconds (0.1);
 
 		  UdpEchoClientHelper clientA (apInterfaceA.GetAddress (0), port);
 		  clientA.SetAttribute ("MaxPackets", UintegerValue (1));
@@ -178,7 +178,7 @@ int main (int argc, char *argv[])
 		  clientAppA.Stop (Seconds (simulationTime - 1));
 
 		  UdpEchoClientHelper clientAa (apInterfaceA.GetAddress (0), port);
-		  clientAa.SetAttribute ("MaxPackets", UintegerValue (1));
+		  clientAa.SetAttribute ("MaxPackets", UintegerValue (10000));
 		  clientAa.SetAttribute ("Interval", TimeValue (interPacketInterval)); //packets/s
 		  clientAa.SetAttribute ("PacketSize", UintegerValue (payloadSize));
 		  ApplicationContainer clientAppAa = clientAa.Install (wifiStaNodes.Get (1));
@@ -186,11 +186,11 @@ int main (int argc, char *argv[])
 		  clientAppAa.Stop (Seconds (simulationTime - 1));
 
 //FLOW-MONITOR
-
+		
 
 	//-----------------FlowMonitor-THROUGHPUT----------------
 
-	    std::string fileNameWithNoExtension = "FlowVSThroughput_Huenstein";
+	    std::string fileNameWithNoExtension = "Master_FlowVSThroughput";
 	    std::string graphicsFileName        = fileNameWithNoExtension + ".png";
 	    std::string plotFileName            = fileNameWithNoExtension + ".plt";
 	    std::string plotTitle               = "Flow vs Throughput";
@@ -217,10 +217,12 @@ int main (int argc, char *argv[])
 	  Ptr<FlowMonitor> allMon = fmHelper.InstallAll();
 	  // call the flow monitor function
 	  ThroughputMonitor(&fmHelper, allMon, dataset); 
+
+
 	   
 	//-----------------FlowMonitor-JITTER--------------------
 
-	    std::string fileNameWithNoExtension2 = "FlowVSJitter_Huenstein";
+	    std::string fileNameWithNoExtension2 = "Master_FlowVSJitter";
 	    std::string graphicsFileName2      = fileNameWithNoExtension2 + ".png";
 	    std::string plotFileName2        = fileNameWithNoExtension2 + ".plt";
 	    std::string plotTitle2           = "Flow vs Jitter";
@@ -244,7 +246,7 @@ int main (int argc, char *argv[])
 
 	//-----------------FlowMonitor-DELAY---------------------
 
-	  std::string fileNameWithNoExtension3 = "FlowVSDelay_Huenstein";
+	  std::string fileNameWithNoExtension3 = "Master_FlowVSDelay";
 	  std::string graphicsFileName3      = fileNameWithNoExtension3 + ".png";
 	  std::string plotFileName3        = fileNameWithNoExtension3 + ".plt";
 	  std::string plotTitle3       = "Flow vs Delay";
@@ -263,10 +265,13 @@ int main (int argc, char *argv[])
 
       DelayMonitor(&fmHelper, allMon, dataset3);
 
+//LÓGICA DE SELEÇÃO
+      avalParam(nAp);
+
 
 //Metodo Animation
 
-		      AnimationInterface anim ("MasterCode_p1.xml"); // Mandatory
+		      AnimationInterface anim ("Master_p1.xml"); // Mandatory
 		      
 		      for (uint32_t i = 0; i < wifiStaNodes.GetN(); ++i)
 		      {
@@ -322,24 +327,26 @@ int main (int argc, char *argv[])
       {
 
         if(stats->first == 1){//IFFFFFFFFFFFFFFFFFFFFFFF
-        Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
-        std::cout<<"Flow ID     : " << stats->first <<" ; "<< fiveTuple.sourceAddress <<" -----> "<<fiveTuple.destinationAddress<<std::endl;
-        std::cout<<"Tx Packets = " << stats->second.txPackets<<std::endl;
-        std::cout<<"Rx Packets = " << stats->second.rxPackets<<std::endl;
-              std::cout<<"Duration    : "<<(stats->second.timeLastRxPacket.GetSeconds()-stats->second.timeFirstTxPacket.GetSeconds())<<std::endl;
-        std::cout<<"Last Received Packet  : "<< stats->second.timeLastRxPacket.GetSeconds()<<" Seconds"<<std::endl;
-        std::cout<<"Throughput: " << stats->second.rxBytes * 8.0 / (stats->second.timeLastRxPacket.GetSeconds()-stats->second.timeFirstTxPacket.GetSeconds())/1024/1024  << " Mbps"<<std::endl;
-              localThrou=(stats->second.rxBytes * 8.0 / (stats->second.timeLastRxPacket.GetSeconds()-stats->second.timeFirstTxPacket.GetSeconds())/1024/1024);
-        // updata gnuplot data
-              DataSet.Add((double)Simulator::Now().GetSeconds(),(double) localThrou);
-        std::cout<<"---------------------------------------------------------------------------"<<std::endl;
-   
+	      	Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
+	      	std::cout<<"--------------------------------Throughput---------------------------------"<<std::endl;
+	        std::cout<<"Flow ID: " << stats->first <<";"<< fiveTuple.sourceAddress <<" -----> "<<fiveTuple.destinationAddress<<std::endl;
+	        std::cout<<"Tx Packets = " << stats->second.txPackets<<std::endl;
+	        std::cout<<"Rx Packets = " << stats->second.rxPackets<<std::endl;
+	              std::cout<<"Duration    : "<<(stats->second.timeLastRxPacket.GetSeconds()-stats->second.timeFirstTxPacket.GetSeconds())<<std::endl;
+	        std::cout<<"Last Received Packet  : "<< stats->second.timeLastRxPacket.GetSeconds()<<" Seconds"<<std::endl;
+	        std::cout<<"Throughput: " << stats->second.rxBytes * 8.0 / (stats->second.timeLastRxPacket.GetSeconds()-stats->second.timeFirstTxPacket.GetSeconds())/1024/1024  << " Mbps"<<std::endl;
+	              localThrou=(stats->second.rxBytes * 8.0 / (stats->second.timeLastRxPacket.GetSeconds()-stats->second.timeFirstTxPacket.GetSeconds())/1024/1024);
+	        // updata gnuplot data
+	              DataSet.Add((double)Simulator::Now().GetSeconds(),(double) localThrou);
+	        std::cout<<" "<<std::endl;
+	        std::cout<<" "<<std::endl;
+	   
     }//IFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF  
   }
         Simulator::Schedule(Seconds(1),&ThroughputMonitor, fmhelper, flowMon,DataSet);
      //if(flowToXml)
         {
-    flowMon->SerializeToXmlFile ("ThroughputMonitor_Huenstein.xml", true, true);
+    flowMon->SerializeToXmlFile ("Master_ThroughputMonitor.xml", true, true);
         }
     }
 
@@ -349,24 +356,26 @@ int main (int argc, char *argv[])
   {
          double localJitter=0;
          double atraso2 =0;
-
+		 
          std::map<FlowId, FlowMonitor::FlowStats> flowStats2 = flowMon->GetFlowStats();
          Ptr<Ipv4FlowClassifier> classing2 = DynamicCast<Ipv4FlowClassifier> (fmHelper->GetClassifier());
          for(std::map<FlowId, FlowMonitor::FlowStats>::const_iterator stats2 = flowStats2.begin(); stats2 != flowStats2.end(); ++stats2)
          {
-                 if(stats2->first == 1){//IFFFFFFFFFFF
-              Ipv4FlowClassifier::FiveTuple fiveTuple2 = classing2->FindFlow (stats2->first);
-      std::cout<<"Flow ID : "<< stats2->first <<";"<< fiveTuple2.sourceAddress <<"------>" <<fiveTuple2.destinationAddress<<std::endl;
-      std::cout<<"Tx Packets = " << stats2->second.txPackets<<std::endl;
-      std::cout<<"Rx Packets = " << stats2->second.rxPackets<<std::endl;
-      std::cout<<"Duration  : "<<(stats2->second.timeLastRxPacket.GetSeconds()-stats2->second.timeFirstTxPacket.GetSeconds())<<std::endl;
-      std::cout<<"Atraso: "<<stats2->second.timeLastRxPacket.GetSeconds()-stats2->second.timeLastTxPacket.GetSeconds() <<"s"<<std::endl;
-  atraso2 = stats2->second.timeLastRxPacket.GetSeconds()-stats2->second.timeLastTxPacket.GetSeconds();
-  atraso1 = stats2->second.timeFirstRxPacket.GetSeconds()-stats2->second.timeFirstTxPacket.GetSeconds();
-      std::cout<<"Jitter: "<< atraso2-atraso1 <<std::endl;
-      localJitter= atraso2-atraso1;//Jitter
-      Dataset2.Add((double)Simulator::Now().GetSeconds(), (double) localJitter);
-      std::cout<<"---------------------------------------------------------------------------"<<std::endl;
+           		if(stats2->first == 1){//IFFFFFFFFFFF
+				    Ipv4FlowClassifier::FiveTuple fiveTuple2 = classing2->FindFlow (stats2->first);
+				    std::cout<<"--------------------------------Jitter-------------------------------------"<<std::endl;
+				    std::cout<<"Flow ID: "<< stats2->first <<";"<< fiveTuple2.sourceAddress <<" ------> " <<fiveTuple2.destinationAddress<<std::endl;
+				    std::cout<<"Tx Packets = " << stats2->second.txPackets<<std::endl;
+				    std::cout<<"Rx Packets = " << stats2->second.rxPackets<<std::endl;
+				    std::cout<<"Duration  : "<<(stats2->second.timeLastRxPacket.GetSeconds()-stats2->second.timeFirstTxPacket.GetSeconds())<<std::endl;
+				    std::cout<<"Atraso: "<<stats2->second.timeLastRxPacket.GetSeconds()-stats2->second.timeLastTxPacket.GetSeconds() <<"s"<<std::endl;
+				  	atraso2 = stats2->second.timeLastRxPacket.GetSeconds()-stats2->second.timeLastTxPacket.GetSeconds();
+				 	atraso1 = stats2->second.timeFirstRxPacket.GetSeconds()-stats2->second.timeFirstTxPacket.GetSeconds();
+				    std::cout<<"Jitter: "<< atraso2-atraso1 <<std::endl;
+				    localJitter= atraso2-atraso1;//Jitter
+				    Dataset2.Add((double)Simulator::Now().GetSeconds(), (double) localJitter);
+				    std::cout<<" "<<std::endl;
+        			std::cout<<" "<<std::endl;
                  }//IFFFFFFFFFF
 
          atraso1 = atraso2;
@@ -374,7 +383,7 @@ int main (int argc, char *argv[])
 
          Simulator::Schedule(Seconds(1),&JitterMonitor, fmHelper, flowMon, Dataset2);
          {
-           flowMon->SerializeToXmlFile("JitterMonitor_Huenstein.xml", true, true);
+           flowMon->SerializeToXmlFile("Master_JitterMonitor.xml", true, true);
          }
          // avalParam (double localJitter){
 
@@ -393,17 +402,21 @@ int main (int argc, char *argv[])
     Ptr<Ipv4FlowClassifier> classing3 = DynamicCast<Ipv4FlowClassifier> (fmHelper->GetClassifier());
     for(std::map<FlowId, FlowMonitor::FlowStats>::const_iterator stats3 = flowStats3.begin(); stats3 != flowStats3.end(); ++stats3)
     {
-                 if(stats3->first == 1){//IFFFFFFFFFFF
-            Ipv4FlowClassifier::FiveTuple fiveTuple3 = classing3->FindFlow (stats3->first);
-            std::cout<<"Flow ID : "<< stats3->first <<";"<< fiveTuple3.sourceAddress <<"------>" <<fiveTuple3.destinationAddress<<std::endl;
-            localDelay = stats3->second.timeLastRxPacket.GetSeconds()-stats3->second.timeLastTxPacket.GetSeconds();
-          Dataset3.Add((double)Simulator::Now().GetSeconds(), (double) localDelay);
-          std::cout<<"---------------------------------------------------------------------------"<<std::endl;
+    	
+        if(stats3->first == 1){//IFFFFFFFFFFF
+        Ipv4FlowClassifier::FiveTuple fiveTuple3 = classing3->FindFlow (stats3->first);
+        std::cout<<"--------------------------------Delay--------------------------------------"<<std::endl;
+        std::cout<<"Flow ID: "<< stats3->first <<";"<< fiveTuple3.sourceAddress <<" ------> " <<fiveTuple3.destinationAddress<<std::endl;
+        localDelay = stats3->second.timeLastRxPacket.GetSeconds()-stats3->second.timeLastTxPacket.GetSeconds();
+        Dataset3.Add((double)Simulator::Now().GetSeconds(), (double) localDelay);
+        std::cout<<"Delay: "<<localDelay<<std::endl;
+        std::cout<<" "<<std::endl;
+        std::cout<<" "<<std::endl;
       }//IFFFFFFFFF
     }
     Simulator::Schedule(Seconds(1),&DelayMonitor, fmHelper, flowMon, Dataset3);
     {
-       flowMon->SerializeToXmlFile("DelayMonitor_Huenstein.xml", true, true);
+       flowMon->SerializeToXmlFile("Master_DelayMonitor.xml", true, true);
     }
   }
 
@@ -414,156 +427,203 @@ int main (int argc, char *argv[])
 // Step 2: Analise dos Parametros e avaliação do nó mestre.
 			
 
-	  void avalParam(int nAp, double localDelay, double localThrou, double txPackets, double rxPackets)
-	  {
-//Determinar quantidade de parâmetros
-				int nPar = 5;
+	void avalParam(int nAp)
+		  {
+	//Determinar quantidade de parâmetros
+					int nPar = 5;
 
-//Determinar os Parametros utilizados
-				int LostPackets [nAp][0];
-				int Throughput [nAp][0];
-				int Energy [nAp][0];
-				int Delay [nAp][0];
-				int Alcance [nAp][0];
-// Determinar fluxo
+	//Determinar os Parametros utilizados
+					double LostPackets [nAp][1];
+					double Throughput [nAp][1];
+					double Energy [nAp][1];
+					double Delay [nAp][1];
+					double Range [nAp][1];
 
+	//Atribuir 0 a todas as posições da matriz (limpar)
+	// int flow[nAp+1][0];
 
+					for(int l=0; l<nAp; ++l){
+						LostPackets [nAp][0] = 0;
+				 		Throughput [nAp][0] = 0;
+						Energy [nAp][0] = 0;
+						Delay [nAp][0] = 0;
+						Range [nAp][0] = 0;
+					}
 
+	//Atribuir valores dos Parâmetros
+					srand((unsigned)time(0));
+					for (int l = 0; l<nAp; ++l){
 
-//Atribuir valores dos Parâmetros
-				for (int l = 0; l<nAp; ++l){
-					switch(l){
-							case 1:
-							LostPackets [l][0] = 1;	
-							break;				
-							case 2:
-							Throughput [l][0] = 2;
-							break;
-							case 3:
-							Energy [l][0] = 3;
-							break;
-							case 4:
-							Delay [l][0] = 4;
-							break;
-							case 5:
-							Alcance [l][0] = 5;
-							break;
-							default:
-							break;
+						LostPackets [l][0]= rand()%(1000);
+															
+						Throughput [l][0]= rand()%(5);
 
-				}
+						Energy [l][0]= rand()%(100);
 
-//Criar Matriz dos nós de retransmissão
-				int mMR [nAp][nPar];
+						Delay [l][0]= rand()%(1000);
 
-				for (int l = 0; l < nAp; ++l)
-				{
-					for (int c = 0; c < nPar; ++c)
+						Range [l][0]= rand()%(100);
+					}
+					
+					std::cout << "Valor de parametros: " <<std::endl;
+					for(int l=0;l<nAp; l++){
+					std::cout << " " <<std::endl;
+					std::cout << "Nó: " << l <<std::endl;
+					std::cout << " " <<std::endl;
+					std::cout << "LostPackets " << LostPackets [l][0] << " " <<std::endl;
+					std::cout << "Throughput " << Throughput[l][0] << " " <<std::endl;
+					std::cout << "Energy " << Energy[l][0] << " " <<std::endl;
+					std::cout << "Delay " << Delay[l][0]<< " " <<std::endl;
+					std::cout << "Range " << Range[l][0] << " " <<std::endl;
+					}
+					
+								
+					
+
+	//Criar Matriz dos nós de retransmissão
+					double mMR [nAp][nPar+1];
+
+					for (int l = 0; l < nAp; ++l)
 					{
-						switch(c){
-							case 0:
-							mMR [l][c] = l;
-							break;
-							case 1:
-							mMR [l][c] = LostPackets [l][0];	
-							break;				
-							case 2:
-							mMR [l][c] = Throughput [l][0];
-							break;
-							case 3:
-							mMR [l][c] = Energy [l][0];
-							break;
-							case 4:
-							mMR [l][c] = Delay [l][0];
-							break;
-							case 5:
-							mMR [l][c] = Alcance [l][0];
-							break;
-							default:
-							break;
+						for (int c = 0; c <= nPar; ++c)
+						{
+							switch(c){
+								case 0:
+								mMR [l][c] = l;
+								break;
+								case 1:
+								mMR [l][c] = LostPackets [l][0];	
+								break;				
+								case 2:
+								mMR [l][c] = Throughput [l][0];
+								break;
+								case 3:
+								mMR [l][c] = Energy [l][0];
+								break;
+								case 4:
+								mMR [l][c] = Delay [l][0];
+								break;
+								case 5:
+								mMR [l][c] = Range [l][0];
+								break;
+								default:
+								break;
+							}
 						}
 					}
-				}
-//Comparar Parâmetros
-				int low_LostPckt = 2147483647;
-				int high_Thoughput = 0;
-				int high_Energy = 0;
-				int low_Delay = 2147483647;
-				int high_Alcance = 0;
 
-				for (int l = 0; l < nAp; ++l){
-					for (int c = 0; c < nPar; ++c){
+	//mMR[0][1]= perda de pacotes      |   	
+	//mMR[0][2]= vazão                 |
+	//mMR[0][3]= energia               |   Médias/Valores "brutos", ainda nao normalizadas
+	//mMR[0][4]= delay                 |
+	//mMR[0][5]= alcance               |
+
+	double somaPerdaPct = 0;
+	double somaVazao = 0;
+	double somaEnergia = 0;
+	double somaDelay = 0;
+	double somaAlcance = 0; 
+
+							for (int l = 0; l < nAp; ++l){
+
+								somaPerdaPct =  somaPerdaPct +  mMR[l][1];  
+								somaVazao    =  somaVazao    +  mMR[l][2];
+								somaEnergia  =  somaEnergia  +  mMR[l][3];
+								somaDelay    =  somaDelay    +  mMR[l][4];
+								somaAlcance	 =  somaAlcance  +  mMR[l][5];
+
+							}
+							for(int l = 0; l<1; l++){
+								std::cout << " " <<std::endl;
+								std::cout << " " << " " <<std::endl;
+								std::cout << "Somatória LostPackets " << somaPerdaPct  << " " <<std::endl;
+								std::cout << "Somatória Throughput " << somaVazao  << " " <<std::endl;
+								std::cout << "Somatória Energy " << somaEnergia  << " " <<std::endl;
+								std::cout << "Somatória Delay " << somaDelay  << " " <<std::endl;
+								std::cout << "Somatória Range " << somaAlcance  << " " <<std::endl;
+							}
+
+
+	//somaPerdaPct   | 
+	//somaVazão      |
+	//somaEnergia    |  Essas variáveis recebem a soma dos valores dos parametros de todos os nós, 
+	//somaDelay      |  vamo usar pra normalizar os valores antes de usar na fórmula
+	//somaAlcance    |
+
+
+
+	//Normalização Inversa e Atribuição da pontuação de perda de pacotes ao Ap (Valor Normalizado * Pontuação do parametro).
+					double normalmMR[nAp][nPar];
+							std::cout << " " <<std::endl;
+							for (int l = 0; l < nAp; ++l){
+								normalmMR[l][1] = (mMR[l][1]/somaPerdaPct)*0.30;
+								mMR[l][1] = 1-normalmMR[l][1];
+			
+								std::cout << "Nó " << l << " Pontuação perda de pacotes " << mMR[l][1] <<std::endl;
+								std::cout << " " <<std::endl;
+
+							}
+	//Normalização e Atribuição da pontuação de Vazão ao Ap.
+							for (int l = 0; l < nAp; ++l){
+								normalmMR[l][2] = (mMR[l][2]/somaVazao)*100;
+								mMR[l][2] = normalmMR[l][2]*0.25;
+					
+								std::cout << "Nó " << l << " Pontuação vazão " << mMR[l][2] <<std::endl;
+								std::cout << " " <<std::endl;
+							}
+	//Normalização e Atribuição da pontuação de Energia ao Ap.
+							for (int l = 0; l < nAp; ++l){
+								normalmMR[l][3] = (mMR[l][3]/somaEnergia)*100;
+								mMR[l][3] = normalmMR[l][3]*0.20;
+				
+								std::cout << "Nó " << l << " Pontuação energia " << mMR[l][3] <<std::endl;
+								std::cout << " " <<std::endl;
+							}
+	//Normalização Inversa e Atribuição da pontuação de Delay ao Ap.
+							
+							for (int l = 0; l < nAp; ++l){
+								normalmMR[l][4] = (mMR[l][4]/somaDelay)*0.3;
+								mMR[l][4] = 1-normalmMR[l][4];
+										
+								std::cout << "Nó " << l << " Pontuação Delay " << mMR[l][4] <<std::endl;
+								std::cout << " " <<std::endl;
+							}
+	//Normalização e Atribuição da pontuação de Alcance ao Ap.
+							for (int l = 0; l < nAp; ++l){
+								normalmMR[l][5] = (mMR[l][5]/somaAlcance)*100;
+								mMR[l][5] = normalmMR[l][5]*0.10;
+					
+								std::cout << "Nó " << l << " Pontuação alcance " << mMR[l][5] <<std::endl;
+								std::cout << " " <<std::endl;
 						
-						if(LostPackets[l][0] < low_LostPckt){
-							low_LostPckt = LostPackets[l][0];
-						}
-
-						if(Throughput[l][0] > high_Thoughput){
-							high_Thoughput = Throughput[l][0];
-						}
-
-						if(Energy[l][0]>high_Energy){
-							high_Energy = Energy[l][0];
-						}
-
-						if(Delay[l][0] < low_Delay){
-							low_Delay = Delay[l][0];
-						}
-
-						if(Alcance[l][0]< high_Alcance){
-							high_Alcance = Alcance[l][0];
-						}
-
-					}
-				}
-
-//Atribuir Pontuação aos MRs
-				int sum [nAp][0];
-
-				for (int l = 0; l < nAp; ++l){
-					for (int c = 1; c < nPar; ++c){
-						switch(c){
-							case 1:
-								if(mMR[l][c]==low_LostPckt){
-									sum[l][0] = sum[l][0] + 30;
+							}
+	//Somatória da pontuação dos Aps.
+					double ic[nAp][2];
+							for(int l=0; l<nAp; ++l){
+								for(int c=0; c<=nPar; ++c){
+									ic[l][0] = l;
+									ic[l][1] = ic[l][1]+mMR[l][c];
 								}
-							break;				
-							case 2:
-								if(mMR[l][c]==high_Thoughput){
-									sum[l][0] = sum[l][0] + 25;
+							
+							std::cout << "Nó " << ic[l][0] << " Pontuação Geral " << ic[l][1] <<std::endl;
+							std::cout << "////////////////////////////" <<std::endl;
+							}
+									
+
+	//Imprimir Resultados
+							double maior_ic = 0;
+							double id = 0;
+							for (int l=0; l<nAp; ++l){
+								if(ic[l][1] > maior_ic){
+									maior_ic = ic[l][1];
+									id = l;
 								}
-							break;
-							case 3:
-								if(mMR[l][c]==high_Energy){
-									sum[l][0] = sum[l][0] + 20;
-								}
-							break;
-							case 4:
-								if(mMR[l][c]==low_Delay){
-									sum[l][0] = sum[l][0] + 15;
-								}
-							break;
-							case 5:
-								if(mMR[l][c]==high_Alcance){
-									sum[l][0] = sum[l][0] + 10;
-								}
-							break;
-							default:
-							break;
-						}
+							}
+							std::cout << " " <<std::endl;
+							std::cout << "Nó de Retransmissão Mestre " << id << " Pontuação: " << maior_ic <<std::endl;
 
 
-					}
-				}
-
-//Imprimir Resultados
-				for (int l=0; l<nAp; ++l){
-					for (int c=0; c<nPar; ++c){
-						 std::cout<<"Nó de Retransmissão " <<mMR[l][0]<< " Pontuação: "<< sum[l]<<std::endl;
-					}
-				}
 	}
-}
 
 
 

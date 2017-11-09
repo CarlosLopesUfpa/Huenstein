@@ -6,7 +6,7 @@
 using namespace std;
 
 void avalParam();
-int nAp = 3;
+int nAp = 5;
 
 
 int main()
