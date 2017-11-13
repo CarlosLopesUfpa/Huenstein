@@ -53,10 +53,10 @@ NS_LOG_COMPONENT_DEFINE ("MasterCode");
 
 //Proposta Conexão por P2P
 
-		void ThroughputMonitor (FlowMonitorHelper *fmhelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset DataSet, int nAp, int cont_Vazao, double som_Vazao[][0], double med_Vazao[][0]);
-		void JitterMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset2, int nAp, int cont_Jitter, double som_Jitter[][0], double med_Jitter[][0]);
-		void DelayMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset3,  int nAp, int cont_Delay, double som_Delay[][0], double med_Delay[][0]);
-		void avalParam(int nAp, double medi_Vazao[][0], double medi_Delay[][0]);
+		void ThroughputMonitor(FlowMonitorHelper *fmhelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset DataSet, int nAp1, double som_Vazao[][1], double med_Vazao[][1]);
+		void JitterMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset2, int nAp2, double som_Jitter[][1], double med_Jitter[][1]);
+		void DelayMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset3,  int nAp3, double som_Delay[][1], double med_Delay[][1]);
+		void avalParam(int nAp, double medi_Vazao[][1], double medi_Delay[][1]);
 int main (int argc, char *argv[]) {
 // Step 1: Reconhecimento da rede.
 
@@ -68,18 +68,15 @@ int main (int argc, char *argv[]) {
 		int nSta = 2;
 
 //Variáveis para receber dados do FlowMonitor
-		double soma_Vazao [nAp][0];
-		double media_Vazao [nAp][0];
-		int conta_Vazao = 0;
+		double soma_Vazao [nAp][1];
+		double media_Vazao [nAp][1];
 
-		double soma_Jitter [nAp][0];
-		double media_Jitter [nAp][0];
-		int conta_Jitter = 0;
+		double soma_Jitter [nAp][1];
+		double media_Jitter [nAp][1];
 		// double pct_perdido = 0;
 
-		double soma_Delay [nAp][0];
-		double media_Delay [nAp][0];
-		int conta_Delay = 0;
+		double soma_Delay [nAp][1];
+		double media_Delay [nAp][1];
 
 		// double energy[nAp][0] = 0;
 
@@ -232,9 +229,8 @@ int main (int argc, char *argv[]) {
 	  Ptr<FlowMonitor> allMon = fmHelper.InstallAll();
 
 	  // call the flow monitor function
-	  ThroughputMonitor(&fmHelper, allMon, dataset, nAp, conta_Vazao, soma_Vazao, media_Vazao); 
-
-
+	  ThroughputMonitor(&fmHelper, allMon, dataset, nAp, soma_Vazao, media_Vazao); 
+	        			
 	   
 	//-----------------FlowMonitor-JITTER--------------------
 
@@ -258,7 +254,7 @@ int main (int argc, char *argv[]) {
 	  //FlowMonitorHelper fmHelper;
 	  //Ptr<FlowMonitor> allMon = fmHelper.InstallAll();
 
-	  JitterMonitor(&fmHelper, allMon, dataset2, nAp, conta_Jitter, soma_Jitter, media_Jitter);
+	  JitterMonitor(&fmHelper, allMon, dataset2, nAp, soma_Jitter, media_Jitter);
 
 	//-----------------FlowMonitor-DELAY---------------------
 
@@ -279,12 +275,17 @@ int main (int argc, char *argv[]) {
       dataset3.SetTitle(dataTitle3);
       dataset3.SetStyle(Gnuplot2dDataset::LINES_POINTS);
 
-      DelayMonitor(&fmHelper, allMon, dataset3, nAp, conta_Delay, soma_Delay, media_Delay);
+      DelayMonitor(&fmHelper, allMon, dataset3, nAp, soma_Delay, media_Delay);
 
 //LÓGICA DE SELEÇÃO
       avalParam(nAp, media_Vazao, media_Delay);
 
-
+for(int l=0;l<=nAp;++l){
+	  std::cout << " " <<std::endl;
+      std::cout<<"Delay "<<media_Delay[l][0]<<std::endl;
+      std::cout<<"Vazao "<<media_Vazao[l][0]<<std::endl;
+}
+		std::cout << " " <<std::endl;
 //Metodo Animation
 
 	      AnimationInterface anim ("Master_p1.xml"); // Mandatory
@@ -337,15 +338,15 @@ int main (int argc, char *argv[]) {
 
 
 //-------------------------Metodo-VAZÃO---------------------------
-
-  void ThroughputMonitor (FlowMonitorHelper *fmhelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset DataSet, int nAp, int cont_Vazao, double som_Vazao[][0], double med_Vazao[][0])
+int cont_Vazao = 0;
+  void ThroughputMonitor (FlowMonitorHelper *fmhelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset DataSet, int nAp1, double som_Vazao[][1], double med_Vazao[][1])
     {
 
-          double localThrou=0;
+	  double localThrou=0;
       std::map<FlowId, FlowMonitor::FlowStats> flowStats = flowMon->GetFlowStats();
       Ptr<Ipv4FlowClassifier> classing = DynamicCast<Ipv4FlowClassifier> (fmhelper->GetClassifier());
       	
-      	for(int l=0; l<=nAp; ++l){
+      	for(int l=0; l<=nAp1; ++l){
 	      for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator stats = flowStats.begin (); stats != flowStats.end (); ++stats)
 	      {
 				Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
@@ -375,7 +376,7 @@ int main (int argc, char *argv[]) {
 	  	med_Vazao[l][0] = som_Vazao[l][0]/cont_Vazao;
 	  	cont_Vazao=0;
 	  	}
-	        Simulator::Schedule(Seconds(1), &ThroughputMonitor, fmhelper, flowMon, DataSet,  nAp, cont_Vazao, som_Vazao, med_Vazao);
+	        Simulator::Schedule(Seconds(1), &ThroughputMonitor, fmhelper, flowMon, DataSet, nAp1, som_Vazao, med_Vazao);
 	     //if(flowToXml)
 	        {
 	    flowMon->SerializeToXmlFile ("Master_ThroughputMonitor.xml", true, true);
@@ -384,11 +385,12 @@ int main (int argc, char *argv[]) {
 
 //-------------------------Metodo-JITTER-------------------------
 	double atraso1=0;
+	int cont_Jitter = 0;
 	// double pct_Enviado = 0;
 	// double pct_Recebido = 0;
 	// double som_Enviado = 0;
 	// double som_Recebido = 0;
-  void JitterMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset2, int nAp, int cont_Jitter, double som_Jitter[][0], double med_Jitter[][0])
+  void JitterMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset2, int nAp2, double som_Jitter[][1], double med_Jitter[][1])
   {
          double localJitter = 0;
          double atraso2 = 0;
@@ -397,7 +399,7 @@ int main (int argc, char *argv[]) {
          std::map<FlowId, FlowMonitor::FlowStats> flowStats2 = flowMon->GetFlowStats();
          Ptr<Ipv4FlowClassifier> classing2 = DynamicCast<Ipv4FlowClassifier> (fmHelper->GetClassifier());
          
-	for(int l=0; l<=nAp; ++l){
+	for(int l=0; l<=nAp2; ++l){
          for(std::map<FlowId, FlowMonitor::FlowStats>::const_iterator stats2 = flowStats2.begin(); stats2 != flowStats2.end(); ++stats2)
          {
          	Ipv4FlowClassifier::FiveTuple fiveTuple2 = classing2->FindFlow (stats2->first);
@@ -437,26 +439,22 @@ int main (int argc, char *argv[]) {
 	}
 					// pct_perd = som_Enviado - som_Recebido;
 
-         Simulator::Schedule(Seconds(1),&JitterMonitor, fmHelper, flowMon, Dataset2, nAp, cont_Jitter, som_Jitter, med_Jitter);
+         Simulator::Schedule(Seconds(1), &JitterMonitor, fmHelper, flowMon, Dataset2, nAp2, som_Jitter, med_Jitter);
          {
            flowMon->SerializeToXmlFile("Master_JitterMonitor.xml", true, true);
          }
-         // avalParam (double localJitter){
-
-
-         // }
 
   }
-
+int cont_Delay = 0;
 	//-------------------------Metodo-DELAY---------------------------
 
-	  void  DelayMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset3,  int nAp, int cont_Delay, double som_Delay[][0], double med_Delay[][0])
+	  void  DelayMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset3, int nAp3, double som_Delay[][1], double med_Delay[][1])
 	  {
 	    double localDelay=0;
 
 	    std::map<FlowId, FlowMonitor::FlowStats> flowStats3 = flowMon->GetFlowStats();
 	    Ptr<Ipv4FlowClassifier> classing3 = DynamicCast<Ipv4FlowClassifier> (fmHelper->GetClassifier());
-	for(int l=0; l<=nAp; ++l){
+	for(int l=0; l<=nAp3; ++l){
 	    for(std::map<FlowId, FlowMonitor::FlowStats>::const_iterator stats3 = flowStats3.begin(); stats3 != flowStats3.end(); ++stats3)
 	    {
 	    	Ipv4FlowClassifier::FiveTuple fiveTuple3 = classing3->FindFlow (stats3->first);
@@ -479,9 +477,12 @@ int main (int argc, char *argv[]) {
 
 //Continuação da Coleta de dados do Delay
 	med_Delay[l][0] = som_Delay[l][0]/cont_Delay;
+	std::cout<<"Cont Delay "<<cont_Delay<<std::endl;
 	cont_Delay=0;
+	 std::cout<<"Média Delay: "<<med_Delay[l][0]<<std::endl;
+	 std::cout<<"Soma Delay: "<<som_Delay[l][0]<<std::endl;
 	}
-	    Simulator::Schedule(Seconds(1), &DelayMonitor, fmHelper, flowMon, Dataset3, nAp, cont_Delay, som_Delay, med_Delay);
+	    Simulator::Schedule(Seconds(1), &DelayMonitor, fmHelper, flowMon, Dataset3, nAp3, som_Delay, med_Delay);
 	    {
 	       flowMon->SerializeToXmlFile("Master_DelayMonitor.xml", true, true);
 	    }
@@ -494,7 +495,7 @@ int main (int argc, char *argv[]) {
 // Step 2: Analise dos Parametros e avaliação do nó mestre.
 			
 
-	void avalParam(int nAp, double medi_Vazao[][0], double medi_Delay[][0])
+	void avalParam(int nAp, double medi_Vazao[][1], double medi_Delay[][1])
 		  {
 	//Determinar quantidade de parâmetros
 					int nPar = 5;
