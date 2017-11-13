@@ -146,8 +146,8 @@ double somaAlcance = 0;
 				double normalmMR[nAp][nPar];
 						std::cout << " " <<std::endl;
 						for (int l = 0; l < nAp; ++l){
-							normalmMR[l][1] = (mMR[l][1]/somaPerdaPct)*0.30;
-							mMR[l][1] = 1-normalmMR[l][1];
+							normalmMR[l][1] = (mMR[l][1]/somaPerdaPct);
+							mMR[l][1] = 1-(normalmMR[l][1])*0.30;
 		
 							std::cout << "Nó " << l << " Pontuação perda de pacotes " << mMR[l][1] <<std::endl;
 							std::cout << " " <<std::endl;
@@ -155,7 +155,7 @@ double somaAlcance = 0;
 						}
 //Normalização e Atribuição da pontuação de Vazão ao Ap.
 						for (int l = 0; l < nAp; ++l){
-							normalmMR[l][2] = (mMR[l][2]/somaVazao)*100;
+							normalmMR[l][2] = (mMR[l][2]/somaVazao);
 							mMR[l][2] = normalmMR[l][2]*0.25;
 				
 							std::cout << "Nó " << l << " Pontuação vazão " << mMR[l][2] <<std::endl;
@@ -163,7 +163,7 @@ double somaAlcance = 0;
 						}
 //Normalização e Atribuição da pontuação de Energia ao Ap.
 						for (int l = 0; l < nAp; ++l){
-							normalmMR[l][3] = (mMR[l][3]/somaEnergia)*100;
+							normalmMR[l][3] = (mMR[l][3]/somaEnergia);
 							mMR[l][3] = normalmMR[l][3]*0.20;
 			
 							std::cout << "Nó " << l << " Pontuação energia " << mMR[l][3] <<std::endl;
@@ -172,15 +172,15 @@ double somaAlcance = 0;
 //Normalização Inversa e Atribuição da pontuação de Delay ao Ap.
 						
 						for (int l = 0; l < nAp; ++l){
-							normalmMR[l][4] = (mMR[l][4]/somaDelay)*0.3;
-							mMR[l][4] = 1-normalmMR[l][4];
+							normalmMR[l][4] = (mMR[l][4]/somaDelay);
+							mMR[l][4] = 1-(normalmMR[l][4]*0.15);
 									
 							std::cout << "Nó " << l << " Pontuação Delay " << mMR[l][4] <<std::endl;
 							std::cout << " " <<std::endl;
 						}
 //Normalização e Atribuição da pontuação de Alcance ao Ap.
 						for (int l = 0; l < nAp; ++l){
-							normalmMR[l][5] = (mMR[l][5]/somaAlcance)*100;
+							normalmMR[l][5] = (mMR[l][5]/somaAlcance);
 							mMR[l][5] = normalmMR[l][5]*0.10;
 				
 							std::cout << "Nó " << l << " Pontuação alcance " << mMR[l][5] <<std::endl;
@@ -195,7 +195,7 @@ double somaAlcance = 0;
 								ic[l][1] = ic[l][1]+mMR[l][c];
 							}
 						
-						std::cout << "Nó " << ic[l][0] << " Pontuação Geral " << ic[l][1] <<std::endl;
+						std::cout << "Nó " << ic[l][0] << " Pontuação Geral " << ic[l][1]*100 <<std::endl;
 						std::cout << "////////////////////////////" <<std::endl;
 						}
 								
