@@ -68,15 +68,15 @@ int main (int argc, char *argv[]) {
 		int nSta = 2;
 
 //Variáveis para receber dados do FlowMonitor
-		double soma_Vazao [nAp][1];
-		double media_Vazao [nAp][1];
+		double soma_Vazao[nAp][1];
+		double media_Vazao[nAp][1];
 
-		double soma_Jitter [nAp][1];
-		double media_Jitter [nAp][1];
+		double soma_Jitter[nAp][1];
+		double media_Jitter[nAp][1];
 		// double pct_perdido = 0;
 
-		double soma_Delay [nAp][1];
-		double media_Delay [nAp][1];
+		double soma_Delay[nAp][1];
+		double media_Delay[nAp][1];
 
 		// double energy[nAp][0] = 0;
 
@@ -280,7 +280,9 @@ int main (int argc, char *argv[]) {
 //LÓGICA DE SELEÇÃO
       avalParam(nAp, media_Vazao, media_Delay);
 
-for(int l=0;l<=nAp;++l){
+std::cout << " " <<std::endl;
+std::cout << " " <<std::endl;
+for(int l=0;l<nAp;++l){
 	  std::cout << " " <<std::endl;
       std::cout<<"Delay "<<media_Delay[l][0]<<std::endl;
       std::cout<<"Vazao "<<media_Vazao[l][0]<<std::endl;
@@ -510,31 +512,31 @@ int cont_Delay = 0;
 	//Atribuir 0 a todas as posições da matriz (limpar)
 	// int flow[nAp+1][0];
 
-					for(int l=0; l<=nAp; ++l){
-						LostPackets [nAp][0] = 0;
-				 		Throughput [nAp][0] = 0;
-						Energy [nAp][0] = 0;
-						Delay [nAp][0] = 0;
-						Range [nAp][0] = 0;
-					}
+					// for(int l=0; l<nAp; ++l){
+					// 	LostPackets [nAp][0] = 0;
+				 // 		Throughput [nAp][0] = 0;
+					// 	Energy [nAp][0] = 0;
+					// 	Delay [nAp][0] = 0;
+					// 	Range [nAp][0] = 0;
+					// }
 
 	//Atribuir valores dos Parâmetros
 					srand((unsigned)time(0));
-					for (int l = 0; l<=nAp; ++l){
+					for (int l = 0; l<nAp; ++l){
 
 						LostPackets [l][0]= rand()%(1000);
 															
-						Throughput [l][0]= medi_Vazao[l][0];
+						Throughput [l][0]= medi_Vazao [l][0];
 
 						Energy [l][0]= rand()%(100);
 
-						Delay [l][0]= medi_Delay[l][0];
+						Delay [l][0]= medi_Delay [l][0];
 
 						Range [l][0]= rand()%(100);
 					}
 					
 					std::cout << "Valor de parametros: " <<std::endl;
-					for(int l=0;l<=nAp; l++){
+					for(int l=0;l<nAp; l++){
 					std::cout << " " <<std::endl;
 					std::cout << "Nó: " << l <<std::endl;
 					std::cout << " " <<std::endl;
@@ -551,7 +553,7 @@ int cont_Delay = 0;
 	//Criar Matriz dos nós de retransmissão
 					double mMR [nAp][nPar+1];
 
-					for (int l = 0; l <= nAp; ++l)
+					for (int l = 0; l < nAp; ++l)
 					{
 						for (int c = 0; c <= nPar; ++c)
 						{
@@ -592,7 +594,7 @@ int cont_Delay = 0;
 	double somaDelay = 0;
 	double somaAlcance = 0; 
 
-							for (int l = 0; l <= nAp; ++l){
+							for (int l = 0; l < nAp; ++l){
 
 								somaPerdaPct =  somaPerdaPct +  mMR[l][1];  
 								somaVazao    =  somaVazao    +  mMR[l][2];
@@ -623,7 +625,7 @@ int cont_Delay = 0;
 	//Normalização Inversa e Atribuição da pontuação de perda de pacotes ao Ap (Valor Normalizado * Pontuação do parametro).
 					double normalmMR[nAp][nPar];
 							std::cout << " " <<std::endl;
-							for (int l = 0; l <= nAp; ++l){
+							for (int l = 0; l < nAp; ++l){
 								normalmMR[l][1] = (mMR[l][1]/somaPerdaPct)*0.30;
 								mMR[l][1] = 1-normalmMR[l][1];
 			
@@ -632,7 +634,7 @@ int cont_Delay = 0;
 
 							}
 	//Normalização e Atribuição da pontuação de Vazão ao Ap.
-							for (int l = 0; l <= nAp; ++l){
+							for (int l = 0; l < nAp; ++l){
 								normalmMR[l][2] = (mMR[l][2]/somaVazao)*100;
 								mMR[l][2] = normalmMR[l][2]*0.25;
 					
@@ -640,7 +642,7 @@ int cont_Delay = 0;
 								std::cout << " " <<std::endl;
 							}
 	//Normalização e Atribuição da pontuação de Energia ao Ap.
-							for (int l = 0; l <= nAp; ++l){
+							for (int l = 0; l < nAp; ++l){
 								normalmMR[l][3] = (mMR[l][3]/somaEnergia)*100;
 								mMR[l][3] = normalmMR[l][3]*0.20;
 				
@@ -649,7 +651,7 @@ int cont_Delay = 0;
 							}
 	//Normalização Inversa e Atribuição da pontuação de Delay ao Ap.
 							
-							for (int l = 0; l <= nAp; ++l){
+							for (int l = 0; l < nAp; ++l){
 								normalmMR[l][4] = (mMR[l][4]/somaDelay)*0.3;
 								mMR[l][4] = 1-normalmMR[l][4];
 										
@@ -657,7 +659,7 @@ int cont_Delay = 0;
 								std::cout << " " <<std::endl;
 							}
 	//Normalização e Atribuição da pontuação de Alcance ao Ap.
-							for (int l = 0; l <= nAp; ++l){
+							for (int l = 0; l < nAp; ++l){
 								normalmMR[l][5] = (mMR[l][5]/somaAlcance)*100;
 								mMR[l][5] = normalmMR[l][5]*0.10;
 					
@@ -667,8 +669,8 @@ int cont_Delay = 0;
 							}
 	//Somatória da pontuação dos Aps.
 					double ic[nAp][2];
-							for(int l=0; l<=nAp; ++l){
-								for(int c=0; c<=nPar; ++c){
+							for(int l=0; l<nAp; ++l){
+								for(int c=0; c<nPar; ++c){
 									ic[l][0] = l;
 									ic[l][1] = ic[l][1]+mMR[l][c];
 								}
@@ -681,7 +683,7 @@ int cont_Delay = 0;
 	//Imprimir Resultados
 							double maior_ic = 0;
 							double id = 0;
-							for (int l=0; l<=nAp; ++l){
+							for (int l=0; l<nAp; ++l){
 								if(ic[l][1] > maior_ic){
 									maior_ic = ic[l][1];
 									id = l;
