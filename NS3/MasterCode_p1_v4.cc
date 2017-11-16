@@ -53,9 +53,9 @@ NS_LOG_COMPONENT_DEFINE ("MasterCode");
 
 //Proposta Conexão por P2P
 
-		void ThroughputMonitor(FlowMonitorHelper *fmhelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset DataSet, int nAp1, double som_Vazao[][1], double med_Vazao[][1]);
-		void JitterMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset2, int nAp2, double som_Jitter[][1], double med_Jitter[][1]);
-		void DelayMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset3,  int nAp3, double som_Delay[][1], double med_Delay[][1]);
+		void ThroughputMonitor(FlowMonitorHelper *fmhelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset DataSet, int nAp1, double med_Vazao[][1]);
+		void JitterMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset2, int nAp2, double med_Jitter[][1]);
+		void DelayMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset3,  int nAp3, double med_Delay[][1]);
 		void avalParam(int nAp, double medi_Vazao[][1], double medi_Delay[][1]);
 int main (int argc, char *argv[]) {
 // Step 1: Reconhecimento da rede.
@@ -68,14 +68,14 @@ int main (int argc, char *argv[]) {
 		int nSta = 2;
 
 //Variáveis para receber dados do FlowMonitor
-		double soma_Vazao[nAp][1];
+		// double soma_Vazao[nAp][1];
 		double media_Vazao[nAp][1];
 
-		double soma_Jitter[nAp][1];
+		// double soma_Jitter[nAp][1];
 		double media_Jitter[nAp][1];
 		// double pct_perdido = 0;
 
-		double soma_Delay[nAp][1];
+		// double soma_Delay[nAp][1];
 		double media_Delay[nAp][1];
 
 		// double energy[nAp][0] = 0;
@@ -229,7 +229,7 @@ int main (int argc, char *argv[]) {
 	  Ptr<FlowMonitor> allMon = fmHelper.InstallAll();
 
 	  // call the flow monitor function
-	  ThroughputMonitor(&fmHelper, allMon, dataset, nAp, soma_Vazao, media_Vazao); 
+	  ThroughputMonitor(&fmHelper, allMon, dataset, nAp, media_Vazao); 
 	        			
 	   
 	//-----------------FlowMonitor-JITTER--------------------
@@ -254,7 +254,7 @@ int main (int argc, char *argv[]) {
 	  //FlowMonitorHelper fmHelper;
 	  //Ptr<FlowMonitor> allMon = fmHelper.InstallAll();
 
-	  JitterMonitor(&fmHelper, allMon, dataset2, nAp, soma_Jitter, media_Jitter);
+	  JitterMonitor(&fmHelper, allMon, dataset2, nAp, media_Jitter);
 
 	//-----------------FlowMonitor-DELAY---------------------
 
@@ -275,7 +275,7 @@ int main (int argc, char *argv[]) {
       dataset3.SetTitle(dataTitle3);
       dataset3.SetStyle(Gnuplot2dDataset::LINES_POINTS);
 
-      DelayMonitor(&fmHelper, allMon, dataset3, nAp, soma_Delay, media_Delay);
+      DelayMonitor(&fmHelper, allMon, dataset3, nAp, media_Delay);
 
 //LÓGICA DE SELEÇÃO
       avalParam(nAp, media_Vazao, media_Delay);
@@ -284,8 +284,8 @@ std::cout << " " <<std::endl;
 std::cout << " " <<std::endl;
 for(int l=0;l<nAp;++l){
 	  std::cout << " " <<std::endl;
-      std::cout<<"Delay "<<media_Delay[l][0]<<std::endl;
-      std::cout<<"Vazao "<<media_Vazao[l][0]<<std::endl;
+      std::cout<<"Delay Main "<<media_Delay[l][0]<<std::endl;
+      std::cout<<"Vazao Main "<<media_Vazao[l][0]<<std::endl;
 }
 		std::cout << " " <<std::endl;
 //Metodo Animation
@@ -341,7 +341,7 @@ for(int l=0;l<nAp;++l){
 
 //-------------------------Metodo-VAZÃO---------------------------
 int cont_Vazao = 0;
-  void ThroughputMonitor (FlowMonitorHelper *fmhelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset DataSet, int nAp1, double som_Vazao[][1], double med_Vazao[][1])
+  void ThroughputMonitor (FlowMonitorHelper *fmhelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset DataSet, int nAp1, double med_Vazao[][1])
     {
 
 	  double localThrou=0;
@@ -368,17 +368,23 @@ int cont_Vazao = 0;
 		        std::cout<<" "<<std::endl;
 
 	//Coleta de dados a Vazão para o algoritmode seleção
-		        som_Vazao[l][0] = som_Vazao[l][0] + localThrou;
-		        cont_Vazao++;
+	// 	        som_Vazao[l][0] = som_Vazao[l][0] + localThrou;
+	// 	        cont_Vazao++;
+			med_Vazao[l][0] = localThrou;
+	  		std::cout<<"Média Throughput: "<<med_Vazao[l][0]<<std::endl;
 			   
 	    		}//IFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF  
-	  		}
+	  			}
 
-	//Continuação da Coleta de dados
-	  	med_Vazao[l][0] = som_Vazao[l][0]/cont_Vazao;
-	  	cont_Vazao=0;
-	  	}
-	        Simulator::Schedule(Seconds(1), &ThroughputMonitor, fmhelper, flowMon, DataSet, nAp1, som_Vazao, med_Vazao);
+	// //Continuação da Coleta de dados
+	  	// if(cont_Vazao !=0){
+
+	// 	  	med_Vazao[l][0] = som_Vazao[l][0]/cont_Vazao;
+	// 	  	cont_Vazao=0;
+
+		// }
+	}
+	        Simulator::Schedule(Seconds(1), &ThroughputMonitor, fmhelper, flowMon, DataSet, nAp1, med_Vazao);
 	     //if(flowToXml)
 	        {
 	    flowMon->SerializeToXmlFile ("Master_ThroughputMonitor.xml", true, true);
@@ -392,7 +398,7 @@ int cont_Vazao = 0;
 	// double pct_Recebido = 0;
 	// double som_Enviado = 0;
 	// double som_Recebido = 0;
-  void JitterMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset2, int nAp2, double som_Jitter[][1], double med_Jitter[][1])
+  void JitterMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset2, int nAp2, double med_Jitter[][1])
   {
          double localJitter = 0;
          double atraso2 = 0;
@@ -426,22 +432,28 @@ int cont_Vazao = 0;
     			// som_Enviado = som_Enviado + pct_Enviado;
     			// som_Recebido = som_Recebido + pct_Recebido;
 
-//Coleta de dados do Jitter para o algoritmode seleção
-    			som_Jitter[l][0] = som_Jitter[l][0] + localJitter;
-    			cont_Jitter++;
+// //Coleta de dados do Jitter para o algoritmode seleção
+//     			som_Jitter[l][0] = som_Jitter[l][0] + localJitter;
+//     			cont_Jitter++;
+			med_Jitter[l][0] = localJitter;
+			std::cout<<"Média Jitter: "<<med_Jitter[l][0]<<std::endl;
              }//IFFFFFFFFFF
 
-         atraso1 = atraso2;
+//          atraso1 = atraso2;
          
-         }
+         	}
 
-//Continuação da Coleta de dados do Jitter
-    med_Jitter[l][0] = som_Jitter[l][0]/cont_Jitter;
-    cont_Jitter = 0;
+// //Continuação da Coleta de dados do Jitter
+	    // if(cont_Jitter !=0){
+	    	
+// 		    med_Jitter[l][0] = som_Jitter[l][0]/cont_Jitter;
+// 		    cont_Jitter = 0;
+	    	
+		// }
 	}
 					// pct_perd = som_Enviado - som_Recebido;
 
-         Simulator::Schedule(Seconds(1), &JitterMonitor, fmHelper, flowMon, Dataset2, nAp2, som_Jitter, med_Jitter);
+         Simulator::Schedule(Seconds(1), &JitterMonitor, fmHelper, flowMon, Dataset2, nAp2, med_Jitter);
          {
            flowMon->SerializeToXmlFile("Master_JitterMonitor.xml", true, true);
          }
@@ -450,7 +462,7 @@ int cont_Vazao = 0;
 int cont_Delay = 0;
 	//-------------------------Metodo-DELAY---------------------------
 
-	  void  DelayMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset3, int nAp3, double som_Delay[][1], double med_Delay[][1])
+	  void  DelayMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset3, int nAp3, double med_Delay[][1])
 	  {
 	    double localDelay=0;
 
@@ -471,20 +483,25 @@ int cont_Delay = 0;
 	        std::cout<<" "<<std::endl;
 
 //Coleta de dados do Delay para o algoritmode seleção
-			som_Delay[l][0] = som_Delay[l][0] + localDelay;
-			cont_Delay++;
-	      }//IFFFFFFFFF
-	    }
+	// 			som_Delay[l][0] = som_Delay[l][0] + localDelay;
+	// 			cont_Delay++;
+	        med_Delay[l][0] = localDelay;
+			std::cout<<"Média Delay: "<<med_Delay[l][0]<<std::endl;
+		      }//IFFFFFFFFF
+	    	}
 	
 
-//Continuação da Coleta de dados do Delay
-	med_Delay[l][0] = som_Delay[l][0]/cont_Delay;
-	std::cout<<"Cont Delay "<<cont_Delay<<std::endl;
-	cont_Delay=0;
-	 std::cout<<"Média Delay: "<<med_Delay[l][0]<<std::endl;
-	 std::cout<<"Soma Delay: "<<som_Delay[l][0]<<std::endl;
+// //Continuação da Coleta de dados do Delay
+// 		if(cont_Delay !=0){
+// 			med_Delay[l][0] = localDelay;
+// // 			med_Delay[l][0] = som_Delay[l][0]/cont_Delay;
+// // 			std::cout<<"Cont Delay "<<cont_Delay<<std::endl;
+// // 			cont_Delay=0;
+// 			std::cout<<"Média Delay: "<<med_Delay[l][0]<<std::endl;
+
+		// }
 	}
-	    Simulator::Schedule(Seconds(1), &DelayMonitor, fmHelper, flowMon, Dataset3, nAp3, som_Delay, med_Delay);
+	    Simulator::Schedule(Seconds(1), &DelayMonitor, fmHelper, flowMon, Dataset3, nAp3, med_Delay);
 	    {
 	       flowMon->SerializeToXmlFile("Master_DelayMonitor.xml", true, true);
 	    }
@@ -519,6 +536,8 @@ int cont_Delay = 0;
 					// 	Delay [nAp][0] = 0;
 					// 	Range [nAp][0] = 0;
 					// }
+					std::cout << "Vazão do Flow: " << medi_Vazao[0][0] << " " <<std::endl;
+					std::cout << "Delay do Flow: " << medi_Delay[0][0] << " " <<std::endl;
 
 	//Atribuir valores dos Parâmetros
 					srand((unsigned)time(0));
@@ -526,11 +545,11 @@ int cont_Delay = 0;
 
 						LostPackets [l][0]= rand()%(1000);
 															
-						Throughput [l][0]= medi_Vazao [l][0];
+						Throughput [l][0]= medi_Vazao[l][0];
 
 						Energy [l][0]= rand()%(100);
 
-						Delay [l][0]= medi_Delay [l][0];
+						Delay [l][0]= medi_Delay[l][0];
 
 						Range [l][0]= rand()%(100);
 					}
