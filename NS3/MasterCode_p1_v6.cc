@@ -91,6 +91,10 @@ int main (int argc, char *argv[]) {
 		// double soma_Delay[nAp][1];
 		double** media_Delay = create(nAp, col);
 
+		// double energy[nAp][0] = 0;
+
+
+
 		  NodeContainer wifiApNodes;
 		  wifiApNodes.Create (nAp);
 		  		
@@ -287,7 +291,7 @@ int main (int argc, char *argv[]) {
       DelayMonitor(&fmHelper, allMon, dataset3, nAp, media_Delay);
 
 //LÓGICA DE SELEÇÃO
-      avalParam(nAp, media_Vazao, media_Delay);
+      //avalParam(nAp, media_Vazao, media_Delay);
 
 std::cout << " " <<std::endl;
 std::cout << " " <<std::endl;
@@ -344,7 +348,6 @@ for(int l=0;l<nAp;++l){
 
 		  Simulator::Destroy ();
 		  return 0;
-
 }
 
 
@@ -387,6 +390,7 @@ for(int l=0;l<nAp;++l){
 	    {
 		flowMon->SerializeToXmlFile ("Master_ThroughputMonitor.xml", true, true);
 	    }
+	    		avalParam(nAp1, 0, med_Vazao);
 	}
 
 //-------------------------Metodo-JITTER-------------------------
@@ -433,6 +437,7 @@ for(int l=0;l<nAp;++l){
 	    {
 	      flowMon->SerializeToXmlFile("Master_JitterMonitor.xml", true, true);
 	    }
+
 	}
 
 	//-------------------------Metodo-DELAY---------------------------
@@ -470,6 +475,7 @@ for(int l=0;l<nAp;++l){
 		{
 		   flowMon->SerializeToXmlFile("Master_DelayMonitor.xml", true, true);
 		}
+		avalParam(nAp3, med_Delay, 0);
 	}
 
 

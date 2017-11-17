@@ -15,11 +15,9 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Authors: 
- Carlos Lopes <carloslopesufpa@gmail.com>
- Elizeu Conde <elizeu.g.f.conde@gmail.com>
- Marcos Seruffo <marcos.seruffo@gmail.com>
- */
+ * Authors: Carlos Lopes <carloslopesufpa@gmail.com>
+			Elizeu Conde <elizeu.g.f.conde@gmail.com>
+*/
 
 
 #include "ns3/wifi-module.h"
