@@ -137,7 +137,7 @@ main (int argc, char *argv[])
                                      "MinY", DoubleValue (5.0),
                                      "DeltaX", DoubleValue (10.0),
                                      "DeltaY", DoubleValue (10.0),
-                                     "GridWidth", UintegerValue (4),
+                                     "GridWidth", UintegerValue (1),
                                      "LayoutType", StringValue ("RowFirst"));
 
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
@@ -149,7 +149,7 @@ main (int argc, char *argv[])
                                      "MinY", DoubleValue (5.0),
                                      "DeltaX", DoubleValue (10.0),
                                      "DeltaY", DoubleValue (10.0),
-                                     "GridWidth", UintegerValue (4),
+                                     "GridWidth", UintegerValue (1),
                                      "LayoutType", StringValue ("RowFirst"));
 
   mobility1.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
