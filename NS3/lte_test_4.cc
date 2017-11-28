@@ -57,10 +57,10 @@ int
 main (int argc, char *argv[])
 {
 
-  uint16_t numberOfNodes = 3;
+  uint16_t numberOfNodes = 1;
   double simTime = 20.0;
   // double distance = 60.0;
-  double interPacketInterval = 10;
+  double interPacketInterval = 0.1;
   bool useCa = false;
 
   int aux_energy = 0;
@@ -69,7 +69,7 @@ main (int argc, char *argv[])
   double Lost [numberOfNodes][1];
   double Atraso [numberOfNodes][1];
   double Energia [numberOfNodes][1];
-  double Rx[numberOfNodes][1];
+  double Rx = 0;
 
   // Command line arguments
   CommandLine cmd;
@@ -135,7 +135,7 @@ main (int argc, char *argv[])
   //   }
   MobilityHelper mobility;
   mobility.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                     "MinX", DoubleValue (5.0),
+                                     "MinX", DoubleValue (15.0),
                                      "MinY", DoubleValue (5.0),
                                      "DeltaX", DoubleValue (10.0),
                                      "DeltaY", DoubleValue (10.0),
@@ -147,7 +147,7 @@ main (int argc, char *argv[])
 
   MobilityHelper mobility1;
   mobility1.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                     "MinX", DoubleValue (15.0),
+                                     "MinX", DoubleValue (5.0),
                                      "MinY", DoubleValue (5.0),
                                      "DeltaX", DoubleValue (10.0),
                                      "DeltaY", DoubleValue (10.0),
@@ -248,16 +248,16 @@ main (int argc, char *argv[])
       serverApps.Add (packetSinkHelper.Install (ueNodes.Get(u)));
 
       UdpClientHelper dlClient (ueIpIface.GetAddress (u), dlPort);
-      dlClient.SetAttribute ("Interval", TimeValue (MilliSeconds(interPacketInterval)));
-      dlClient.SetAttribute ("MaxPackets", UintegerValue(10000000));
+      dlClient.SetAttribute ("Interval", TimeValue (Seconds(interPacketInterval)));
+      dlClient.SetAttribute ("MaxPackets", UintegerValue(1000));
 
       UdpClientHelper ulClient (remoteHostAddr, ulPort);
-      ulClient.SetAttribute ("Interval", TimeValue (MilliSeconds(interPacketInterval)));
-      ulClient.SetAttribute ("MaxPackets", UintegerValue(10000000));
+      ulClient.SetAttribute ("Interval", TimeValue (Seconds(interPacketInterval)));
+      ulClient.SetAttribute ("MaxPackets", UintegerValue(1000));
 
       UdpClientHelper client (ueIpIface.GetAddress (u), otherPort);
-      client.SetAttribute ("Interval", TimeValue (MilliSeconds(interPacketInterval)));
-      client.SetAttribute ("MaxPackets", UintegerValue(10000000));
+      client.SetAttribute ("Interval", TimeValue (Seconds(interPacketInterval)));
+      client.SetAttribute ("MaxPackets", UintegerValue(1000));
 
       clientApps.Add (dlClient.Install (remoteHost));
       clientApps.Add (ulClient.Install (ueNodes.Get(u)));
@@ -287,7 +287,7 @@ main (int argc, char *argv[])
   FlowMonitorHelper flowmon;
   Ptr<FlowMonitor> monitor = flowmon.Install(ueNodes);
 
-  // 10. Print per flow statistics
+ // 10. Print per flow statistics
   monitor->CheckForLostPackets ();
   Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier> (flowmon.GetClassifier ());
   FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats ();
@@ -302,19 +302,21 @@ main (int argc, char *argv[])
           // and
           //   Simulator::Stops at "second 10".
          
-              Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
-              if ( t.destinationAddress == "1.0.0.2")
-                {
-                  Rx[0][0] = i->second.rxPackets;
-                }
+              //Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
+              
+                  Rx = i->second.rxPackets;
+                  std::cout << "  LTE Rx Packets: " << Rx << "\n";
+                
         }
+
+
 
 //WIFI Simulation
   int nAp = 1;
-  int nSta = 2;
-  int nAll = 0;
-
-  nAll = nSta + nAp;
+  int nSta = 3;
+  
+  // int nAll = 0;
+  // nAll = nSta + nAp;
   // int nAp = nNode - 1;
 
 
@@ -331,10 +333,10 @@ main (int argc, char *argv[])
       all.Add(wifiStaNodes);
 
   // 2. Place nodes somehow, this is required by every wireless simulation
-  // for (size_t i = 0; i < nAll; ++i)
-  //   {
-  //     all.Get (i)->AggregateObject (CreateObject<ConstantPositionMobilityModel> ());
-  //   }
+  for (size_t i = 0; i < 4; ++i)
+    {
+      all.Get (i)->AggregateObject (CreateObject<ConstantPositionMobilityModel> ());
+    }
 
   // 3. Create propagation loss matrix
   Ptr<MatrixPropagationLossModel> lossModel = CreateObject<MatrixPropagationLossModel> ();
@@ -369,7 +371,7 @@ main (int argc, char *argv[])
   wifiPhy.Set ("ChannelNumber", UintegerValue (36));
   wifiMac.SetType ("ns3::StaWifiMac",
                    "Ssid", SsidValue (ssid));
-  apDevice = wifi.Install (wifiPhy, wifiMac, wifiApNodes;
+  apDevice = wifi.Install (wifiPhy, wifiMac, wifiApNodes);
 
 
   wifiMac.SetType ("ns3::ApWifiMac",
@@ -385,7 +387,7 @@ main (int argc, char *argv[])
 
   MobilityHelper mobilitywifiAp;
   mobilitywifiAp.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                 "MinX", DoubleValue (15.0),
+                                 "MinX", DoubleValue (30.0),
                                  "MinY", DoubleValue (20.0),
                                  "DeltaX", DoubleValue (10.0),
                                  "DeltaY", DoubleValue (10.0),
@@ -402,7 +404,7 @@ main (int argc, char *argv[])
                                  "MinY", DoubleValue (25.0),
                                  "DeltaX", DoubleValue (10.0),
                                  "DeltaY", DoubleValue (10.0),
-                                 "GridWidth", UintegerValue (2),
+                                 "GridWidth", UintegerValue (nSta),
                                  "LayoutType", StringValue ("RowFirst"));
 
   mobilitywifiSta.SetMobilityModel ("ns3::RandomWalk2dMobilityModel",
@@ -443,10 +445,12 @@ main (int argc, char *argv[])
   
   Ipv4AddressHelper ipv4;
   ipv4.SetBase ("10.0.0.0", "255.0.0.0");
-  ipv4.Assign (all);
-
-  Ipv4InterfaceContainer apInterface;
-  apInterface = ipv4.Assign (apDevice);
+  ipv4.Assign (apDevice);
+  ipv4.Assign (staDevice);
+  
+  
+  // Ipv4InterfaceContainer apInterface;
+  // apInterface = ipv4.Assign (apDevice);
 
   // 7. Install applications: two CBR streams each saturating the channel
   // ApplicationContainer cbrApps;
@@ -479,16 +483,16 @@ main (int argc, char *argv[])
    * This is a workaround for the lack of perfect ARP, see \bugid{187}
    */
   uint16_t  port = 9;
-  Time interPacketInterval = Seconds (0.1);
+  // Time interPacketInterval = Seconds (0.1);
 
   UdpEchoServerHelper apServer (port);
   ApplicationContainer serverApp = apServer.Install (wifiApNodes.Get (0));
-  serverApp.SetAttribute ("StartTime", TimeValue (Seconds (10.1)));
-  serverApp.SetAttribute ("StopTime", TimeValue (Seconds (20.0)));
+  serverApp.Start (Seconds (10.1));
+  serverApp.Stop (Seconds(20.0));
       
-  UdpEchoClientHelper staClient (apInterface.GetAddress (0), port);
-  staClient.SetAttribute ("MaxPackets", UintegerValue (Rx[0][0]));
-  staClient.SetAttribute ("Interval", TimeValue (interPacketInterval)); //packets/s
+  UdpEchoClientHelper staClient (Ipv4Address ("10.0.0.1"), port);
+  staClient.SetAttribute ("MaxPackets", UintegerValue (Rx));
+  staClient.SetAttribute ("Interval", TimeValue (Seconds (interPacketInterval))); //packets/s
   staClient.SetAttribute ("PacketSize", UintegerValue (1024));
 
 
@@ -497,12 +501,10 @@ main (int argc, char *argv[])
 
   // again using different start times to workaround Bug 388 and Bug 912
   for(int u = 0; u<nSta; ++u){
-    if(u!=1){
-      staClient.SetAttribute ("StartTime", TimeValue (Seconds (10.1)));
-      staClient.SetAttribute ("StopTime", TimeValue (Seconds (20.0)));
       wifiApps.Add (staClient.Install (wifiStaNodes.Get (u)));
-    }
   }
+      wifiApps.Start (Seconds (10.1));
+      wifiApps.Stop (Seconds(20.0));
 
 
 
@@ -533,7 +535,7 @@ main (int argc, char *argv[])
 
   // 8. Install FlowMonitor on all nodes
   FlowMonitorHelper flowmon1;
-  Ptr<FlowMonitor> monitor1 = flowmon1.InstallAll ();
+  Ptr<FlowMonitor> monitor1 = flowmon1.Install(all);
 
   Simulator::Stop(Seconds(simTime));
   Simulator::Run();
@@ -553,19 +555,19 @@ main (int argc, char *argv[])
           // and
           //   Simulator::Stops at "second 10".
          
-              Ipv4FlowClassifier::FiveTuple t = classifier1->FindFlow (i->first);
-              if ( t.sourceAddress == "10.0.0.1")
+              // Ipv4FlowClassifier::FiveTuple t = classifier1->FindFlow (i->first);
+              if (i->first > 4)
                 {
-                  // Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
+                  Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
                   std::cout << " " <<std::endl;
                   std::cout << "Flow: " << i->first - 2 << ". (" << t.sourceAddress << " -> " << t.destinationAddress << ")\n";
+                  std::cout << "  Received Packets: " << Rx << "\n";
                   std::cout << "  Tx Packets: " << i->second.txPackets << "\n";
                   // std::cout << "  Tx Bytes:   " << i->second.txBytes << "\n";
                   // std::cout << "  TxOffered:  " << i->second.txBytes * 8.0 / 9.0 / 1000 / 1000  << " Mbps\n";
                   //std::cout << "  Rx Packets: " << i->second.rxPackets << "\n";
                   // std::cout << "  Rx Bytes:   " << i->second.rxBytes << "\n";
-                  Rx[0][0] = i->second.rxPackets;
-                  std::cout << "  Received Packets: " << Rx[0][0] << "\n";
+                  std::cout << "  Rx Packets: " << i->second.rxPackets << "\n";
                   Lost[0][0] =  i->second.txPackets - i->second.rxPackets;
                   std::cout << "  Lost Packets: " << Lost[0][0] << "\n";
                   Vazao[0][0] =  i->second.rxBytes * 8.0 / 9.0 / 1000 / 1000;
