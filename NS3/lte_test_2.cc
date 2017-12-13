@@ -232,7 +232,7 @@ main (int argc, char *argv[])
 
 
 
-   AnimationInterface anim ("LTE_TEST.xml"); // Mandatory
+   AnimationInterface anim ("lte_test_2.xml"); // Mandatory
         
         for (uint32_t i = 0; i < ueNodes.GetN(); ++i)
         {
@@ -270,7 +270,7 @@ main (int argc, char *argv[])
           //   Simulator::Stops at "second 10".
          
               Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
-              if ( t.destinationAddress == "1.0.0.2")
+              if ( t.destinationAddress == "7.0.0.2")
                 {
                   // Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
                   std::cout << " " <<std::endl;

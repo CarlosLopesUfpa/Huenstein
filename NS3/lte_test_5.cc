@@ -59,37 +59,13 @@ main (int argc, char *argv[])
 
   uint16_t numberOfNodes = 1;
   double simTime = 10.0;
-  // double distance = 60.0;
   double interPacketInterval = 0.1;
-  bool useCa = false;
-
   double Rx = 0;
 
-  // Command line arguments
-  CommandLine cmd;
-  cmd.AddValue("numberOfNodes", "Number of eNodeBs + UE pairs", numberOfNodes);
-  cmd.AddValue("simTime", "Total duration of the simulation [s])", simTime);
-  // cmd.AddValue("distance", "Distance between eNBs [m]", distance);
-  cmd.AddValue("interPacketInterval", "Inter packet interval [ms])", interPacketInterval);
-  cmd.AddValue("useCa", "Whether to use carrier aggregation.", useCa);
-  cmd.Parse(argc, argv);
-
-  if (useCa)
-   {
-     Config::SetDefault ("ns3::LteHelper::UseCa", BooleanValue (useCa));
-     Config::SetDefault ("ns3::LteHelper::NumberOfComponentCarriers", UintegerValue (2));
-     Config::SetDefault ("ns3::LteHelper::EnbComponentCarrierManager", StringValue ("ns3::RrComponentCarrierManager"));
-   }
 
   Ptr<LteHelper> lteHelper = CreateObject<LteHelper> ();
   Ptr<PointToPointEpcHelper>  epcHelper = CreateObject<PointToPointEpcHelper> ();
   lteHelper->SetEpcHelper (epcHelper);
-
-  ConfigStore inputConfig;
-  inputConfig.ConfigureDefaults();
-
-  // parse again so you can override default values from the command line
-  cmd.Parse(argc, argv);
 
   Ptr<Node> pgw = epcHelper->GetPgwNode ();
 
@@ -121,12 +97,6 @@ main (int argc, char *argv[])
   enbNodes.Create(numberOfNodes);
   ueNodes.Create(numberOfNodes);
 
-  // Install Mobility Model
-  // Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
-  // for (uint16_t i = 0; i < numberOfNodes; i++)
-  //   {
-  //     positionAlloc->Add (Vector(distance * i, 0, 0));
-  //   }
   MobilityHelper mobility;
   mobility.SetPositionAllocator ("ns3::GridPositionAllocator",
                                      "MinX", DoubleValue (15.0),
@@ -176,28 +146,6 @@ main (int argc, char *argv[])
 
   mobility3.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility3.Install(remoteHost);
-
-
-    // //Energy
-    //   srand((unsigned)time(0));
-    //   for (int l=0; l<numberOfNodes; ++l)
-    //     {
-    //       aux_energy = rand()%(100);
-    //       Ptr<BasicEnergySource> energySource = CreateObject<BasicEnergySource>();
-    //       Ptr<SimpleDeviceEnergyModel> energyModel = CreateObject<SimpleDeviceEnergyModel>();
-
-    //       energySource->SetInitialEnergy (aux_energy);
-    //       energyModel->SetEnergySource (energySource);
-    //       energySource->AppendDeviceEnergyModel (energyModel);
-    //       energyModel->SetCurrentA (20);
-
-    //       // aggregate energy source to node
-    //       ueNodes.Get(l)->AggregateObject (energySource);
-    //       // energy[l][0] = energySource;
-    //       Energia[l][0] = aux_energy;
-    //     }
-
-
 
   // Install LTE Devices to the nodes
   NetDeviceContainer enbLteDevs = lteHelper->InstallEnbDevice (enbNodes);
@@ -271,20 +219,12 @@ main (int argc, char *argv[])
   clientApps.Stop (Seconds (10.0));
 
   lteHelper->EnableTraces ();
-  // Uncomment to enable PCAP tracing
-  //p2ph.EnablePcapAll("lena-epc-first");
-
-
-
-
+ 
  // 8. Install FlowMonitor on all nodes
   FlowMonitorHelper flowmon;
   Ptr<FlowMonitor> monitor = flowmon.InstallAll ();
 
- 
-
-
-
+//Install NetAnim
    AnimationInterface anim ("lte_test_5.xml"); // Mandatory
         
         for (uint32_t i = 0; i < ueNodes.GetN(); ++i)
@@ -298,16 +238,14 @@ main (int argc, char *argv[])
           anim.UpdateNodeDescription (enbNodes.Get(i), "enbNodes"); // Optional
           anim.UpdateNodeColor (enbNodes.Get(i), 255, 255, 0); // Coloração
         }
-
-        anim.EnablePacketMetadata (); // Optiona
+        anim.EnablePacketMetadata ();
 
 
 
   Simulator::Stop(Seconds(simTime));
   Simulator::Run();
 
-
-        // 10. Print per flow statistics
+// 10. Print per flow statistics
   monitor->CheckForLostPackets ();
   Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier> (flowmon.GetClassifier ());
   FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats ();
@@ -315,30 +253,20 @@ main (int argc, char *argv[])
       for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin (); i != stats.end (); ++i)
         {
           
-          // first 2 FlowIds are for ECHO apps, we don't want to display them
-          //
-          // Duration for throughput measurement is 9.0 seconds, since
-          //   StartTime of the OnOffApplication is at about "second 1"
-          // and
-          //   Simulator::Stops at "second 10".
-         
           Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
-        if (t.destinationAddress == "7.0.0.2")
-        {
-          std::cout << "Flow " << i->first - 2 << " (" << t.sourceAddress << " -> " << t.destinationAddress << ")\n";
-          std::cout << "  Tx Packets: " << i->second.txPackets << "\n";
-          std::cout << "  Tx Bytes:   " << i->second.txBytes << "\n";
-          std::cout << "  TxOffered:  " << i->second.txBytes * 8.0 / 9.0 / 1000 / 1000  << " Mbps\n";
-          std::cout << "  Rx Packets: " << i->second.rxPackets << "\n";
-          std::cout << "  Rx Bytes:   " << i->second.rxBytes << "\n";
-          std::cout << "  Throughput: " << i->second.rxBytes * 8.0 / 9.0 / 1000 / 1000  << " Mbps\n";
-          Rx = i->second.rxPackets;
-          std::cout << "  LTE Rx Packets: " << Rx << "\n";
-        }
-                 
-                
+          if (t.destinationAddress == "7.0.0.2")
+          {
+            std::cout << "Flow " << i->first - 2 << " (" << t.sourceAddress << " -> " << t.destinationAddress << ")\n";
+            std::cout << "  Tx Packets: " << i->second.txPackets << "\n";
+            std::cout << "  Tx Bytes:   " << i->second.txBytes << "\n";
+            std::cout << "  TxOffered:  " << i->second.txBytes * 8.0 / 9.0 / 1000 / 1000  << " Mbps\n";
+            std::cout << "  Rx Packets: " << i->second.rxPackets << "\n";
+            std::cout << "  Rx Bytes:   " << i->second.rxBytes << "\n";
+            std::cout << "  Throughput: " << i->second.rxBytes * 8.0 / 9.0 / 1000 / 1000  << " Mbps\n";
+            Rx = i->second.rxPackets;
+            std::cout << "  LTE Rx Packets: " << Rx << "\n";
+          }
         }
   Simulator::Destroy();
   return 0;
-
 }

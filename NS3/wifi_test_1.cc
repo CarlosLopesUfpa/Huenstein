@@ -58,9 +58,9 @@ main (int argc, char *argv[])
 {
 
   //uint16_t numberOfNodes = 1;
-  double simTime = 10.0;
+  double simTime = 20.0;
   // double distance = 60.0;
-  double interPacketInterval = 0.5;
+  double interPacketInterval = 0.01;
   int aux_energy = 0;
   int nAp = 1;
   int nSta = 3;
@@ -302,8 +302,7 @@ main (int argc, char *argv[])
           //   Simulator::Stops at "second 10".
          
               Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
-              if (t.destinationAddress == "192.168.1.2"||t.destinationAddress == "192.168.1.3"||t.destinationAddress == "192.168.1.4")
-                {
+            
                   //Ipv4FlowClassifier::FiveTuple t = classifier1->FindFlow (i->first);
                   std::cout << " " <<std::endl;
                   std::cout << "Flow: " << i->first - 2 << ". (" << t.sourceAddress << " -> " << t.destinationAddress << ")\n";
@@ -321,7 +320,7 @@ main (int argc, char *argv[])
                   std::cout << "  Energy: " << Energia[0][0] << "\n";
                   Atraso[0][0] =  i->second.timeLastRxPacket.GetSeconds()-i->second.timeLastTxPacket.GetSeconds();
                   std::cout << "  Atraso: " << Atraso[0][0] << "\n";
-                }
+                
         }
 
   /*GtkConfigStore config;
