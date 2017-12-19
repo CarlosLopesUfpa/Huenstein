@@ -58,10 +58,9 @@ main (int argc, char *argv[])
 {
 
   uint16_t numberOfNodes = 1;
-  double simTime = 10.0;
+  double simTime = 200;
   double interPacketInterval = 0.1;
   double Rx = 0;
-
 
   Ptr<LteHelper> lteHelper = CreateObject<LteHelper> ();
   Ptr<PointToPointEpcHelper>  epcHelper = CreateObject<PointToPointEpcHelper> ();
@@ -213,10 +212,10 @@ main (int argc, char *argv[])
         }
     }
   serverApps.Start (Seconds (0.01));
-  serverApps.Stop (Seconds (10.0));
+  serverApps.Stop (Seconds (200.0));
 
   clientApps.Start (Seconds (0.01));
-  clientApps.Stop (Seconds (10.0));
+  clientApps.Stop (Seconds (200.0));
 
   lteHelper->EnableTraces ();
  
@@ -254,16 +253,21 @@ main (int argc, char *argv[])
         {
           
           Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
-          if (t.destinationAddress == "7.0.0.2")
+          if (t.sourceAddress == "1.0.0.2")
           {
             std::cout << "Flow " << i->first - 2 << " (" << t.sourceAddress << " -> " << t.destinationAddress << ")\n";
             std::cout << "  Tx Packets: " << i->second.txPackets << "\n";
             std::cout << "  Tx Bytes:   " << i->second.txBytes << "\n";
-            std::cout << "  TxOffered:  " << i->second.txBytes * 8.0 / 9.0 / 1000 / 1000  << " Mbps\n";
-            std::cout << "  Rx Packets: " << i->second.rxPackets << "\n";
             std::cout << "  Rx Bytes:   " << i->second.rxBytes << "\n";
+            std::cout << "\n";
+            std::cout << "  TxOffered:  " << i->second.txBytes * 8.0 / 9.0 / 1000 / 1000  << " Mbps\n";
             std::cout << "  Throughput: " << i->second.rxBytes * 8.0 / 9.0 / 1000 / 1000  << " Mbps\n";
+            std::cout << "  Tx Packets: " << i->second.txPackets << "\n";
+            std::cout << "  Rx Packets: " << i->second.rxPackets << "\n";
             Rx = i->second.rxPackets;
+            std::cout << "\n";
+            std::cout << "\n";
+            std::cout<<"Duration  : "<<(i->second.timeLastRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds())<<std::endl;
             std::cout << "  LTE Rx Packets: " << Rx << "\n";
           }
         }
