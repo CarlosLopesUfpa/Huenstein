@@ -29,7 +29,8 @@
 #include "ns3/applications-module.h"
 #include "ns3/point-to-point-helper.h"
 #include "ns3/config-store.h"
-
+#include "ns3/propagation-loss-model.h"
+#include "ns3/propagation-module.h"
 
 #include "ns3/propagation-module.h"
 #include "ns3/netanim-module.h"
@@ -67,7 +68,7 @@ NS_LOG_COMPONENT_DEFINE ("Wifi_Test");
 int main (int argc, char *argv[]) {
 // Step 1: Reconhecimento da rede.
 //WIFI
-  int nAp = 1;
+  int nAp = 2;
   int nSta = nAp * 10;
   int col = 1;
 //Variáveis para receber dados do FlowMonitor
@@ -125,6 +126,9 @@ int main (int argc, char *argv[]) {
   // wifiChannel->SetPropagationLossModel (lossModel);
   // wifiChannel->SetPropagationDelayModel (CreateObject <ConstantSpeedPropagationDelayModel> ());
       YansWifiChannelHelper channel = YansWifiChannelHelper::Default ();
+      // channel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
+      // channel.AddPropagationLoss ("ns3::FriisPropagationLossModel");
+
       YansWifiPhyHelper wifiPhy = YansWifiPhyHelper::Default ();
       wifiPhy.SetPcapDataLinkType (YansWifiPhyHelper::DLT_IEEE802_11_RADIO);
       wifiPhy.SetChannel (channel.Create ());
@@ -278,7 +282,7 @@ int main (int argc, char *argv[]) {
   UdpServerHelper server (port);
   ApplicationContainer apps = server.Install (wifiApNodes.Get (0));
   apps.Start (Seconds (1.0));
-  apps.Stop (Seconds (simTime));
+  apps.Stop (Seconds (simTime/2));
 
   UdpClientHelper client (apInterface.GetAddress (0), port);
   client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
@@ -288,8 +292,223 @@ int main (int argc, char *argv[]) {
   for(int u = 0; u<nSta; ++u){
   apps = client.Install (wifiStaNodes.Get(u));
   apps.Start (Seconds (2.0));
-  apps.Stop (Seconds (simTime));
+  apps.Stop (Seconds (simTime/2));
   }
+
+
+
+
+
+
+// Step 1: Reconhecimento da rede.
+  //uint16_t numberOfNodes = 1;
+  // double Rx = 0;
+
+  // CommandLine cmd;
+  // cmd.AddValue ("Rx", "Number of Packets", Rx);
+  // cmd.Parse (argc,argv);
+    
+  // 1. Create 3 nodes
+
+      NodeContainer all1;
+      all1.Add(wifiApNodes1);
+      all1.Add(wifiStaNodes1);
+
+  // // 2. Place nodes somehow, this is required by every wireless simulation
+  // for (size_t i = 0; i < wifiStaNodes.GetN(); ++i)
+  //   {
+  //     all.Get (i)->AggregateObject (CreateObject<ConstantPositionMobilityModel> ());
+  //   }
+
+  // // 3. Create propagation loss matrix
+  // Ptr<MatrixPropagationLossModel> lossModel = CreateObject<MatrixPropagationLossModel> ();
+  // lossModel->SetDefaultLoss (200); // set default loss to 200 dB (no link)
+  // for(int u = 0; u < nSta; ++u){
+  // lossModel->SetLoss (wifiApNodes.Get (0)->GetObject<MobilityModel> (), wifiStaNodes.Get (u)->GetObject<MobilityModel> (), 50); // set symmetric loss 0 <-> 1 to 50 dB
+  // }
+
+
+
+  // // 4. Create & setup wifi channel
+  // Ptr<YansWifiChannel> wifiChannel = CreateObject <YansWifiChannel> ();
+  // wifiChannel->SetPropagationLossModel (lossModel);
+  // wifiChannel->SetPropagationDelayModel (CreateObject <ConstantSpeedPropagationDelayModel> ());
+      YansWifiChannelHelper channel1 = YansWifiChannelHelper::Default ();
+      // channel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
+      // channel.AddPropagationLoss ("ns3::FriisPropagationLossModel");
+
+      YansWifiPhyHelper wifiPhy1 = YansWifiPhyHelper::Default ();
+      wifiPhy1.SetPcapDataLinkType (YansWifiPhyHelper::DLT_IEEE802_11_RADIO);
+      wifiPhy1.SetChannel (channel1.Create ());
+
+      WifiHelper wifi1;
+      wifi1.SetStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
+      wifi1.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue ("HtMcs7"), "ControlMode", StringValue ("HtMcs0"));
+      WifiMacHelper wifiMac1;
+
+  NetDeviceContainer staDevice1, apDevice1;
+  Ssid ssid1;
+
+  //Network A
+  ssid1 = Ssid ("network-A");
+  wifiPhy1.Set ("ChannelNumber", UintegerValue (36));
+  wifiMac1.SetType ("ns3::StaWifiMac",
+                   "Ssid", SsidValue (ssid1));
+  staDevice1 = wifi1.Install (wifiPhy1, wifiMac1, wifiStaNodes1);
+
+  wifiMac1.SetType ("ns3::ApWifiMac",
+               "Ssid", SsidValue (ssid1),
+               "EnableBeaconJitter", BooleanValue (false));
+  apDevice1 = wifi1.Install (wifiPhy1, wifiMac1, wifiApNodes1);
+
+
+//   std::string phyMode ("DsssRate1Mbps");
+//   bool verbose = false;
+// // The below set of helpers will help us to put together the wifi NICs we want
+//   WifiHelper wifi;
+//   if (verbose)
+//     {
+//       wifi.EnableLogComponents ();  // Turn on all Wifi logging
+//     }
+
+// YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
+//   // set it to zero; otherwise, gain will be added
+//   wifiPhy.Set ("RxGain", DoubleValue (-10) );
+//   // ns-3 supports RadioTap and Prism tracing extensions for 802.11b
+//   wifiPhy.SetPcapDataLinkType (YansWifiPhyHelper::DLT_IEEE802_11_RADIO);
+
+//   YansWifiChannelHelper wifiChannel;
+//   wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
+//   wifiChannel.AddPropagationLoss ("ns3::FriisPropagationLossModel");
+//   wifiPhy.SetChannel (wifiChannel.Create ());
+
+//   // Add an upper mac and disable rate control
+//   WifiMacHelper wifiMac;
+//   wifi.SetStandard (WIFI_PHY_STANDARD_80211b);
+//   wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager",
+//                                 "DataMode",StringValue (phyMode),
+//                                 "ControlMode",StringValue (phyMode));
+//   // Set it to adhoc mode
+//   wifiMac.SetType ("ns3::AdhocWifiMac");
+//   NetDeviceContainer apDevice = wifi.Install (wifiPhy, wifiMac, wifiApNodes);
+//   NetDeviceContainer staDevice = wifi.Install (wifiPhy, wifiMac, wifiStaNodes);
+      
+
+      
+  MobilityHelper mobilitywifiAp1;
+  mobilitywifiAp1.SetPositionAllocator ("ns3::GridPositionAllocator",
+                                 "MinX", DoubleValue (30.0),
+                                 "MinY", DoubleValue (5.0),
+                                 "DeltaX", DoubleValue (10.0),
+                                 "DeltaY", DoubleValue (10.0),
+                                 "GridWidth", UintegerValue (1),
+                                 "LayoutType", StringValue ("RowFirst"));
+
+  mobilitywifiAp1.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  mobilitywifiAp1.Install (wifiApNodes1);
+
+
+  MobilityHelper mobilitywifiSta1;
+  mobilitywifiSta1.SetPositionAllocator ("ns3::GridPositionAllocator",
+                                 "MinX", DoubleValue (10.0),
+                                 "MinY", DoubleValue (0.0),
+                                 "DeltaX", DoubleValue (10.0),
+                                 "DeltaY", DoubleValue (10.0),
+                                 "GridWidth", UintegerValue (5),
+                                 "LayoutType", StringValue ("RowFirst"));
+
+  mobilitywifiSta1.SetMobilityModel ("ns3::RandomWalk2dMobilityModel");
+  mobilitywifiSta1.Install (wifiStaNodes1);
+
+  // Energy
+      srand((unsigned)time(0));
+      // for (int l=0; l<nAp; ++l)
+      //   {
+          aux_energy = rand()%(100);
+          Ptr<BasicEnergySource> energySource = CreateObject<BasicEnergySource>();
+          Ptr<SimpleDeviceEnergyModel> energyModel = CreateObject<SimpleDeviceEnergyModel>();
+
+          energySource->SetInitialEnergy (aux_energy);
+          energyModel->SetEnergySource (energySource);
+          energySource->AppendDeviceEnergyModel (energyModel);
+          energyModel->SetCurrentA (20);
+
+          // aggregate energy source to node
+          wifiApNodes.Get(l)->AggregateObject (energySource);
+          // energy[l][0] = energySource;
+          Energia[1][0] = aux_energy;
+        // }
+
+
+
+  // // 6. Install TCP/IP stack & assign IP addresses
+  InternetStackHelper internetw1;
+  internetw1.Install (all1);
+
+  Ipv4AddressHelper ipv41;
+  ipv41.SetBase ("192.168.2.0", "255.255.255.0");
+  Ipv4InterfaceContainer apInterface1 = ipv41.Assign (apDevice1);
+  Ipv4InterfaceContainer staInterface1 = ipv41.Assign (staDevice1);
+
+  Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
+
+  // ipv4.Assign (apDevice);
+  // ipv4.Assign (staDevice);
+
+  // uint16_t  port = 9;
+  // // Time interPacketInterval = Seconds (0.1);
+
+  // UdpEchoServerHelper apServer (port);
+  // ApplicationContainer serverApp = apServer.Install (wifiApNodes.Get(0));
+  // serverApp.Start (Seconds (1.0));
+  // serverApp.Stop (Seconds(30.0));
+      
+  // UdpEchoClientHelper staClient (Ipv4Address ("192.168.1.1"), port);
+  // staClient.SetAttribute ("MaxPackets", UintegerValue (Rx));
+  // staClient.SetAttribute ("Interval", TimeValue (Seconds (interPacketInterval))); //packets/s
+  // staClient.SetAttribute ("PacketSize", UintegerValue (1024));
+
+  // // ApplicationContainer wifiApps;
+  // for(uint16_t u = 0; u<wifiStaNodes.GetN(); ++u){
+  //     serverApp = staClient.Install (wifiStaNodes.Get (u));
+  // }
+  // serverApp.Start (Seconds (2.0));
+  // serverApp.Stop (Seconds(30.0));
+
+
+//
+// Create one udpServer applications on node one.
+
+//
+
+  // double simTime = 300;
+  // uint32_t MaxPacketSize = 1024;
+  // uint32_t maxPacketCount = 10000;
+  // double PacketInterval = 0.2;
+  // uint16_t port = 4000;
+
+  UdpServerHelper server1 (port);
+  ApplicationContainer apps1 = server1.Install (wifiApNodes1.Get (0));
+  apps1.Start (Seconds (simTime/2));
+  apps1.Stop (Seconds (simTime));
+
+  UdpClientHelper client1 (apInterface1.GetAddress (0), port);
+  client1.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
+  client1.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
+  client1.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
+  
+  for(int u = 0; u<nSta; ++u){
+  apps1 = client1.Install (wifiStaNodes1.Get(u));
+  apps1.Start (Seconds (simTime/2));
+  apps1.Stop (Seconds (simTime));
+  }
+
+
+
+
+
+
+
 
 //FLOW-MONITOR
   // 8. Install FlowMonitor on all nodes
@@ -332,7 +551,7 @@ int main (int argc, char *argv[]) {
       // and
       //   Simulator::Stops at "second 10".
       for(int u=0; u<nAp;++u){
-      if (i->first < 3)
+      if (i->first < 2)
         {
           // for(int l = 0; l<nAp; ++l){
             Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
@@ -518,7 +737,7 @@ int main (int argc, char *argv[]) {
         normalmMR[l][5] = (mMR[l][5]/somaJitter);
 
         FinalScore[l][0]=l;
-        FinalScore[l][1]= (((1-normalmMR[l][1])*100)*0.3)+((normalmMR[l][2]*100)*0.25)+((normalmMR[l][3]*100)*0.2)+(((normalmMR[l][4])*100)*0.15)+(((normalmMR[l][5])*100)*0.1);
+        FinalScore[l][1]= (((normalmMR[l][1])*100)*0.3)+((normalmMR[l][2]*100)*0.25)+((normalmMR[l][3]*100)*0.2)+(((normalmMR[l][4])*100)*0.15)+(((normalmMR[l][5])*100)*0.1);
         
         std::cout << "Nó " << l << " Pontuação perda de pacotes " << ((normalmMR[l][1])*100)*0.3<<std::endl;
         std::cout << "Nó " << l << " Pontuação vazão " << (normalmMR[l][2]*100)*0.25<<std::endl;

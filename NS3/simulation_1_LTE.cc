@@ -32,6 +32,13 @@
 
 
 #include "ns3/propagation-module.h"
+
+#include "ns3/antenna-model.h"
+
+#include "ns3/isotropic-antenna-model.h"
+
+#include <ns3/buildings-propagation-loss-model.h>
+
 #include "ns3/netanim-module.h"
 #include "ns3/flow-monitor-module.h"
 #include "ns3/wifi-module.h"
@@ -65,13 +72,13 @@ main (int argc, char *argv[])
 {
 
   uint16_t numberOfNodesENB = 1;
-  uint16_t numberOfNodesEU = 1;
+  uint16_t numberOfNodesEU = 20;
 
   double PacketInterval = 0.2;
   double MaxPacketSize = 1024;
   double maxPacketCount = 10000;
 
-  double simTime = 300;
+  double simTime = 150;
 // double interPacketInterval = 150.0;
 // double simTime = 0.05;
 // double distance = 250.0;
@@ -79,6 +86,9 @@ main (int argc, char *argv[])
   
 //creation de l'objet epcHelper.
 Ptr<LteHelper> lteHelper = CreateObject<LteHelper> ();
+lteHelper->SetAttribute ("PathlossModel", 
+                         StringValue ("ns3::FriisPropagationLossModel"));
+lteHelper->SetEnbAntennaModelType ("ns3::IsotropicAntennaModel");
 Ptr<PointToPointEpcHelper>  epcHelper = CreateObject<PointToPointEpcHelper> ();
 lteHelper->SetEpcHelper (epcHelper);
 
@@ -208,12 +218,12 @@ for (uint16_t i = 0; i < numberOfNodesEU; i++)
 
 
 //pour activer le support radio qui porte les données entre ueDevs et enbDevs
-Ptr<EpcTft> tft = Create<EpcTft> ();
-EpcTft::PacketFilter pf;
-pf.localPortStart = 1234;
-pf.localPortEnd = 1234;
-tft->Add (pf);
-lteHelper->ActivateDedicatedEpsBearer (ueDevs, EpsBearer (EpsBearer::NGBR_VIDEO_TCP_DEFAULT), tft);
+// Ptr<EpcTft> tft = Create<EpcTft> ();
+// EpcTft::PacketFilter pf;
+// pf.localPortStart = 1234;
+// pf.localPortEnd = 1234;
+// tft->Add (pf);
+// lteHelper->ActivateDedicatedEpsBearer (ueDevs, EpsBearer (EpsBearer::NGBR_VIDEO_TCP_DEFAULT), tft);
 
 
   // Install and start applications on UEs and remote host
@@ -416,7 +426,7 @@ lteHelper->ActivateDedicatedEpsBearer (ueDevs, EpsBearer (EpsBearer::NGBR_VIDEO_
         {
         Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
         // if(fiveTuple.destinationAddress == "192.168.1.6")
-        if(stats->first < 1)
+        if(stats->first < 2)
         {
              std::cout<<"--------------------------------Vazao---------------------------------"<<std::endl;
               std::cout<<"Flow ID: " << stats->first <<"; "<< fiveTuple.sourceAddress <<" -----> "<<fiveTuple.destinationAddress<<std::endl;
@@ -431,7 +441,7 @@ lteHelper->ActivateDedicatedEpsBearer (ueDevs, EpsBearer (EpsBearer::NGBR_VIDEO_
       Simulator::Schedule(Seconds(1), &ThroughputMonitor, fmhelper, flowMon, DataSet);
    //if(flowToXml)
       {
-    flowMon->SerializeToXmlFile ("simulation_1/lte_flow/lte_Flow.xml", true, true);
+    flowMon->SerializeToXmlFile ("ns-3-dev/simulation_1/lte_flow/lte_Flow.xml", true, true);
       }
   }
 
@@ -448,7 +458,7 @@ lteHelper->ActivateDedicatedEpsBearer (ueDevs, EpsBearer (EpsBearer::NGBR_VIDEO_
              {
                 Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
                 // if(fiveTuple.destinationAddress == "192.168.1.6")
-                if(stats->first < 1)
+                if(stats->first < 2)
                 {
                     std::cout<<"--------------------------------Atraso-------------------------------------"<<std::endl;
                     std::cout<<"Flow ID: "<< stats->first <<"; "<< fiveTuple.sourceAddress <<" ------> " <<fiveTuple.destinationAddress<<std::endl;
@@ -480,7 +490,7 @@ lteHelper->ActivateDedicatedEpsBearer (ueDevs, EpsBearer (EpsBearer::NGBR_VIDEO_
              {
                 Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
                 // if(fiveTuple.destinationAddress == "192.168.1.6")
-                if(stats->first < 1)
+                if(stats->first < 2)
                 {
                     std::cout<<"--------------------------------Loss-------------------------------------"<<std::endl;
                     std::cout<<"    Flow ID: "<< stats->first <<"; "<< fiveTuple.sourceAddress <<" ------> " <<fiveTuple.destinationAddress<<std::endl;
@@ -514,7 +524,7 @@ lteHelper->ActivateDedicatedEpsBearer (ueDevs, EpsBearer (EpsBearer::NGBR_VIDEO_
            {
             Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
             // if(fiveTuple.destinationAddress == "192.168.1.6")
-            if(stats->first < 1)
+            if(stats->first < 2)
             {
                 std::cout<<"--------------------------------Jitter-------------------------------------"<<std::endl;
                 std::cout<<"Flow ID : "<< stats->first <<"; "<< fiveTuple.sourceAddress <<"------>" <<fiveTuple.destinationAddress<<std::endl;

@@ -32,6 +32,13 @@
 
 
 #include "ns3/propagation-module.h"
+
+#include <ns3/buildings-propagation-loss-model.h>
+
+#include "ns3/antenna-model.h"
+
+#include "ns3/isotropic-antenna-model.h"
+
 #include "ns3/netanim-module.h"
 #include "ns3/flow-monitor-module.h"
 #include "ns3/wifi-module.h"
@@ -67,6 +74,9 @@ main (int argc, char *argv[])
   double Rx = 0;
 
   Ptr<LteHelper> lteHelper = CreateObject<LteHelper> ();
+  lteHelper->SetAttribute ("PathlossModel", 
+                           StringValue ("ns3::FriisPropagationLossModel"));
+  lteHelper->SetEnbAntennaModelType ("ns3::IsotropicAntennaModel");
   Ptr<PointToPointEpcHelper>  epcHelper = CreateObject<PointToPointEpcHelper> ();
   lteHelper->SetEpcHelper (epcHelper);
 
@@ -260,7 +270,7 @@ main (int argc, char *argv[])
         {
           
           Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
-          if (i->first < 3)
+          if (i->first < 2)
           {
             std::cout << "Flow " << i->first - 2 << " (" << t.sourceAddress << " -> " << t.destinationAddress << ")\n";
             std::cout << "  Tx Packets: " << i->second.txPackets << "\n";

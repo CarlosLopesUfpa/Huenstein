@@ -29,7 +29,7 @@
 #include "ns3/applications-module.h"
 #include "ns3/point-to-point-helper.h"
 #include "ns3/config-store.h"
-
+#include "ns3/propagation-loss-model.h"
 
 #include "ns3/propagation-module.h"
 #include "ns3/netanim-module.h"
@@ -52,14 +52,19 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("Wifi_Test");
 
+void ThroughputMonitor (FlowMonitorHelper *fmhelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset DataSet);
+void DelayMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset2);
+void LossMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset3);
+void JitterMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset4);
+
 int
 main (int argc, char *argv[])
 {
   
   double interPacketInterval = 0.2;
   uint32_t MaxPacketSize = 1024;
-  double simTime = 300;
-  double Rx = 1000;
+  double simTime = 150;
+  double Rx = 10000;
 
   // int aux_energy = 0;
   int nAp = 1;
@@ -284,7 +289,7 @@ main (int argc, char *argv[])
 
     //-----------------FlowMonitor-THROUGHPUT----------------
 
-    std::string fileNameWithNoExtension = "Flow_vs_Throughput";
+    std::string fileNameWithNoExtension = "wifi_Flow_vs_Throughput";
     std::string graphicsFileName        = fileNameWithNoExtension + ".png";
     std::string plotFileName            = fileNameWithNoExtension + ".plt";
     std::string plotTitle               = "Flow_vs_Throughput";
@@ -309,7 +314,7 @@ main (int argc, char *argv[])
      
     //-----------------FlowMonitor-Atraso--------------------
 
-    std::string fileNameWithNoExtension2 = "Flow_vs_Delay";
+    std::string fileNameWithNoExtension2 = "wifi_Flow_vs_Delay";
     std::string graphicsFileName2      = fileNameWithNoExtension2 + ".png";
     std::string plotFileName2        = fileNameWithNoExtension2 + ".plt";
     std::string plotTitle2           = "Flow_vs_Delay";
@@ -331,7 +336,7 @@ main (int argc, char *argv[])
 
     //-----------------FlowMonitor-LossPackets--------------------
 
-    std::string fileNameWithNoExtension3 = "Flow_vs_Loss";
+    std::string fileNameWithNoExtension3 = "wifi_Flow_vs_Loss";
     std::string graphicsFileName3      = fileNameWithNoExtension3 + ".png";
     std::string plotFileName3        = fileNameWithNoExtension3 + ".plt";
     std::string plotTitle3           = "Flow_vs_Loss";
@@ -353,7 +358,7 @@ main (int argc, char *argv[])
    
     //-----------------FlowMonitor-JITTER--------------------
 
-    std::string fileNameWithNoExtension4 = "Flow_vs_Jitter";
+    std::string fileNameWithNoExtension4 = "wifi_Flow_vs_Jitter";
     std::string graphicsFileName4      = fileNameWithNoExtension4 + ".png";
     std::string plotFileName4        = fileNameWithNoExtension4 + ".plt";
     std::string plotTitle4           = "Flow_vs_Jitter";
@@ -431,7 +436,7 @@ main (int argc, char *argv[])
         {
         Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
         // if(fiveTuple.destinationAddress == "192.168.1.6")
-        if(stats->first < 1)
+        if(stats->first < 2)
         {
              std::cout<<"--------------------------------Vazao---------------------------------"<<std::endl;
               std::cout<<"Flow ID: " << stats->first <<"; "<< fiveTuple.sourceAddress <<" -----> "<<fiveTuple.destinationAddress<<std::endl;
@@ -446,7 +451,7 @@ main (int argc, char *argv[])
       Simulator::Schedule(Seconds(1), &ThroughputMonitor, fmhelper, flowMon, DataSet);
    //if(flowToXml)
       {
-    flowMon->SerializeToXmlFile ("simulation_2/wifi_flow/wifi_Flow.xml", true, true);
+    flowMon->SerializeToXmlFile ("ns-3-dev/simulation_2/wifi_flow/wifi_Flow.xml", true, true);
       }
   }
 
@@ -463,7 +468,7 @@ main (int argc, char *argv[])
              {
                 Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
                 // if(fiveTuple.destinationAddress == "192.168.1.6")
-                if(stats->first < 1)
+                if(stats->first < 2)
                 {
                     std::cout<<"--------------------------------Atraso-------------------------------------"<<std::endl;
                     std::cout<<"Flow ID: "<< stats->first <<"; "<< fiveTuple.sourceAddress <<" ------> " <<fiveTuple.destinationAddress<<std::endl;
@@ -495,7 +500,7 @@ main (int argc, char *argv[])
              {
                 Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
                 // if(fiveTuple.destinationAddress == "192.168.1.6")
-                if(stats->first < 1)
+                if(stats->first < 2)
                 {
                     std::cout<<"--------------------------------Loss-------------------------------------"<<std::endl;
                     std::cout<<"    Flow ID: "<< stats->first <<"; "<< fiveTuple.sourceAddress <<" ------> " <<fiveTuple.destinationAddress<<std::endl;
@@ -529,7 +534,7 @@ main (int argc, char *argv[])
            {
             Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
             // if(fiveTuple.destinationAddress == "192.168.1.6")
-            if(stats->first < 1)
+            if(stats->first < 2)
             {
                 std::cout<<"--------------------------------Jitter-------------------------------------"<<std::endl;
                 std::cout<<"Flow ID : "<< stats->first <<"; "<< fiveTuple.sourceAddress <<"------>" <<fiveTuple.destinationAddress<<std::endl;
