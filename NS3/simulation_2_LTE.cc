@@ -29,7 +29,7 @@
 #include "ns3/applications-module.h"
 #include "ns3/point-to-point-helper.h"
 #include "ns3/config-store.h"
-
+#include "ns3/gnuplot.h"
 
 #include "ns3/propagation-module.h"
 
@@ -58,7 +58,12 @@ using namespace ns3;
  * It also  starts yet another flow between each UE pair.
  */
 
-NS_LOG_COMPONENT_DEFINE ("Lte_Test");
+NS_LOG_COMPONENT_DEFINE ("Lte_Simulation_2");
+
+void ThroughputMonitor(FlowMonitorHelper *fmhelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset DataSet);
+void DelayMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset2);
+void LossMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset3);
+void JitterMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset4);
 
 int
 main (int argc, char *argv[])
@@ -68,11 +73,10 @@ main (int argc, char *argv[])
 
   double PacketInterval = 0.2;
   double MaxPacketSize = 1024;
-  double maxPacketCount = 10000;
+  double maxPacketCount = 100;
 
-  double simTime = 300;
-  double Rx = 0;
-
+  double simTime = 22;
+  
   Ptr<LteHelper> lteHelper = CreateObject<LteHelper> ();
   lteHelper->SetAttribute ("PathlossModel", 
                            StringValue ("ns3::FriisPropagationLossModel"));
@@ -91,7 +95,7 @@ main (int argc, char *argv[])
 
   // Create the Internet
   PointToPointHelper p2ph;
-  p2ph.SetDeviceAttribute ("DataRate", DataRateValue (DataRate ("100Gb/s")));
+  p2ph.SetDeviceAttribute ("DataRate", DataRateValue (DataRate ("150Mb/s")));
   p2ph.SetDeviceAttribute ("Mtu", UintegerValue (1500));
   p2ph.SetChannelAttribute ("Delay", TimeValue (Seconds (0.010)));
   NetDeviceContainer internetDevices = p2ph.Install (pgw, remoteHost);
@@ -236,12 +240,102 @@ main (int argc, char *argv[])
 
   lteHelper->EnableTraces ();
  
- // 8. Install FlowMonitor on all nodes
-  FlowMonitorHelper flowmon;
-  Ptr<FlowMonitor> monitor = flowmon.InstallAll ();
+//FLOW-MONITOR
+    
+
+    //-----------------FlowMonitor-THROUGHPUT----------------
+
+    std::string fileNameWithNoExtension = "lte2_Flow_vs_Throughput";
+    std::string graphicsFileName        = fileNameWithNoExtension + ".png";
+    std::string plotFileName            = fileNameWithNoExtension + ".plt";
+    std::string plotTitle               = "Flow_vs_Throughput";
+    std::string dataTitle               = "Throughput";
+
+    Gnuplot gnuplot (graphicsFileName);
+    gnuplot.SetTitle (plotTitle);
+    gnuplot.SetTerminal ("png");
+    gnuplot.SetLegend ("Flow", "Throughput");
+     
+    Gnuplot2dDataset dataset;
+    dataset.SetTitle (dataTitle);
+    dataset.SetStyle (Gnuplot2dDataset::LINES_POINTS);
+
+    //flowMonitor declaration
+    FlowMonitorHelper fmHelper;
+    Ptr<FlowMonitor> allMon = fmHelper.InstallAll();
+
+    // call the flow monitor function
+    ThroughputMonitor(&fmHelper, allMon, dataset); 
+                
+     
+    //-----------------FlowMonitor-Atraso--------------------
+
+    std::string fileNameWithNoExtension2 = "lte2_Flow_vs_Delay";
+    std::string graphicsFileName2      = fileNameWithNoExtension2 + ".png";
+    std::string plotFileName2        = fileNameWithNoExtension2 + ".plt";
+    std::string plotTitle2           = "Flow_vs_Delay";
+    std::string dataTitle2           = "Delay";
+
+    Gnuplot gnuplot2 (graphicsFileName2);
+    gnuplot2.SetTitle(plotTitle2);
+    gnuplot2.SetTerminal("png");
+    gnuplot2.SetLegend("Flow", "Delay");
+
+    Gnuplot2dDataset dataset2;
+    dataset2.SetTitle(dataTitle2);
+    dataset2.SetStyle(Gnuplot2dDataset::LINES_POINTS);
+
+    //FlowMonitorHelper fmHelper;
+    //Ptr<FlowMonitor> allMon = fmHelper.InstallAll();
+
+    DelayMonitor(&fmHelper, allMon, dataset2);
+
+    //-----------------FlowMonitor-LossPackets--------------------
+
+    std::string fileNameWithNoExtension3 = "lte2_Flow_vs_Loss";
+    std::string graphicsFileName3      = fileNameWithNoExtension3 + ".png";
+    std::string plotFileName3        = fileNameWithNoExtension3 + ".plt";
+    std::string plotTitle3           = "Flow_vs_Loss";
+    std::string dataTitle3           = "Loss";
+
+    Gnuplot gnuplot3 (graphicsFileName3);
+    gnuplot3.SetTitle(plotTitle3);
+    gnuplot3.SetTerminal("png");
+    gnuplot3.SetLegend("Flow", "Loss");
+
+    Gnuplot2dDataset dataset3;
+    dataset3.SetTitle(dataTitle3);
+    dataset3.SetStyle(Gnuplot2dDataset::LINES_POINTS);
+
+    //FlowMonitorHelper fmHelper;
+    //Ptr<FlowMonitor> allMon = fmHelper.InstallAll();
+
+    LossMonitor(&fmHelper, allMon, dataset3);
+   
+    //-----------------FlowMonitor-JITTER--------------------
+
+    std::string fileNameWithNoExtension4 = "lte2_Flow_vs_Jitter";
+    std::string graphicsFileName4      = fileNameWithNoExtension4 + ".png";
+    std::string plotFileName4        = fileNameWithNoExtension4 + ".plt";
+    std::string plotTitle4           = "Flow_vs_Jitter";
+    std::string dataTitle4           = "Jitter";
+
+    Gnuplot gnuplot4 (graphicsFileName4);
+    gnuplot4.SetTitle(plotTitle4);
+    gnuplot4.SetTerminal("png");
+    gnuplot4.SetLegend("Flow", "Jitter");
+
+    Gnuplot2dDataset dataset4;
+    dataset4.SetTitle(dataTitle4);
+    dataset4.SetStyle(Gnuplot2dDataset::LINES_POINTS);
+
+    //FlowMonitorHelper fmHelper;
+    //Ptr<FlowMonitor> allMon = fmHelper.InstallAll();
+
+    JitterMonitor(&fmHelper, allMon, dataset4);
 
 //Install NetAnim
-   AnimationInterface anim ("simulation_2/lte_flow/simulation_2_lte.xml"); // Mandatory
+   AnimationInterface anim ("simulation_2/simulation_2_lte.xml"); // Mandatory
         
         for (uint32_t i = 0; i < ueNodes.GetN(); ++i)
         {
@@ -258,36 +352,235 @@ main (int argc, char *argv[])
 
 
 
-  Simulator::Stop(Seconds(simTime));
+  Simulator::Stop(Seconds(simTime-1));
   Simulator::Run();
+//       // double localvazao = 0;
+//       // double localDelay = 0;
+//       // double localLoss = 0;
+//       // double localJitter = 0;
+//       // double atraso1 = 0;
+//       // double atraso2 = 0;
+// // 10. Print per flow statistics
+//   monitor->CheckForLostPackets ();
+//   Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier> (flowmon.GetClassifier ());
+//   FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats ();
 
-// 10. Print per flow statistics
-  monitor->CheckForLostPackets ();
-  Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier> (flowmon.GetClassifier ());
-  FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats ();
-
-      for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin (); i != stats.end (); ++i)
-        {
+//       for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin (); i != stats.end (); ++i)
+//         {
           
-          Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
-          if (i->first < 2)
-          {
-            std::cout << "Flow " << i->first - 2 << " (" << t.sourceAddress << " -> " << t.destinationAddress << ")\n";
-            std::cout << "  Tx Packets: " << i->second.txPackets << "\n";
-            std::cout << "  Tx Bytes:   " << i->second.txBytes << "\n";
-            std::cout << "  Rx Bytes:   " << i->second.rxBytes << "\n";
-            std::cout << "\n";
-            std::cout << "  TxOffered:  " << i->second.txBytes * 8.0 / 9.0 / 1000 / 1000  << " Mbps\n";
-            std::cout << "  Throughput: " << i->second.rxBytes * 8.0 / 9.0 / 1000 / 1000  << " Mbps\n";
-            std::cout << "  Tx Packets: " << i->second.txPackets << "\n";
-            std::cout << "  Rx Packets: " << i->second.rxPackets << "\n";
-            Rx = i->second.rxPackets;
-            std::cout << "\n";
-            std::cout << "\n";
-            std::cout<<"Duration  : "<<(i->second.timeLastRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds())<<std::endl;
-            std::cout << "  LTE Rx Packets: " << Rx << "\n";
-          }
-        }
+//           Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
+//           if (i->first < 2)
+//           {
+//             std::cout << "Flow " << i->first - 2 << " (" << t.sourceAddress << " -> " << t.destinationAddress << ")\n";
+//             std::cout << "  Tx Bytes:   " << i->second.txBytes << "\n";
+//             std::cout << "  Rx Bytes:   " << i->second.rxBytes << "\n";
+//             std::cout << "  TxOffered:  " << i->second.txBytes * 8.0 / 9.0 / 1000 / 1000  << " Mbps\n";
+//             std::cout << "\n";
+//             std::cout << "  Throughput: " << i->second.rxBytes * 8.0 / 9.0 / 1000 / 1000  << " Mbps\n";
+//             std::cout << "  Tx Packets: " << i->second.txPackets << "\n";
+//             std::cout << "  Rx Packets: " << i->second.rxPackets << "\n";
+//             Rx = i->second.rxPackets;
+//             std::cout << "\n";
+            
+//                     // std::cout<<"Vazao: " <<  i->second.rxBytes * 8.0 / (i->second.timeLastRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds())/1024/1024<<" Mbps"<<std::endl;
+//                     // localvazao=  i->second.rxBytes * 8.0 / (i->second.timeLastRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds())/1024/1024;
+//                     // dataset.Add((double)Simulator::Now().GetSeconds(),(double) localvazao);
+
+      
+//                     // std::cout<<"Atraso: "<< ((i->second.timeLastRxPacket.GetSeconds()) - (i->second.timeLastTxPacket.GetSeconds()))<<std::endl;
+//                     // localDelay = ((i->second.timeLastRxPacket.GetSeconds()) - (i->second.timeLastTxPacket.GetSeconds()));
+//                     // dataset2.Add((double)Simulator::Now().GetSeconds(), (double) localDelay);
+
+//                     // localLoss =i->second.txPackets - i->second.rxPackets;
+//                     // std::cout<<"Perda de Pacotes: "<< localLoss<<std::endl;
+//                     // dataset3.Add((double)Simulator::Now().GetSeconds(), (double) localLoss);
+                    
+//                     // atraso2 = i->second.timeLastRxPacket.GetSeconds()-i->second.timeLastTxPacket.GetSeconds();
+//                     // atraso1 = i->second.timeFirstRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds();
+//                     // localJitter= atraso2-atraso1;//Jitter
+//                     // std::cout<<"Jitter: "<< atraso2-atraso1 <<std::endl;
+//                     // dataset4.Add((double)Simulator::Now().GetSeconds(), (double) localJitter);
+//                     // std::cout<<" "<<std::endl;
+//                     // atraso1 = atraso2;
+
+//             std::cout<<"Duration  : "<<(i->second.timeLastRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds())<<std::endl;
+//             std::cout << "  LTE Rx Packets: " << Rx << "\n";
+//           }
+
+//         }
+
+//       //     //Gnuplot ...continued
+//       // gnuplot.AddDataset (dataset);
+//       // std::ofstream plotFile (plotFileName.c_str());
+//       // gnuplot.GenerateOutput (plotFile);
+//       // plotFile.close ();
+
+//       // gnuplot2.AddDataset(dataset2);;
+//       // std::ofstream plotFile2 (plotFileName2.c_str());
+//       // gnuplot2.GenerateOutput(plotFile2);
+//       // plotFile2.close();
+
+//       // gnuplot3.AddDataset(dataset3);;
+//       // std::ofstream plotFile3 (plotFileName3.c_str());
+//       // gnuplot3.GenerateOutput(plotFile3);
+//       // plotFile3.close();
+
+//       // gnuplot4.AddDataset(dataset4);;
+//       // std::ofstream plotFile4 (plotFileName4.c_str());
+//       // gnuplot4.GenerateOutput(plotFile4);
+//       // plotFile4.close();
+  //Gnuplot ...continued
+      gnuplot.AddDataset (dataset);
+      std::ofstream plotFile (plotFileName.c_str());
+      gnuplot.GenerateOutput (plotFile);
+      plotFile.close ();
+
+      gnuplot2.AddDataset(dataset2);;
+      std::ofstream plotFile2 (plotFileName2.c_str());
+      gnuplot2.GenerateOutput(plotFile2);
+      plotFile2.close();
+
+      gnuplot3.AddDataset(dataset3);;
+      std::ofstream plotFile3 (plotFileName3.c_str());
+      gnuplot3.GenerateOutput(plotFile3);
+      plotFile3.close();
+
+      gnuplot4.AddDataset(dataset4);;
+      std::ofstream plotFile4 (plotFileName4.c_str());
+      gnuplot4.GenerateOutput(plotFile4);
+      plotFile4.close();
+
   Simulator::Destroy();
   return 0;
 }
+
+
+//-------------------------Metodo-VAZÃO---------------------------
+
+  void ThroughputMonitor (FlowMonitorHelper *fmhelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset DataSet)
+  {
+    double localvazao = 0;
+    std::map<FlowId, FlowMonitor::FlowStats> flowStats = flowMon->GetFlowStats();
+    Ptr<Ipv4FlowClassifier> classing = DynamicCast<Ipv4FlowClassifier> (fmhelper->GetClassifier());
+      
+      for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator stats = flowStats.begin (); stats != flowStats.end (); ++stats)
+        {
+        Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
+        // if(fiveTuple.destinationAddress == "192.168.1.6")
+        if(stats->first < 2)
+        {
+             std::cout<<"--------------------------------Vazao---------------------------------"<<std::endl;
+              std::cout<<"Flow ID: " << stats->first <<"; "<< fiveTuple.sourceAddress <<" -----> "<<fiveTuple.destinationAddress<<std::endl;
+              std::cout<<"Duration  : "<<(stats->second.timeLastRxPacket.GetSeconds()-stats->second.timeFirstTxPacket.GetSeconds())<<std::endl;
+              std::cout<<"Vazao: " <<  stats->second.rxBytes * 8.0 / (stats->second.timeLastRxPacket.GetSeconds()-stats->second.timeFirstTxPacket.GetSeconds())/1024/1024<<" Mbps"<<std::endl;
+              localvazao=  stats->second.rxBytes * 8.0 / (stats->second.timeLastRxPacket.GetSeconds()-stats->second.timeFirstTxPacket.GetSeconds())/1024/1024;
+              DataSet.Add((double)Simulator::Now().GetSeconds(),(double) localvazao);
+              std::cout<<" "<<std::endl;
+          }
+        }
+    
+      Simulator::Schedule(Seconds(1), &ThroughputMonitor, fmhelper, flowMon, DataSet);
+   //if(flowToXml)
+      {
+    flowMon->SerializeToXmlFile ("lte2_Flow.xml", true, true);
+      }
+  }
+
+//-------------------------Metodo-Atraso-------------------------
+    void DelayMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset2)
+  {
+    double localDelay=0;
+    
+           std::map<FlowId, FlowMonitor::FlowStats> flowstats = flowMon->GetFlowStats();
+           Ptr<Ipv4FlowClassifier> classing = DynamicCast<Ipv4FlowClassifier> (fmHelper->GetClassifier());
+           
+      
+             for(std::map<FlowId, FlowMonitor::FlowStats>::const_iterator stats = flowstats.begin(); stats != flowstats.end(); ++stats)
+             {
+                Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
+                // if(fiveTuple.destinationAddress == "192.168.1.6")
+                if(stats->first < 2)
+                {
+                    std::cout<<"--------------------------------Atraso-------------------------------------"<<std::endl;
+                    std::cout<<"Flow ID: "<< stats->first <<"; "<< fiveTuple.sourceAddress <<" ------> " <<fiveTuple.destinationAddress<<std::endl;
+                    std::cout<<"Duration  : "<<(stats->second.timeLastRxPacket.GetSeconds()-stats->second.timeFirstTxPacket.GetSeconds())<<std::endl;
+                    std::cout<<"Atraso: "<< ((stats->second.timeLastRxPacket.GetSeconds()) - (stats->second.timeLastTxPacket.GetSeconds()))<<std::endl;
+                    localDelay = ((stats->second.timeLastRxPacket.GetSeconds()) - (stats->second.timeLastTxPacket.GetSeconds()));
+                    Dataset2.Add((double)Simulator::Now().GetSeconds(), (double) localDelay);
+                    std::cout<<" "<<std::endl;
+                }
+             }
+      
+        
+      Simulator::Schedule(Seconds(1), &DelayMonitor, fmHelper, flowMon, Dataset2);
+      // {
+      //   flowMon->SerializeToXmlFile("DelayMonitor.xml", true, true);
+      // }
+  }
+
+  //-------------------------Metodo-Loss-------------------------
+    void LossMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset3)
+  {
+    double localLoss=0;
+
+           std::map<FlowId, FlowMonitor::FlowStats> flowstats = flowMon->GetFlowStats();
+           Ptr<Ipv4FlowClassifier> classing = DynamicCast<Ipv4FlowClassifier> (fmHelper->GetClassifier());
+           
+      
+             for(std::map<FlowId, FlowMonitor::FlowStats>::const_iterator stats = flowstats.begin(); stats != flowstats.end(); ++stats)
+             {
+                Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
+                // if(fiveTuple.destinationAddress == "192.168.1.6")
+                if(stats->first < 2)
+                {
+                    std::cout<<"--------------------------------Loss-------------------------------------"<<std::endl;
+                    std::cout<<"    Flow ID: "<< stats->first <<"; "<< fiveTuple.sourceAddress <<" ------> " <<fiveTuple.destinationAddress<<std::endl;
+                    std::cout<<"Tx Packets = " << stats->second.txPackets<<std::endl;
+                    std::cout<<"Rx Packets = " << stats->second.rxPackets<<std::endl;
+                    localLoss =stats->second.txPackets - stats->second.rxPackets;
+                    std::cout<<"Perda de Pacotes: "<< localLoss<<std::endl;
+                    Dataset3.Add((double)Simulator::Now().GetSeconds(), (double) localLoss);
+                    std::cout<<" "<<std::endl;
+                }
+
+             }
+              
+      Simulator::Schedule(Seconds(1), &LossMonitor, fmHelper, flowMon, Dataset3);
+      // {
+      //   flowMon->SerializeToXmlFile("LossMonitor.xml", true, true);
+      // }
+  }
+
+
+    
+    void JitterMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset4)
+    {
+      double localJitter=0;
+      double atraso1=0;
+      double atraso2 =0;
+
+           std::map<FlowId, FlowMonitor::FlowStats> flowstats = flowMon->GetFlowStats();
+           Ptr<Ipv4FlowClassifier> classing = DynamicCast<Ipv4FlowClassifier> (fmHelper->GetClassifier());
+           for(std::map<FlowId, FlowMonitor::FlowStats>::const_iterator stats = flowstats.begin(); stats != flowstats.end(); ++stats)
+           {
+            Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
+            // if(fiveTuple.destinationAddress == "192.168.1.6")
+            if(stats->first < 2)
+            {
+                std::cout<<"--------------------------------Jitter-------------------------------------"<<std::endl;
+                std::cout<<"Flow ID : "<< stats->first <<"; "<< fiveTuple.sourceAddress <<"------>" <<fiveTuple.destinationAddress<<std::endl;
+                atraso2 = stats->second.timeLastRxPacket.GetSeconds()-stats->second.timeLastTxPacket.GetSeconds();
+                atraso1 = stats->second.timeFirstRxPacket.GetSeconds()-stats->second.timeFirstTxPacket.GetSeconds();
+                std::cout<<"Jitter: "<< atraso2-atraso1 <<std::endl;
+                localJitter= atraso2-atraso1;//Jitter
+                Dataset4.Add((double)Simulator::Now().GetSeconds(), (double) localJitter);
+                std::cout<<" "<<std::endl;
+                }
+                atraso1 = atraso2;
+           }
+
+           Simulator::Schedule(Seconds(1),&JitterMonitor, fmHelper, flowMon, Dataset4);
+           // {
+           //   flowMon->SerializeToXmlFile("JitterMonitor.xml", true, true);
+           // }
+    }

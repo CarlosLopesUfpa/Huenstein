@@ -59,7 +59,7 @@ using namespace ns3;
  * It also  starts yet another flow between each UE pair.
  */
 
-NS_LOG_COMPONENT_DEFINE ("Lte_Test");
+NS_LOG_COMPONENT_DEFINE ("Lte_Simulation_1");
 
 void ThroughputMonitor(FlowMonitorHelper *fmhelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset DataSet);
 void DelayMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset2);
@@ -76,9 +76,9 @@ main (int argc, char *argv[])
 
   double PacketInterval = 0.2;
   double MaxPacketSize = 1024;
-  double maxPacketCount = 10000;
+  double maxPacketCount = 200;
 
-  double simTime = 150;
+  double simTime = 20;
 // double interPacketInterval = 150.0;
 // double simTime = 0.05;
 // double distance = 250.0;
@@ -271,10 +271,10 @@ for (uint16_t i = 0; i < numberOfNodesEU; i++)
         }
     }
   serverApps.Start (Seconds (0.1));
-  serverApps.Stop (Seconds (simTime-1));
+  serverApps.Stop (Seconds (simTime*2));
 
   clientApps.Start (Seconds (0.1));
-  clientApps.Stop (Seconds (simTime-1));
+  clientApps.Stop (Seconds (simTime*2));
 //FLOW-MONITOR
     
 
@@ -323,7 +323,7 @@ for (uint16_t i = 0; i < numberOfNodesEU; i++)
     //FlowMonitorHelper fmHelper;
     //Ptr<FlowMonitor> allMon = fmHelper.InstallAll();
 
-    LossMonitor(&fmHelper, allMon, dataset2);
+    DelayMonitor(&fmHelper, allMon, dataset2);
 
     //-----------------FlowMonitor-LossPackets--------------------
 
@@ -345,7 +345,7 @@ for (uint16_t i = 0; i < numberOfNodesEU; i++)
     //FlowMonitorHelper fmHelper;
     //Ptr<FlowMonitor> allMon = fmHelper.InstallAll();
 
-    DelayMonitor(&fmHelper, allMon, dataset3);
+    LossMonitor(&fmHelper, allMon, dataset3);
    
     //-----------------FlowMonitor-JITTER--------------------
 
@@ -369,7 +369,7 @@ for (uint16_t i = 0; i < numberOfNodesEU; i++)
 
     JitterMonitor(&fmHelper, allMon, dataset4);
 //Install NetAnim
-   AnimationInterface anim ("simulation_1/lte_flow/simulation_1_lte.xml"); // Mandatory
+   AnimationInterface anim ("simulation_1/simulation_1_lte.xml"); // Mandatory
         
         for (uint32_t i = 0; i < ueNodes.GetN(); ++i)
         {
@@ -386,7 +386,7 @@ for (uint16_t i = 0; i < numberOfNodesEU; i++)
 
 
 
-  Simulator::Stop(Seconds(simTime));
+  Simulator::Stop(Seconds(simTime*2));
   Simulator::Run();
   //Gnuplot ...continued
       gnuplot.AddDataset (dataset);
@@ -441,7 +441,7 @@ for (uint16_t i = 0; i < numberOfNodesEU; i++)
       Simulator::Schedule(Seconds(1), &ThroughputMonitor, fmhelper, flowMon, DataSet);
    //if(flowToXml)
       {
-    flowMon->SerializeToXmlFile ("ns-3-dev/simulation_1/lte_flow/lte_Flow.xml", true, true);
+    flowMon->SerializeToXmlFile ("lte_Flow.xml", true, true);
       }
   }
 

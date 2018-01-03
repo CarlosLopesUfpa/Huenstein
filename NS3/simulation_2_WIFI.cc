@@ -63,12 +63,12 @@ main (int argc, char *argv[])
   
   double interPacketInterval = 0.2;
   uint32_t MaxPacketSize = 1024;
-  double simTime = 150;
-  double Rx = 10000;
+  double simTime = 20;
+  double Rx = 100;
 
   // int aux_energy = 0;
   int nAp = 1;
-  int nSta = 10;
+  int nSta = 20;
   
   CommandLine cmd;
   cmd.AddValue ("Rx", "Number of Packets", Rx);
@@ -111,67 +111,67 @@ main (int argc, char *argv[])
   // Ptr<YansWifiChannel> wifiChannel = CreateObject <YansWifiChannel> ();
   // wifiChannel->SetPropagationLossModel (lossModel);
   // wifiChannel->SetPropagationDelayModel (CreateObject <ConstantSpeedPropagationDelayModel> ());
-      YansWifiChannelHelper channel = YansWifiChannelHelper::Default ();
-      // channel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
-      // channel.AddPropagationLoss ("ns3::FriisPropagationLossModel");
-      // wifiPhy.SetChannel (wifiChannel.Create ());
+  //     YansWifiChannelHelper channel = YansWifiChannelHelper::Default ();
+  //     // channel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
+  //     // channel.AddPropagationLoss ("ns3::FriisPropagationLossModel");
+  //     // wifiPhy.SetChannel (wifiChannel.Create ());
 
-      YansWifiPhyHelper wifiPhy = YansWifiPhyHelper::Default ();
-      wifiPhy.SetPcapDataLinkType (YansWifiPhyHelper::DLT_IEEE802_11_RADIO);
-      wifiPhy.SetChannel (channel.Create ());
+  //     YansWifiPhyHelper wifiPhy = YansWifiPhyHelper::Default ();
+  //     wifiPhy.SetPcapDataLinkType (YansWifiPhyHelper::DLT_IEEE802_11_RADIO);
+  //     wifiPhy.SetChannel (channel.Create ());
 
-      WifiHelper wifi;
-      wifi.SetStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
-      wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue ("HtMcs7"), "ControlMode", StringValue ("HtMcs0"));
-      WifiMacHelper wifiMac;
+  //     WifiHelper wifi;
+  //     wifi.SetStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
+  //     wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue ("HtMcs7"), "ControlMode", StringValue ("HtMcs0"));
+  //     WifiMacHelper wifiMac;
 
-  NetDeviceContainer staDevice, apDevice;
-  Ssid ssid;
+  // NetDeviceContainer staDevice, apDevice;
+  // Ssid ssid;
 
-  //Network A
-  ssid = Ssid ("network-A");
-  wifiPhy.Set ("ChannelNumber", UintegerValue (36));
-  wifiMac.SetType ("ns3::StaWifiMac",
-                   "Ssid", SsidValue (ssid));
-  staDevice = wifi.Install (wifiPhy, wifiMac, wifiStaNodes);
-
-
-  wifiMac.SetType ("ns3::ApWifiMac",
-               "Ssid", SsidValue (ssid),
-               "EnableBeaconJitter", BooleanValue (false));
-  apDevice = wifi.Install (wifiPhy, wifiMac, wifiApNodes);
+  // //Network A
+  // ssid = Ssid ("network-A");
+  // wifiPhy.Set ("ChannelNumber", UintegerValue (36));
+  // wifiMac.SetType ("ns3::StaWifiMac",
+  //                  "Ssid", SsidValue (ssid));
+  // staDevice = wifi.Install (wifiPhy, wifiMac, wifiStaNodes);
 
 
-//   std::string phyMode ("DsssRate1Mbps");
-//   bool verbose = false;
-// // The below set of helpers will help us to put together the wifi NICs we want
-//   WifiHelper wifi;
-//   if (verbose)
-//     {
-//       wifi.EnableLogComponents ();  // Turn on all Wifi logging
-//     }
+  // wifiMac.SetType ("ns3::ApWifiMac",
+  //              "Ssid", SsidValue (ssid),
+  //              "EnableBeaconJitter", BooleanValue (false));
+  // apDevice = wifi.Install (wifiPhy, wifiMac, wifiApNodes);
 
-// YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
-//   // set it to zero; otherwise, gain will be added
-//   wifiPhy.Set ("RxGain", DoubleValue (-10) );
-//   // ns-3 supports RadioTap and Prism tracing extensions for 802.11b
-//   wifiPhy.SetPcapDataLinkType (YansWifiPhyHelper::DLT_IEEE802_11_RADIO);
 
-//   YansWifiChannelHelper wifiChannel;
-//   wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
-//   wifiChannel.AddPropagationLoss ("ns3::FriisPropagationLossModel");
-//   wifiPhy.SetChannel (wifiChannel.Create ());
+  std::string phyMode ("DsssRate1Mbps");
+  bool verbose = false;
+// The below set of helpers will help us to put together the wifi NICs we want
+  WifiHelper wifi;
+  if (verbose)
+    {
+      wifi.EnableLogComponents ();  // Turn on all Wifi logging
+    }
 
-//   // Add an upper mac and disable rate control
-//   WifiMacHelper wifiMac;
-//   wifi.SetStandard (WIFI_PHY_STANDARD_80211b);
-//   wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager",
-//                                 "DataMode",StringValue (phyMode),
-//                                 "ControlMode",StringValue (phyMode));
-//   // Set it to adhoc mode
-//   wifiMac.SetType ("ns3::AdhocWifiMac");
-//   NetDeviceContainer apDevice = wifi.Install (wifiPhy, wifiMac, wifiApNodes);
-//   NetDeviceContainer staDevice = wifi.Install (wifiPhy, wifiMac, wifiStaNodes);
+  YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
+  // set it to zero; otherwise, gain will be added
+  wifiPhy.Set ("RxGain", DoubleValue (-10) );
+  // ns-3 supports RadioTap and Prism tracing extensions for 802.11b
+  wifiPhy.SetPcapDataLinkType (YansWifiPhyHelper::DLT_IEEE802_11_RADIO);
+
+  YansWifiChannelHelper wifiChannel;
+  wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
+  wifiChannel.AddPropagationLoss ("ns3::FriisPropagationLossModel");
+  wifiPhy.SetChannel (wifiChannel.Create ());
+
+  // Add an upper mac and disable rate control
+  WifiMacHelper wifiMac;
+  wifi.SetStandard (WIFI_PHY_STANDARD_80211b);
+  wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager",
+                                "DataMode",StringValue (phyMode),
+                                "ControlMode",StringValue (phyMode));
+  // Set it to adhoc mode
+  wifiMac.SetType ("ns3::AdhocWifiMac");
+  NetDeviceContainer apDevice = wifi.Install (wifiPhy, wifiMac, wifiApNodes);
+  NetDeviceContainer staDevice = wifi.Install (wifiPhy, wifiMac, wifiStaNodes);
       
 
       
@@ -263,8 +263,8 @@ main (int argc, char *argv[])
   uint16_t port = 4000;
   UdpServerHelper server (port);
   ApplicationContainer apps = server.Install (wifiApNodes.Get (0));
-  apps.Start (Seconds (1.0));
-  apps.Stop (Seconds (simTime));
+  apps.Start (Seconds (simTime));
+  apps.Stop (Seconds (simTime*2));
 
 //
 // Create one UdpClient application to send UDP datagrams from node zero to
@@ -278,8 +278,8 @@ main (int argc, char *argv[])
   
   for(int u = 0; u<nSta; ++u){
   apps = client.Install (wifiStaNodes.Get(u));
-  apps.Start (Seconds (2.0));
-  apps.Stop (Seconds (simTime));
+  apps.Start (Seconds (simTime));
+  apps.Stop (Seconds (simTime*2));
   }
 
 
@@ -332,7 +332,7 @@ main (int argc, char *argv[])
     //FlowMonitorHelper fmHelper;
     //Ptr<FlowMonitor> allMon = fmHelper.InstallAll();
 
-    LossMonitor(&fmHelper, allMon, dataset2);
+    DelayMonitor(&fmHelper, allMon, dataset2);
 
     //-----------------FlowMonitor-LossPackets--------------------
 
@@ -354,7 +354,7 @@ main (int argc, char *argv[])
     //FlowMonitorHelper fmHelper;
     //Ptr<FlowMonitor> allMon = fmHelper.InstallAll();
 
-    DelayMonitor(&fmHelper, allMon, dataset3);
+    LossMonitor(&fmHelper, allMon, dataset3);
    
     //-----------------FlowMonitor-JITTER--------------------
 
@@ -379,7 +379,7 @@ main (int argc, char *argv[])
     JitterMonitor(&fmHelper, allMon, dataset4);
 
 //NetAnim
-   AnimationInterface anim ("simulation_2/wifi_flow/simulation_2_wifi.xml"); // Mandatory
+   AnimationInterface anim ("simulation_2/simulation_2_wifi.xml"); // Mandatory
         
         for (uint32_t i = 0; i < wifiApNodes.GetN(); ++i)
         {
@@ -395,7 +395,7 @@ main (int argc, char *argv[])
 
 
 
-  Simulator::Stop(Seconds(simTime));
+  Simulator::Stop(Seconds(simTime*2));
   Simulator::Run();
 
 //Gnuplot ...continued
@@ -451,7 +451,7 @@ main (int argc, char *argv[])
       Simulator::Schedule(Seconds(1), &ThroughputMonitor, fmhelper, flowMon, DataSet);
    //if(flowToXml)
       {
-    flowMon->SerializeToXmlFile ("ns-3-dev/simulation_2/wifi_flow/wifi_Flow.xml", true, true);
+    flowMon->SerializeToXmlFile ("wifi2_Flow.xml", true, true);
       }
   }
 
