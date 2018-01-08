@@ -540,7 +540,7 @@ main (int argc, char *argv[])
                 std::cout<<"Flow ID : "<< stats->first <<"; "<< fiveTuple.sourceAddress <<"------>" <<fiveTuple.destinationAddress<<std::endl;
                 atraso2 = stats->second.timeLastRxPacket.GetSeconds()-stats->second.timeLastTxPacket.GetSeconds();
                 atraso1 = stats->second.timeFirstRxPacket.GetSeconds()-stats->second.timeFirstTxPacket.GetSeconds();
-                std::cout<<"Jitter: "<< atraso2-atraso1 <<std::endl;
+                std::cout<<"Jitter: "<< atraso2 - atraso1 <<std::endl;
                 localJitter= atraso2-atraso1;//Jitter
                 Dataset4.Add((double)Simulator::Now().GetSeconds(), (double) localJitter);
                 std::cout<<" "<<std::endl;

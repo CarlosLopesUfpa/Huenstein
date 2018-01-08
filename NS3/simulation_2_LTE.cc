@@ -58,42 +58,51 @@ using namespace ns3;
  * It also  starts yet another flow between each UE pair.
  */
 
-NS_LOG_COMPONENT_DEFINE ("Lte_Simulation_2");
+NS_LOG_COMPONENT_DEFINE ("Lte_Simulation_1");
 
 void ThroughputMonitor(FlowMonitorHelper *fmhelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset DataSet);
 void DelayMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset2);
 void LossMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset3);
 void JitterMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset4);
 
+
 int
 main (int argc, char *argv[])
 {
 
-  uint16_t numberOfNodes = 1;
+  uint16_t numberOfNodesENB = 1;
+  uint16_t numberOfNodesEU = 1;
+  // uint16_t numberOfNodes = numberOfNodesENB + numberOfNodesEU;
+
 
   double PacketInterval = 0.2;
   double MaxPacketSize = 1024;
-  double maxPacketCount = 100;
+  double maxPacketCount = 200;
 
-  double simTime = 22;
+  double simTime = 20;
+// double interPacketInterval = 150.0;
+// double simTime = 0.05;
+  // double distance = 500.0;
+
   
-  Ptr<LteHelper> lteHelper = CreateObject<LteHelper> ();
-  lteHelper->SetAttribute ("PathlossModel", 
-                           StringValue ("ns3::FriisPropagationLossModel"));
-  lteHelper->SetEnbAntennaModelType ("ns3::IsotropicAntennaModel");
-  Ptr<PointToPointEpcHelper>  epcHelper = CreateObject<PointToPointEpcHelper> ();
-  lteHelper->SetEpcHelper (epcHelper);
+//creation de l'objet epcHelper.
+Ptr<LteHelper> lteHelper = CreateObject<LteHelper> ();
+lteHelper->SetAttribute ("PathlossModel", 
+                         StringValue ("ns3::FriisPropagationLossModel"));
+lteHelper->SetEnbAntennaModelType ("ns3::IsotropicAntennaModel");
+Ptr<PointToPointEpcHelper>  epcHelper = CreateObject<PointToPointEpcHelper> ();
+lteHelper->SetEpcHelper (epcHelper);
 
-  Ptr<Node> pgw = epcHelper->GetPgwNode ();
+Ptr<Node> pgw = epcHelper->GetPgwNode (); 
 
-   // Create a single RemoteHost
+// creation  RemoteHost .
   NodeContainer remoteHostContainer;
   remoteHostContainer.Create (1);
   Ptr<Node> remoteHost = remoteHostContainer.Get (0);
   InternetStackHelper internet;
   internet.Install (remoteHostContainer);
-
-  // Create the Internet
+  
+// Create the Internet
   PointToPointHelper p2ph;
   p2ph.SetDeviceAttribute ("DataRate", DataRateValue (DataRate ("150Mb/s")));
   p2ph.SetDeviceAttribute ("Mtu", UintegerValue (1500));
@@ -102,20 +111,32 @@ main (int argc, char *argv[])
   Ipv4AddressHelper ipv4h;
   ipv4h.SetBase ("1.0.0.0", "255.0.0.0");
   Ipv4InterfaceContainer internetIpIfaces = ipv4h.Assign (internetDevices);
+
   // interface 0 is localhost, 1 is the p2p device
   Ipv4Address remoteHostAddr = internetIpIfaces.GetAddress (1);
 
   Ipv4StaticRoutingHelper ipv4RoutingHelper;
   Ptr<Ipv4StaticRouting> remoteHostStaticRouting = ipv4RoutingHelper.GetStaticRouting (remoteHost->GetObject<Ipv4> ());
   remoteHostStaticRouting->AddNetworkRouteTo (Ipv4Address ("7.0.0.0"), Ipv4Mask ("255.0.0.0"), 1);
+//creation des noeuds pour eNB et UE
+NodeContainer enbNodes;
+enbNodes.Create (numberOfNodesENB);
+NodeContainer ueNodes;
+ueNodes.Create (numberOfNodesEU);
+  MobilityHelper mobility2;
+  mobility2.SetPositionAllocator ("ns3::GridPositionAllocator",
+                                     "MinX", DoubleValue (20.0),
+                                     "MinY", DoubleValue (5.0),
+                                     "DeltaX", DoubleValue (10.0),
+                                     "DeltaY", DoubleValue (10.0),
+                                     "GridWidth", UintegerValue (1),
+                                     "LayoutType", StringValue ("RowFirst"));
 
-  NodeContainer ueNodes;
-  NodeContainer enbNodes;
-  enbNodes.Create(numberOfNodes);
-  ueNodes.Create(numberOfNodes);
+  mobility2.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  mobility2.Install(remoteHost);
 
-  MobilityHelper mobility;
-  mobility.SetPositionAllocator ("ns3::GridPositionAllocator",
+  MobilityHelper mobility3;
+  mobility3.SetPositionAllocator ("ns3::GridPositionAllocator",
                                      "MinX", DoubleValue (5.0),
                                      "MinY", DoubleValue (5.0),
                                      "DeltaX", DoubleValue (10.0),
@@ -123,55 +144,32 @@ main (int argc, char *argv[])
                                      "GridWidth", UintegerValue (1),
                                      "LayoutType", StringValue ("RowFirst"));
 
-  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  mobility.Install(ueNodes);
+  mobility3.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  mobility3.Install(pgw);
+  mobility3.Install(enbNodes);
 
-  MobilityHelper mobility1;
-  mobility1.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                     "MinX", DoubleValue (15.0),
-                                     "MinY", DoubleValue (5.0),
-                                     "DeltaX", DoubleValue (10.0),
-                                     "DeltaY", DoubleValue (10.0),
+  MobilityHelper mobility;
+  mobility.SetPositionAllocator ("ns3::GridPositionAllocator",
+                                     "MinX", DoubleValue (5.0),
+                                     "MinY", DoubleValue (205.0),
+                                     "DeltaX", DoubleValue (5.0),
+                                     "DeltaY", DoubleValue (5.0),
                                      "GridWidth", UintegerValue (1),
                                      "LayoutType", StringValue ("RowFirst"));
 
-  mobility1.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  mobility1.Install(enbNodes);
+  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  mobility.Install(ueNodes);
 
-
-  
-  MobilityHelper mobility2;
-  mobility2.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                     "MinX", DoubleValue (25.0),
-                                     "MinY", DoubleValue (5.0),
-                                     "DeltaX", DoubleValue (10.0),
-                                     "DeltaY", DoubleValue (10.0),
-                                     "GridWidth", UintegerValue (4),
-                                     "LayoutType", StringValue ("RowFirst"));
-
-  mobility2.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  mobility2.Install(pgw);
-
-  MobilityHelper mobility3;
-  mobility3.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                     "MinX", DoubleValue (35.0),
-                                     "MinY", DoubleValue (5.0),
-                                     "DeltaX", DoubleValue (10.0),
-                                     "DeltaY", DoubleValue (10.0),
-                                     "GridWidth", UintegerValue (4),
-                                     "LayoutType", StringValue ("RowFirst"));
-
-  mobility3.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  mobility3.Install(remoteHost);
-
-  // Install LTE Devices to the nodes
-  NetDeviceContainer enbLteDevs = lteHelper->InstallEnbDevice (enbNodes);
-  NetDeviceContainer ueLteDevs = lteHelper->InstallUeDevice (ueNodes);
-
-  // Install the IP stack on the UEs
+  //pour installer le protocol lte pour enbNodes et ueNodes.
+NetDeviceContainer enbDevs;
+enbDevs = lteHelper->InstallEnbDevice (enbNodes);
+NetDeviceContainer ueDevs;
+ueDevs = lteHelper->InstallUeDevice (ueNodes);
+//BuildingsHelper::MakeMobilityModelConsistent ();
+// Install the IP stack on the UEs
   internet.Install (ueNodes);
   Ipv4InterfaceContainer ueIpIface;
-  ueIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueLteDevs));
+  ueIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueDevs));
   // Assign IP address to UEs, and install applications
   for (uint32_t u = 0; u < ueNodes.GetN (); ++u)
     {
@@ -181,15 +179,42 @@ main (int argc, char *argv[])
       ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
     }
 
-  // Attach one UE per eNodeB
-  for (uint16_t i = 0; i < numberOfNodes; i++)
-      {
-        lteHelper->Attach (ueLteDevs.Get(i), enbLteDevs.Get(i));
-        // side effect: the default EPS bearer will be activated
-      }
+//pour attacher ueDevs avec enbDevs
+//lteHelper->Attach (ueDevs, enbDevs.Get (0));
+uint16_t j = 0;
+
+for (uint16_t i = 0; i < numberOfNodesEU; i++)
+  {  
+     if (j < numberOfNodesENB)
+        {
+          lteHelper->Attach (ueDevs.Get(i), enbDevs.Get(j));
+          j++;
+        }
+      else
+        {
+          j = 0;
+          lteHelper->Attach (ueDevs.Get(i), enbDevs.Get(j));
+        }   
+  }
+// Attach all UEs to the closest eNodeB
+//lteHelper->AttachToClosestEnb (ueDevs, enbDevs);
+// Add X2 inteface
+  //lteHelper->AddX2Interface (enbNodes);
+// X2-based Handover
+ // lteHelper->HandoverRequest (Seconds (0.100), ueDevs.Get (0), enbDevs.Get (0), enbDevs.Get (1));
+
+
+//pour activer le support radio qui porte les données entre ueDevs et enbDevs
+// Ptr<EpcTft> tft = Create<EpcTft> ();
+// EpcTft::PacketFilter pf;
+// pf.localPortStart = 1234;
+// pf.localPortEnd = 1234;
+// tft->Add (pf);
+// lteHelper->ActivateDedicatedEpsBearer (ueDevs, EpsBearer (EpsBearer::NGBR_VIDEO_TCP_DEFAULT), tft);
 
 
   // Install and start applications on UEs and remote host
+
   uint16_t dlPort = 1234;
   uint16_t ulPort = 2000;
   uint16_t otherPort = 3000;
@@ -233,10 +258,10 @@ main (int argc, char *argv[])
         }
     }
   serverApps.Start (Seconds (0.1));
-  serverApps.Stop (Seconds (simTime-1));
+  serverApps.Stop (Seconds (simTime));
 
   clientApps.Start (Seconds (0.1));
-  clientApps.Stop (Seconds (simTime-1));
+  clientApps.Stop (Seconds (simTime));
 
   lteHelper->EnableTraces ();
  
@@ -337,17 +362,18 @@ main (int argc, char *argv[])
 //Install NetAnim
    AnimationInterface anim ("simulation_2/simulation_2_lte.xml"); // Mandatory
         
-        for (uint32_t i = 0; i < ueNodes.GetN(); ++i)
-        {
-          anim.UpdateNodeDescription (ueNodes.Get(i), "ueNodes"); // Optional
-          anim.UpdateNodeColor (ueNodes.Get(i), 255, 0, 0); // Coloração
-        }
-        
-        for (uint32_t i = 0; i < enbNodes.GetN(); ++i)
-        {
-          anim.UpdateNodeDescription (enbNodes.Get(i), "enbNodes"); // Optional
-          anim.UpdateNodeColor (enbNodes.Get(i), 255, 255, 0); // Coloração
-        }
+          anim.UpdateNodeDescription (ueNodes, "ueNodes"); // Optional
+          anim.UpdateNodeColor (ueNodes, 255, 0, 0); // Coloração
+
+          anim.UpdateNodeDescription (pgw, " "); // Optional
+          anim.UpdateNodeColor (pgw, 255, 255, 0); // Coloração
+
+          anim.UpdateNodeDescription (RemoteHost, "RemoteHost"); // Optional
+          anim.UpdateNodeColor (RemoteHost, 255, 0, 0); // Coloração
+
+          anim.UpdateNodeDescription (enbNodes, "enbNodes"); // Optional
+          anim.UpdateNodeColor (enbNodes, 255, 255, 0); // Coloração
+       
         anim.EnablePacketMetadata ();
 
 
@@ -571,8 +597,8 @@ main (int argc, char *argv[])
                 std::cout<<"Flow ID : "<< stats->first <<"; "<< fiveTuple.sourceAddress <<"------>" <<fiveTuple.destinationAddress<<std::endl;
                 atraso2 = stats->second.timeLastRxPacket.GetSeconds()-stats->second.timeLastTxPacket.GetSeconds();
                 atraso1 = stats->second.timeFirstRxPacket.GetSeconds()-stats->second.timeFirstTxPacket.GetSeconds();
-                std::cout<<"Jitter: "<< atraso2-atraso1 <<std::endl;
                 localJitter= atraso2-atraso1;//Jitter
+                std::cout<<"Jitter: "<< localJitter <<std::endl;
                 Dataset4.Add((double)Simulator::Now().GetSeconds(), (double) localJitter);
                 std::cout<<" "<<std::endl;
                 }

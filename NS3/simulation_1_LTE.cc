@@ -123,35 +123,9 @@ enbNodes.Create (numberOfNodesENB);
 NodeContainer ueNodes;
 ueNodes.Create (numberOfNodesEU);
 
-  MobilityHelper mobility;
-  mobility.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                     "MinX", DoubleValue (5.0),
-                                     "MinY", DoubleValue (5.0),
-                                     "DeltaX", DoubleValue (5.0),
-                                     "DeltaY", DoubleValue (5.0),
-                                     "GridWidth", UintegerValue (2),
-                                     "LayoutType", StringValue ("RowFirst"));
-
-  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  mobility.Install(ueNodes);
-
-  MobilityHelper mobility1;
-  mobility1.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                     "MinX", DoubleValue (15.0),
-                                     "MinY", DoubleValue (5.0),
-                                     "DeltaX", DoubleValue (10.0),
-                                     "DeltaY", DoubleValue (10.0),
-                                     "GridWidth", UintegerValue (1),
-                                     "LayoutType", StringValue ("RowFirst"));
-
-  mobility1.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  mobility1.Install(enbNodes);
-
-
-  
   MobilityHelper mobility2;
   mobility2.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                     "MinX", DoubleValue (25.0),
+                                     "MinX", DoubleValue (10.0),
                                      "MinY", DoubleValue (5.0),
                                      "DeltaX", DoubleValue (10.0),
                                      "DeltaY", DoubleValue (10.0),
@@ -163,7 +137,7 @@ ueNodes.Create (numberOfNodesEU);
 
   MobilityHelper mobility3;
   mobility3.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                     "MinX", DoubleValue (35.0),
+                                     "MinX", DoubleValue (5.0),
                                      "MinY", DoubleValue (5.0),
                                      "DeltaX", DoubleValue (10.0),
                                      "DeltaY", DoubleValue (10.0),
@@ -172,6 +146,31 @@ ueNodes.Create (numberOfNodesEU);
 
   mobility3.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility3.Install(remoteHost);
+ 
+  MobilityHelper mobility1;
+  mobility1.SetPositionAllocator ("ns3::GridPositionAllocator",
+                                     "MinX", DoubleValue (5.0),
+                                     "MinY", DoubleValue (5.0),
+                                     "DeltaX", DoubleValue (10.0),
+                                     "DeltaY", DoubleValue (10.0),
+                                     "GridWidth", UintegerValue (1),
+                                     "LayoutType", StringValue ("RowFirst"));
+
+  mobility1.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  mobility1.Install(enbNodes);
+
+  MobilityHelper mobility;
+  mobility.SetPositionAllocator ("ns3::GridPositionAllocator",
+                                     "MinX", DoubleValue (5.0),
+                                     "MinY", DoubleValue (485.0),
+                                     "DeltaX", DoubleValue (5.0),
+                                     "DeltaY", DoubleValue (5.0),
+                                     "GridWidth", UintegerValue (2),
+                                     "LayoutType", StringValue ("RowFirst"));
+
+  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  mobility.Install(ueNodes);
+
 
   //pour installer le protocol lte pour enbNodes et ueNodes.
 NetDeviceContainer enbDevs;

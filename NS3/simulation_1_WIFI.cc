@@ -448,7 +448,7 @@ YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
 
             atraso2 = i->second.timeLastRxPacket.GetSeconds()-i->second.timeLastTxPacket.GetSeconds();
             atraso1 = i->second.timeFirstRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds();
-            Jitter[1][0] = atraso2 - atraso1;
+            Jitter[1][0] = atraso1 - atraso2;
             std::cout << "Jitter: "<< Jitter[1][0] <<std::endl;
             std::cout << " " <<std::endl;
 
