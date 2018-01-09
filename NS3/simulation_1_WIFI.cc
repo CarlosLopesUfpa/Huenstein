@@ -61,7 +61,7 @@ double** create(int rows, int columns){
     }
     return table;
 }
-NS_LOG_COMPONENT_DEFINE ("Wifi_Test");
+NS_LOG_COMPONENT_DEFINE ("Wifi_1");
 
     void avalParam(int nAp, double** Vazao, double** Atraso, double** Loss, double** Energia, double** Jitterav);
 
@@ -448,7 +448,7 @@ YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
 
             atraso2 = i->second.timeLastRxPacket.GetSeconds()-i->second.timeLastTxPacket.GetSeconds();
             atraso1 = i->second.timeFirstRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds();
-            Jitter[1][0] = atraso1 - atraso2;
+            Jitter[1][0] = atraso2 - atraso1;
             std::cout << "Jitter: "<< Jitter[1][0] <<std::endl;
             std::cout << " " <<std::endl;
 

@@ -50,7 +50,7 @@
 
 using namespace ns3;
 
-NS_LOG_COMPONENT_DEFINE ("Wifi_Test");
+NS_LOG_COMPONENT_DEFINE ("Wifi_2");
 
 void ThroughputMonitor (FlowMonitorHelper *fmhelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset DataSet);
 void DelayMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset2);

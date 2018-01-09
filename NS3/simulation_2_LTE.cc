@@ -58,7 +58,7 @@ using namespace ns3;
  * It also  starts yet another flow between each UE pair.
  */
 
-NS_LOG_COMPONENT_DEFINE ("Lte_Simulation_1");
+NS_LOG_COMPONENT_DEFINE ("Lte_Simulation_2");
 
 void ThroughputMonitor(FlowMonitorHelper *fmhelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset DataSet);
 void DelayMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset2);
@@ -71,15 +71,15 @@ main (int argc, char *argv[])
 {
 
   uint16_t numberOfNodesENB = 1;
-  uint16_t numberOfNodesEU = 1;
-  // uint16_t numberOfNodes = numberOfNodesENB + numberOfNodesEU;
+  uint16_t numberOfNodesUE = 10;
+  // uint16_t numberOfNodes = numberOfNodesENB + numberOfNodesUE;
 
 
   double PacketInterval = 0.2;
   double MaxPacketSize = 1024;
   double maxPacketCount = 200;
 
-  double simTime = 20;
+  double simTime = 40;
 // double interPacketInterval = 150.0;
 // double simTime = 0.05;
   // double distance = 500.0;
@@ -122,7 +122,7 @@ Ptr<Node> pgw = epcHelper->GetPgwNode ();
 NodeContainer enbNodes;
 enbNodes.Create (numberOfNodesENB);
 NodeContainer ueNodes;
-ueNodes.Create (numberOfNodesEU);
+ueNodes.Create (numberOfNodesUE);
   MobilityHelper mobility2;
   mobility2.SetPositionAllocator ("ns3::GridPositionAllocator",
                                      "MinX", DoubleValue (20.0),
@@ -183,7 +183,7 @@ ueDevs = lteHelper->InstallUeDevice (ueNodes);
 //lteHelper->Attach (ueDevs, enbDevs.Get (0));
 uint16_t j = 0;
 
-for (uint16_t i = 0; i < numberOfNodesEU; i++)
+for (uint16_t i = 0; i < numberOfNodesUE; i++)
   {  
      if (j < numberOfNodesENB)
         {
@@ -262,8 +262,6 @@ for (uint16_t i = 0; i < numberOfNodesEU; i++)
 
   clientApps.Start (Seconds (0.1));
   clientApps.Stop (Seconds (simTime));
-
-  lteHelper->EnableTraces ();
  
 //FLOW-MONITOR
     
@@ -362,17 +360,12 @@ for (uint16_t i = 0; i < numberOfNodesEU; i++)
 //Install NetAnim
    AnimationInterface anim ("simulation_2/simulation_2_lte.xml"); // Mandatory
         
-          anim.UpdateNodeDescription (ueNodes, "ueNodes"); // Optional
-          anim.UpdateNodeColor (ueNodes, 255, 0, 0); // Coloração
+          anim.UpdateNodeDescription (ueNodes.Get(0), "ueNodes"); // Optional
+          anim.UpdateNodeColor (ueNodes.Get(0), 255, 0, 0); // Coloração
 
-          anim.UpdateNodeDescription (pgw, " "); // Optional
-          anim.UpdateNodeColor (pgw, 255, 255, 0); // Coloração
 
-          anim.UpdateNodeDescription (RemoteHost, "RemoteHost"); // Optional
-          anim.UpdateNodeColor (RemoteHost, 255, 0, 0); // Coloração
-
-          anim.UpdateNodeDescription (enbNodes, "enbNodes"); // Optional
-          anim.UpdateNodeColor (enbNodes, 255, 255, 0); // Coloração
+          anim.UpdateNodeDescription (enbNodes.Get(0), "enbNodes"); // Optional
+          anim.UpdateNodeColor (enbNodes.Get(0), 255, 255, 0); // Coloração
        
         anim.EnablePacketMetadata ();
 
@@ -380,81 +373,7 @@ for (uint16_t i = 0; i < numberOfNodesEU; i++)
 
   Simulator::Stop(Seconds(simTime-1));
   Simulator::Run();
-//       // double localvazao = 0;
-//       // double localDelay = 0;
-//       // double localLoss = 0;
-//       // double localJitter = 0;
-//       // double atraso1 = 0;
-//       // double atraso2 = 0;
-// // 10. Print per flow statistics
-//   monitor->CheckForLostPackets ();
-//   Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier> (flowmon.GetClassifier ());
-//   FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats ();
 
-//       for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin (); i != stats.end (); ++i)
-//         {
-          
-//           Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
-//           if (i->first < 2)
-//           {
-//             std::cout << "Flow " << i->first - 2 << " (" << t.sourceAddress << " -> " << t.destinationAddress << ")\n";
-//             std::cout << "  Tx Bytes:   " << i->second.txBytes << "\n";
-//             std::cout << "  Rx Bytes:   " << i->second.rxBytes << "\n";
-//             std::cout << "  TxOffered:  " << i->second.txBytes * 8.0 / 9.0 / 1000 / 1000  << " Mbps\n";
-//             std::cout << "\n";
-//             std::cout << "  Throughput: " << i->second.rxBytes * 8.0 / 9.0 / 1000 / 1000  << " Mbps\n";
-//             std::cout << "  Tx Packets: " << i->second.txPackets << "\n";
-//             std::cout << "  Rx Packets: " << i->second.rxPackets << "\n";
-//             Rx = i->second.rxPackets;
-//             std::cout << "\n";
-            
-//                     // std::cout<<"Vazao: " <<  i->second.rxBytes * 8.0 / (i->second.timeLastRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds())/1024/1024<<" Mbps"<<std::endl;
-//                     // localvazao=  i->second.rxBytes * 8.0 / (i->second.timeLastRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds())/1024/1024;
-//                     // dataset.Add((double)Simulator::Now().GetSeconds(),(double) localvazao);
-
-      
-//                     // std::cout<<"Atraso: "<< ((i->second.timeLastRxPacket.GetSeconds()) - (i->second.timeLastTxPacket.GetSeconds()))<<std::endl;
-//                     // localDelay = ((i->second.timeLastRxPacket.GetSeconds()) - (i->second.timeLastTxPacket.GetSeconds()));
-//                     // dataset2.Add((double)Simulator::Now().GetSeconds(), (double) localDelay);
-
-//                     // localLoss =i->second.txPackets - i->second.rxPackets;
-//                     // std::cout<<"Perda de Pacotes: "<< localLoss<<std::endl;
-//                     // dataset3.Add((double)Simulator::Now().GetSeconds(), (double) localLoss);
-                    
-//                     // atraso2 = i->second.timeLastRxPacket.GetSeconds()-i->second.timeLastTxPacket.GetSeconds();
-//                     // atraso1 = i->second.timeFirstRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds();
-//                     // localJitter= atraso2-atraso1;//Jitter
-//                     // std::cout<<"Jitter: "<< atraso2-atraso1 <<std::endl;
-//                     // dataset4.Add((double)Simulator::Now().GetSeconds(), (double) localJitter);
-//                     // std::cout<<" "<<std::endl;
-//                     // atraso1 = atraso2;
-
-//             std::cout<<"Duration  : "<<(i->second.timeLastRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds())<<std::endl;
-//             std::cout << "  LTE Rx Packets: " << Rx << "\n";
-//           }
-
-//         }
-
-//       //     //Gnuplot ...continued
-//       // gnuplot.AddDataset (dataset);
-//       // std::ofstream plotFile (plotFileName.c_str());
-//       // gnuplot.GenerateOutput (plotFile);
-//       // plotFile.close ();
-
-//       // gnuplot2.AddDataset(dataset2);;
-//       // std::ofstream plotFile2 (plotFileName2.c_str());
-//       // gnuplot2.GenerateOutput(plotFile2);
-//       // plotFile2.close();
-
-//       // gnuplot3.AddDataset(dataset3);;
-//       // std::ofstream plotFile3 (plotFileName3.c_str());
-//       // gnuplot3.GenerateOutput(plotFile3);
-//       // plotFile3.close();
-
-//       // gnuplot4.AddDataset(dataset4);;
-//       // std::ofstream plotFile4 (plotFileName4.c_str());
-//       // gnuplot4.GenerateOutput(plotFile4);
-//       // plotFile4.close();
   //Gnuplot ...continued
       gnuplot.AddDataset (dataset);
       std::ofstream plotFile (plotFileName.c_str());
@@ -577,7 +496,6 @@ for (uint16_t i = 0; i < numberOfNodesEU; i++)
       // }
   }
 
-
     
     void JitterMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset4)
     {
@@ -597,8 +515,8 @@ for (uint16_t i = 0; i < numberOfNodesEU; i++)
                 std::cout<<"Flow ID : "<< stats->first <<"; "<< fiveTuple.sourceAddress <<"------>" <<fiveTuple.destinationAddress<<std::endl;
                 atraso2 = stats->second.timeLastRxPacket.GetSeconds()-stats->second.timeLastTxPacket.GetSeconds();
                 atraso1 = stats->second.timeFirstRxPacket.GetSeconds()-stats->second.timeFirstTxPacket.GetSeconds();
+                std::cout<<"Jitter: "<< atraso2 - atraso1 <<std::endl;
                 localJitter= atraso2-atraso1;//Jitter
-                std::cout<<"Jitter: "<< localJitter <<std::endl;
                 Dataset4.Add((double)Simulator::Now().GetSeconds(), (double) localJitter);
                 std::cout<<" "<<std::endl;
                 }
