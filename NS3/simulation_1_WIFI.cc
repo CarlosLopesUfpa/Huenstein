@@ -69,13 +69,14 @@ int main (int argc, char *argv[]) {
 // Step 1: Reconhecimento da rede.
 //WIFI
   int nAp = 2;
-  int nSta = 10;
+  int nSta = 20;
+
   int col = 1;
 
-  double simTime = 20;
+  double simTime = 100;
   uint32_t MaxPacketSize = 1024;
-  uint32_t maxPacketCount = 100;
-  double PacketInterval = 0.2;
+  // uint32_t maxPacketCount = 100;
+  double PacketInterval = 0.25;
 //Variáveis para receber dados do FlowMonitor
     double** Vazao = create(nAp, col);
 
@@ -225,11 +226,11 @@ YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
 
   MobilityHelper mobilitywifiSta;
   mobilitywifiSta.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                 "MinX", DoubleValue (5.0),
-                                 "MinY", DoubleValue (20.0),
+                                 "MinX", DoubleValue (20.0),
+                                 "MinY", DoubleValue (0.0),
                                  "DeltaX", DoubleValue (5.0),
                                  "DeltaY", DoubleValue (10.0),
-                                 "GridWidth", UintegerValue (2),
+                                 "GridWidth", UintegerValue (5),
                                  "LayoutType", StringValue ("RowFirst"));
 
   mobilitywifiSta.SetMobilityModel ("ns3::RandomWalk2dMobilityModel");
@@ -238,7 +239,7 @@ YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
   MobilityHelper mobilitywifiSta2;
   mobilitywifiSta2.SetPositionAllocator ("ns3::GridPositionAllocator",
                                  "MinX", DoubleValue (20.0),
-                                 "MinY", DoubleValue (5.0),
+                                 "MinY", DoubleValue (10.0),
                                  "DeltaX", DoubleValue (5.0),
                                  "DeltaY", DoubleValue (10.0),
                                  "GridWidth", UintegerValue (5),
@@ -251,7 +252,7 @@ YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
       srand((unsigned)time(0));
       for (int l=0; l<nAp; ++l)
         {
-          aux_energy = rand()%(100);
+          aux_energy = rand()%((100-50 + 1) + 50); 
           Ptr<BasicEnergySource> energySource = CreateObject<BasicEnergySource>();
           Ptr<SimpleDeviceEnergyModel> energyModel = CreateObject<SimpleDeviceEnergyModel>();
 
@@ -319,17 +320,17 @@ YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
   UdpServerHelper server (port);
   ApplicationContainer apps = server.Install (wifiApNodes.Get (1));
   apps.Start (Seconds (0.1));
-  apps.Stop (Seconds (simTime-1));
+  apps.Stop (Seconds (simTime));
 
   UdpClientHelper client (apInterface.GetAddress (0), port);
-  client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
+  // client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
   client.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
   client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
   
   for(int u = 0; u<nSta; ++u){
   apps = client.Install (wifiStaNodes.Get(u));
   apps.Start (Seconds (0.1));
-  apps.Stop (Seconds (simTime-1));
+  apps.Stop (Seconds (simTime));
   }
 
 
@@ -341,7 +342,7 @@ YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
   apps2.Stop (Seconds (simTime));
 
   UdpClientHelper client2 (apInterface2.GetAddress (0), port);
-  client2.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
+  // client2.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
   client2.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
   client2.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
   

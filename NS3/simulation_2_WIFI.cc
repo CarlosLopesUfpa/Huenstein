@@ -61,9 +61,9 @@ int
 main (int argc, char *argv[])
 {
   
-  double interPacketInterval = 0.2;
+  double interPacketInterval = 0.25;
   uint32_t MaxPacketSize = 1024;
-  double simTime = 20;
+  double simTime = 100;
   double Rx = 100;
 
   // int aux_energy = 0;
@@ -176,29 +176,21 @@ main (int argc, char *argv[])
 
       
   MobilityHelper mobilitywifiAp;
-  mobilitywifiAp.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                 "MinX", DoubleValue (30.0),
-                                 "MinY", DoubleValue (5.0),
-                                 "DeltaX", DoubleValue (10.0),
-                                 "DeltaY", DoubleValue (10.0),
-                                 "GridWidth", UintegerValue (1),
-                                 "LayoutType", StringValue ("RowFirst"));
+  Ptr<ListPositionAllocator> positionAllocMN = CreateObject<ListPositionAllocator> ();
+  positionAllocMN->Add (Vector(10, 505, 1.5));
+  mobility.SetPositionAllocator(positionAllocMN);;
 
   mobilitywifiAp.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobilitywifiAp.Install (wifiApNodes);
 
 
-  MobilityHelper mobilitywifiSta;
-  mobilitywifiSta.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                 "MinX", DoubleValue (20.0),
-                                 "MinY", DoubleValue (20.0),
-                                 "DeltaX", DoubleValue (10.0),
-                                 "DeltaY", DoubleValue (10.0),
-                                 "GridWidth", UintegerValue (5),
-                                 "LayoutType", StringValue ("RowFirst"));
+  MobilityHelper mobility;
 
-  mobilitywifiSta.SetMobilityModel ("ns3::RandomWalk2dMobilityModel");
-  mobilitywifiSta.Install (wifiStaNodes);
+  Ptr<ListPositionAllocator> positionAllocUS = CreateObject<ListPositionAllocator> ();
+  positionAllocUS->Add (Vector(5, 520, 1.5));
+  mobility.SetPositionAllocator(positionAllocUS);
+  mobility.SetMobilityModel ("ns3::RandomWalk2dMobilityModel");
+  mobility.Install(wifiStaNodes);
 
   // // Energy
   //     srand((unsigned)time(0));
@@ -264,7 +256,7 @@ main (int argc, char *argv[])
   UdpServerHelper server (port);
   ApplicationContainer apps = server.Install (wifiApNodes.Get (0));
   apps.Start (Seconds (simTime));
-  apps.Stop (Seconds (simTime*2));
+  apps.Stop (Seconds (simTime));
 
 //
 // Create one UdpClient application to send UDP datagrams from node zero to
@@ -272,14 +264,14 @@ main (int argc, char *argv[])
 //
 
   UdpClientHelper client (apInterface.GetAddress (0), port);
-  client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
+  // client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
   client.SetAttribute ("Interval", TimeValue (Seconds (interPacketInterval)));
   client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
   
   for(int u = 0; u<nSta; ++u){
   apps = client.Install (wifiStaNodes.Get(u));
   apps.Start (Seconds (simTime));
-  apps.Stop (Seconds (simTime*2));
+  apps.Stop (Seconds (simTime));
   }
 
 
@@ -395,7 +387,7 @@ main (int argc, char *argv[])
 
 
 
-  Simulator::Stop(Seconds(simTime*2));
+  Simulator::Stop(Seconds(simTime));
   Simulator::Run();
 
 //Gnuplot ...continued

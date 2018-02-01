@@ -72,13 +72,13 @@ main (int argc, char *argv[])
 {
 
   uint16_t numberOfNodesENB = 1;
-  uint16_t numberOfNodesEU = 20;
+  uint16_t numberOfNodesUE = 20;
 
-  double PacketInterval = 0.2;
+  double PacketInterval = 0.25;
   double MaxPacketSize = 1024;
-  double maxPacketCount = 200;
+  //double maxPacketCount = 200;
 
-  double simTime = 20;
+  double simTime = 100;
 // double interPacketInterval = 150.0;
 // double simTime = 0.05;
 // double distance = 250.0;
@@ -121,23 +121,12 @@ Ptr<Node> pgw = epcHelper->GetPgwNode ();
 NodeContainer enbNodes;
 enbNodes.Create (numberOfNodesENB);
 NodeContainer ueNodes;
-ueNodes.Create (numberOfNodesEU);
+ueNodes.Create (numberOfNodesUE);
 
-  MobilityHelper mobility2;
-  mobility2.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                     "MinX", DoubleValue (10.0),
-                                     "MinY", DoubleValue (5.0),
-                                     "DeltaX", DoubleValue (10.0),
-                                     "DeltaY", DoubleValue (10.0),
-                                     "GridWidth", UintegerValue (4),
-                                     "LayoutType", StringValue ("RowFirst"));
-
-  mobility2.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  mobility2.Install(pgw);
 
   MobilityHelper mobility3;
   mobility3.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                     "MinX", DoubleValue (5.0),
+                                     "MinX", DoubleValue (20.0),
                                      "MinY", DoubleValue (5.0),
                                      "DeltaX", DoubleValue (10.0),
                                      "DeltaY", DoubleValue (10.0),
@@ -146,29 +135,30 @@ ueNodes.Create (numberOfNodesEU);
 
   mobility3.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility3.Install(remoteHost);
+
  
+  Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
+  positionAlloc->Add (Vector(5, 5, 32));
+      
   MobilityHelper mobility1;
-  mobility1.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                     "MinX", DoubleValue (5.0),
-                                     "MinY", DoubleValue (5.0),
-                                     "DeltaX", DoubleValue (10.0),
-                                     "DeltaY", DoubleValue (10.0),
-                                     "GridWidth", UintegerValue (1),
-                                     "LayoutType", StringValue ("RowFirst"));
+  mobility1.SetPositionAllocator(positionAlloc);
 
   mobility1.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+
   mobility1.Install(enbNodes);
+  mobility1.Install(pgw);
+
 
   MobilityHelper mobility;
   mobility.SetPositionAllocator ("ns3::GridPositionAllocator",
                                      "MinX", DoubleValue (5.0),
-                                     "MinY", DoubleValue (485.0),
+                                     "MinY", DoubleValue (505.0),
                                      "DeltaX", DoubleValue (5.0),
                                      "DeltaY", DoubleValue (5.0),
-                                     "GridWidth", UintegerValue (2),
+                                     "GridWidth", UintegerValue (4),
                                      "LayoutType", StringValue ("RowFirst"));
 
-  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  mobility.SetMobilityModel ("ns3::RandomWalk2dMobilityModel");
   mobility.Install(ueNodes);
 
 
@@ -195,7 +185,7 @@ ueDevs = lteHelper->InstallUeDevice (ueNodes);
 //lteHelper->Attach (ueDevs, enbDevs.Get (0));
 uint16_t j = 0;
 
-for (uint16_t i = 0; i < numberOfNodesEU; i++)
+for (uint16_t i = 0; i < numberOfNodesUE; i++)
   {  
      if (j < numberOfNodesENB)
         {
@@ -244,17 +234,17 @@ for (uint16_t i = 0; i < numberOfNodesEU; i++)
       serverApps.Add (packetSinkHelper.Install (ueNodes.Get(u)));
 
       UdpClientHelper dlClient (ueIpIface.GetAddress (u), dlPort);
-      dlClient.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
+      // dlClient.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
       dlClient.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
       dlClient.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
 
       UdpClientHelper ulClient (remoteHostAddr, ulPort);
-      ulClient.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
+      // ulClient.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
       ulClient.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
       ulClient.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
 
       UdpClientHelper client (ueIpIface.GetAddress (u), otherPort);
-      client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
+      // client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
       client.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
       client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
 
@@ -270,10 +260,10 @@ for (uint16_t i = 0; i < numberOfNodesEU; i++)
         }
     }
   serverApps.Start (Seconds (0.1));
-  serverApps.Stop (Seconds (simTime*2));
+  serverApps.Stop (Seconds (simTime));
 
   clientApps.Start (Seconds (0.1));
-  clientApps.Stop (Seconds (simTime*2));
+  clientApps.Stop (Seconds (simTime));
 //FLOW-MONITOR
     
 
@@ -385,7 +375,7 @@ for (uint16_t i = 0; i < numberOfNodesEU; i++)
 
 
 
-  Simulator::Stop(Seconds(simTime*2));
+  Simulator::Stop(Seconds(simTime));
   Simulator::Run();
   //Gnuplot ...continued
       gnuplot.AddDataset (dataset);
