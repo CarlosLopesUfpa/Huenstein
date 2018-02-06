@@ -77,7 +77,7 @@ main (int argc, char *argv[])
 
   double PacketInterval = 0.25;
   double MaxPacketSize = 1024;
-  // double maxPacketCount = 200;
+  double maxPacketCount = 400;
 
   double simTime = 100;
 // double interPacketInterval = 150.0;
@@ -150,9 +150,8 @@ ueNodes.Create (numberOfNodesUE);
 
   Ptr<ListPositionAllocator> positionAllocMN = CreateObject<ListPositionAllocator> ();
   positionAllocMN->Add (Vector(5, 505, 1.5));
-  MobilityHelper mobility1;
   mobility.SetPositionAllocator(positionAllocMN);
-  mobility.SetMobilityModel ("ns3::RandomWalk2dMobilityModel");
+  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.Install(ueNodes);
 
   //pour installer le protocol lte pour enbNodes et ueNodes.
@@ -227,17 +226,17 @@ for (uint16_t i = 0; i < numberOfNodesUE; i++)
       serverApps.Add (packetSinkHelper.Install (ueNodes.Get(u)));
 
       UdpClientHelper dlClient (ueIpIface.GetAddress (u), dlPort);
-      // dlClient.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
+      dlClient.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
       dlClient.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
       dlClient.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
 
       UdpClientHelper ulClient (remoteHostAddr, ulPort);
-      // ulClient.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
+      ulClient.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
       ulClient.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
       ulClient.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
 
       UdpClientHelper client (ueIpIface.GetAddress (u), otherPort);
-      // client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
+      client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
       client.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
       client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
 
@@ -253,10 +252,10 @@ for (uint16_t i = 0; i < numberOfNodesUE; i++)
         }
     }
   serverApps.Start (Seconds (0.1));
-  serverApps.Stop (Seconds (simTime));
+  serverApps.Stop (Seconds (simTime/2));
 
   clientApps.Start (Seconds (0.1));
-  clientApps.Stop (Seconds (simTime));
+  clientApps.Stop (Seconds (simTime/2));
  
 //FLOW-MONITOR
     
@@ -366,7 +365,7 @@ for (uint16_t i = 0; i < numberOfNodesUE; i++)
 
 
 
-  Simulator::Stop(Seconds(simTime-1));
+  Simulator::Stop(Seconds(simTime/2));
   Simulator::Run();
 
   //Gnuplot ...continued
@@ -408,6 +407,7 @@ for (uint16_t i = 0; i < numberOfNodesUE; i++)
         Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
         // if(fiveTuple.destinationAddress == "192.168.1.6")
         if(stats->first < 2)
+         // if(fiveTuple.sourceAddress == "7.0.0.2" && fiveTuple.destinationAddress == "10.0.0.5")
         {
              std::cout<<"--------------------------------Vazao---------------------------------"<<std::endl;
               std::cout<<"Flow ID: " << stats->first <<"; "<< fiveTuple.sourceAddress <<" -----> "<<fiveTuple.destinationAddress<<std::endl;
@@ -440,6 +440,7 @@ for (uint16_t i = 0; i < numberOfNodesUE; i++)
                 Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
                 // if(fiveTuple.destinationAddress == "192.168.1.6")
                 if(stats->first < 2)
+                 // if(fiveTuple.sourceAddress == "7.0.0.2" && fiveTuple.destinationAddress == "10.0.0.5")
                 {
                     std::cout<<"--------------------------------Atraso-------------------------------------"<<std::endl;
                     std::cout<<"Flow ID: "<< stats->first <<"; "<< fiveTuple.sourceAddress <<" ------> " <<fiveTuple.destinationAddress<<std::endl;
@@ -472,6 +473,7 @@ for (uint16_t i = 0; i < numberOfNodesUE; i++)
                 Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
                 // if(fiveTuple.destinationAddress == "192.168.1.6")
                 if(stats->first < 2)
+                 // if(fiveTuple.sourceAddress == "7.0.0.2" && fiveTuple.destinationAddress == "10.0.0.5")
                 {
                     std::cout<<"--------------------------------Loss-------------------------------------"<<std::endl;
                     std::cout<<"    Flow ID: "<< stats->first <<"; "<< fiveTuple.sourceAddress <<" ------> " <<fiveTuple.destinationAddress<<std::endl;
@@ -491,7 +493,6 @@ for (uint16_t i = 0; i < numberOfNodesUE; i++)
       // }
   }
 
-    
     void JitterMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset4)
     {
       double localJitter=0;
@@ -510,7 +511,7 @@ for (uint16_t i = 0; i < numberOfNodesUE; i++)
                 std::cout<<"Flow ID : "<< stats->first <<"; "<< fiveTuple.sourceAddress <<"------>" <<fiveTuple.destinationAddress<<std::endl;
                 atraso2 = stats->second.timeLastRxPacket.GetSeconds()-stats->second.timeLastTxPacket.GetSeconds();
                 atraso1 = stats->second.timeFirstRxPacket.GetSeconds()-stats->second.timeFirstTxPacket.GetSeconds();
-                std::cout<<"Jitter: "<< atraso2 - atraso1 <<std::endl;
+                std::cout<<"Jitter: "<< atraso2-atraso1 <<std::endl;
                 localJitter= atraso2-atraso1;//Jitter
                 Dataset4.Add((double)Simulator::Now().GetSeconds(), (double) localJitter);
                 std::cout<<" "<<std::endl;

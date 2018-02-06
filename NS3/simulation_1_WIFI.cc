@@ -69,13 +69,13 @@ int main (int argc, char *argv[]) {
 // Step 1: Reconhecimento da rede.
 //WIFI
   int nAp = 2;
-  int nSta = 20;
+  int nSta = 10;
 
   int col = 1;
 
   double simTime = 100;
   uint32_t MaxPacketSize = 1024;
-  // uint32_t maxPacketCount = 100;
+  uint32_t maxPacketCount = 400;
   double PacketInterval = 0.25;
 //Variáveis para receber dados do FlowMonitor
     double** Vazao = create(nAp, col);
@@ -217,7 +217,7 @@ YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
                                  "MinY", DoubleValue (5.0),
                                  "DeltaX", DoubleValue (10.0),
                                  "DeltaY", DoubleValue (10.0),
-                                 "GridWidth", UintegerValue (2),
+                                 "GridWidth", UintegerValue (1),
                                  "LayoutType", StringValue ("RowFirst"));
 
   mobilitywifiAp.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
@@ -227,7 +227,7 @@ YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
   MobilityHelper mobilitywifiSta;
   mobilitywifiSta.SetPositionAllocator ("ns3::GridPositionAllocator",
                                  "MinX", DoubleValue (20.0),
-                                 "MinY", DoubleValue (0.0),
+                                 "MinY", DoubleValue (1.0),
                                  "DeltaX", DoubleValue (5.0),
                                  "DeltaY", DoubleValue (10.0),
                                  "GridWidth", UintegerValue (5),
@@ -252,7 +252,8 @@ YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
       srand((unsigned)time(0));
       for (int l=0; l<nAp; ++l)
         {
-          aux_energy = rand()%((100-50 + 1) + 50); 
+          aux_energy = rand()%((100-50) + 50); 
+
           Ptr<BasicEnergySource> energySource = CreateObject<BasicEnergySource>();
           Ptr<SimpleDeviceEnergyModel> energyModel = CreateObject<SimpleDeviceEnergyModel>();
 
@@ -323,7 +324,7 @@ YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
   apps.Stop (Seconds (simTime));
 
   UdpClientHelper client (apInterface.GetAddress (0), port);
-  // client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
+  client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
   client.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
   client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
   
@@ -342,7 +343,7 @@ YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
   apps2.Stop (Seconds (simTime));
 
   UdpClientHelper client2 (apInterface2.GetAddress (0), port);
-  // client2.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
+  client2.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
   client2.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
   client2.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
   
@@ -361,7 +362,7 @@ YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
 
 //Metodo Animation
 
-        AnimationInterface anim ("simulation_1_wifi.xml"); // Mandatory
+        AnimationInterface anim ("simulation_1/simulation_1_wifi.xml"); // Mandatory
         
         for (uint32_t i = 0; i < wifiStaNodes.GetN(); ++i)
         {
@@ -401,7 +402,7 @@ YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
       //   Simulator::Stops at "second 10".
       for(int u=0; u<nAp;++u){
         Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
-      if (t.sourceAddress == "192.168.1.13" && t.destinationAddress == "192.168.1.12")
+      if (t.sourceAddress == "192.168.1.14" && t.destinationAddress == "192.168.1.12")
         {
           // for(int l = 0; l<nAp; ++l){
             
@@ -428,7 +429,7 @@ YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
             std::cout << "Jitter: "<< Jitter[0][0] <<std::endl;
             std::cout << " " <<std::endl;
           }else{
-            if(t.sourceAddress == "192.168.1.5" && t.destinationAddress == "192.168.1.1"){
+            if(t.sourceAddress == "192.168.1.2" && t.destinationAddress == "192.168.1.1"){
             
             std::cout << "Flow " << i->first - 2 << " (" << t.sourceAddress << " -> " << t.destinationAddress << ")\n";
             std::cout<<"Duration  : "<<(i->second.timeLastRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds())<<std::endl;
@@ -500,7 +501,11 @@ YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
           srand((unsigned)time(0));
           for (int l = 0; l<nAp; ++l){
 
+            if(Loss[l][0]==0){
+            LossPackets [l][0] = 1;
+            }else{
             LossPackets [l][0]= Loss[l][0];
+            }
                               
             Throughput [l][0]= Vazao[l][0];
 
@@ -584,7 +589,6 @@ YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
                 std::cout << " " <<std::endl;
                 std::cout << " " << " " <<std::endl;
                 if(somaPerdaPct==0){
-                  somaPerdaPct++;
                   somaPerdaPct++;
                   std::cout << "Somatória LossPackets " << somaPerdaPct  << " #Alterada " <<std::endl;
                 }

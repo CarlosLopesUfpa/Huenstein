@@ -76,7 +76,7 @@ main (int argc, char *argv[])
 
   double PacketInterval = 0.25;
   double MaxPacketSize = 1024;
-  //double maxPacketCount = 200;
+  double maxPacketCount = 400;
 
   double simTime = 100;
 // double interPacketInterval = 150.0;
@@ -103,9 +103,9 @@ Ptr<Node> pgw = epcHelper->GetPgwNode ();
   
 // Create the Internet
   PointToPointHelper p2ph;
-  p2ph.SetDeviceAttribute ("DataRate", DataRateValue (DataRate ("150Mb/s")));
+  p2ph.SetDeviceAttribute ("DataRate", DataRateValue (DataRate ("100Mb/s")));
   p2ph.SetDeviceAttribute ("Mtu", UintegerValue (1500));
-  p2ph.SetChannelAttribute ("Delay", TimeValue (Seconds (0.010)));
+  p2ph.SetChannelAttribute ("Delay", TimeValue (Seconds (0.30)));
   NetDeviceContainer internetDevices = p2ph.Install (pgw, remoteHost);
   Ipv4AddressHelper ipv4h;
   ipv4h.SetBase ("1.0.0.0", "255.0.0.0");
@@ -130,7 +130,7 @@ ueNodes.Create (numberOfNodesUE);
                                      "MinY", DoubleValue (5.0),
                                      "DeltaX", DoubleValue (10.0),
                                      "DeltaY", DoubleValue (10.0),
-                                     "GridWidth", UintegerValue (4),
+                                     "GridWidth", UintegerValue (1),
                                      "LayoutType", StringValue ("RowFirst"));
 
   mobility3.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
@@ -149,16 +149,20 @@ ueNodes.Create (numberOfNodesUE);
   mobility1.Install(pgw);
 
 
-  MobilityHelper mobility;
-  mobility.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                     "MinX", DoubleValue (5.0),
-                                     "MinY", DoubleValue (505.0),
-                                     "DeltaX", DoubleValue (5.0),
-                                     "DeltaY", DoubleValue (5.0),
-                                     "GridWidth", UintegerValue (4),
-                                     "LayoutType", StringValue ("RowFirst"));
+  Ptr<ListPositionAllocator> positionAllocUe = CreateObject<ListPositionAllocator> ();
+  positionAllocUe->Add (Vector(5, 905, 1.5));
+  MobilityHelper mobility;    
+  mobility.SetPositionAllocator(positionAllocUe);
+  
+  // mobility.SetPositionAllocator ("ns3::GridPositionAllocator",
+  //                                    "MinX", DoubleValue (5.0),
+  //                                    "MinY", DoubleValue (505.0),
+  //                                    "DeltaX", DoubleValue (10.0),
+  //                                    "DeltaY", DoubleValue (10.0),
+  //                                    "GridWidth", UintegerValue (5),
+  //                                    "LayoutType", StringValue ("RowFirst"));
 
-  mobility.SetMobilityModel ("ns3::RandomWalk2dMobilityModel");
+  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.Install(ueNodes);
 
 
@@ -234,17 +238,17 @@ for (uint16_t i = 0; i < numberOfNodesUE; i++)
       serverApps.Add (packetSinkHelper.Install (ueNodes.Get(u)));
 
       UdpClientHelper dlClient (ueIpIface.GetAddress (u), dlPort);
-      // dlClient.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
+      dlClient.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
       dlClient.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
       dlClient.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
 
       UdpClientHelper ulClient (remoteHostAddr, ulPort);
-      // ulClient.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
+      ulClient.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
       ulClient.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
       ulClient.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
 
       UdpClientHelper client (ueIpIface.GetAddress (u), otherPort);
-      // client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
+      client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
       client.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
       client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
 

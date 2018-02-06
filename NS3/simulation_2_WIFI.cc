@@ -64,7 +64,7 @@ main (int argc, char *argv[])
   double interPacketInterval = 0.25;
   uint32_t MaxPacketSize = 1024;
   double simTime = 100;
-  double Rx = 100;
+  double Rx = 400;
 
   // int aux_energy = 0;
   int nAp = 1;
@@ -177,20 +177,24 @@ main (int argc, char *argv[])
       
   MobilityHelper mobilitywifiAp;
   Ptr<ListPositionAllocator> positionAllocMN = CreateObject<ListPositionAllocator> ();
-  positionAllocMN->Add (Vector(10, 505, 1.5));
-  mobility.SetPositionAllocator(positionAllocMN);;
+  positionAllocMN->Add (Vector(5, 505, 1.5));
+  mobilitywifiAp.SetPositionAllocator(positionAllocMN);;
 
   mobilitywifiAp.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobilitywifiAp.Install (wifiApNodes);
 
 
-  MobilityHelper mobility;
+  MobilityHelper mobilitywifiSta;
+  mobilitywifiSta.SetPositionAllocator ("ns3::GridPositionAllocator",
+                                 "MinX", DoubleValue (20.0),
+                                 "MinY", DoubleValue (495.0),
+                                 "DeltaX", DoubleValue (5.0),
+                                 "DeltaY", DoubleValue (10.0),
+                                 "GridWidth", UintegerValue (5),
+                                 "LayoutType", StringValue ("RowFirst"));
 
-  Ptr<ListPositionAllocator> positionAllocUS = CreateObject<ListPositionAllocator> ();
-  positionAllocUS->Add (Vector(5, 520, 1.5));
-  mobility.SetPositionAllocator(positionAllocUS);
-  mobility.SetMobilityModel ("ns3::RandomWalk2dMobilityModel");
-  mobility.Install(wifiStaNodes);
+  mobilitywifiSta.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  mobilitywifiSta.Install (wifiStaNodes);
 
   // // Energy
   //     srand((unsigned)time(0));
@@ -255,7 +259,7 @@ main (int argc, char *argv[])
   uint16_t port = 4000;
   UdpServerHelper server (port);
   ApplicationContainer apps = server.Install (wifiApNodes.Get (0));
-  apps.Start (Seconds (simTime));
+  apps.Start (Seconds (simTime/2));
   apps.Stop (Seconds (simTime));
 
 //
@@ -264,13 +268,13 @@ main (int argc, char *argv[])
 //
 
   UdpClientHelper client (apInterface.GetAddress (0), port);
-  // client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
+  client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
   client.SetAttribute ("Interval", TimeValue (Seconds (interPacketInterval)));
   client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
   
   for(int u = 0; u<nSta; ++u){
   apps = client.Install (wifiStaNodes.Get(u));
-  apps.Start (Seconds (simTime));
+  apps.Start (Seconds (simTime/2));
   apps.Stop (Seconds (simTime));
   }
 
