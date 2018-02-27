@@ -29,21 +29,21 @@
 #include "ns3/applications-module.h"
 #include "ns3/point-to-point-helper.h"
 #include "ns3/config-store.h"
-
+#include "ns3/gnuplot.h"
 
 #include "ns3/propagation-module.h"
+
+#include <ns3/buildings-propagation-loss-model.h>
 
 #include "ns3/antenna-model.h"
 
 #include "ns3/isotropic-antenna-model.h"
 
-#include <ns3/buildings-propagation-loss-model.h>
-
 #include "ns3/netanim-module.h"
 #include "ns3/flow-monitor-module.h"
 #include "ns3/wifi-module.h"
 #include <time.h>
-#include "ns3/gnuplot.h"
+#include "ns3/lte-enb-rrc.h"
 
 
 #include "ns3/basic-energy-source.h"
@@ -59,7 +59,7 @@ using namespace ns3;
  * It also  starts yet another flow between each UE pair.
  */
 
-NS_LOG_COMPONENT_DEFINE ("Lte_Simulation_1");
+NS_LOG_COMPONENT_DEFINE ("Lte_Simulation_2");
 
 void ThroughputMonitor(FlowMonitorHelper *fmhelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset DataSet);
 void DelayMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset2);
@@ -72,16 +72,19 @@ main (int argc, char *argv[])
 {
 
   uint16_t numberOfNodesENB = 1;
-  uint16_t numberOfNodesUE = 20;
+  uint16_t numberOfNodesUE = 100;
+
+  uint16_t cenario = 1;
+  // uint16_t numberOfNodes = numberOfNodesENB + numberOfNodesUE;
+
 
   double PacketInterval = 0.25;
   double MaxPacketSize = 1024;
-  double maxPacketCount = 400;
-
+  
   double simTime = 100;
 // double interPacketInterval = 150.0;
 // double simTime = 0.05;
-// double distance = 250.0;
+  // double distance = 500.0;
 
   
 //creation de l'objet epcHelper.
@@ -90,6 +93,7 @@ lteHelper->SetAttribute ("PathlossModel",
                          StringValue ("ns3::FriisPropagationLossModel"));
 lteHelper->SetEnbAntennaModelType ("ns3::IsotropicAntennaModel");
 Ptr<PointToPointEpcHelper>  epcHelper = CreateObject<PointToPointEpcHelper> ();
+Config::SetDefault ("ns3::LteEnbRrc::SrsPeriodicity", UintegerValue (320));
 lteHelper->SetEpcHelper (epcHelper);
 
 Ptr<Node> pgw = epcHelper->GetPgwNode (); 
@@ -103,9 +107,9 @@ Ptr<Node> pgw = epcHelper->GetPgwNode ();
   
 // Create the Internet
   PointToPointHelper p2ph;
-  p2ph.SetDeviceAttribute ("DataRate", DataRateValue (DataRate ("100Mb/s")));
+  p2ph.SetDeviceAttribute ("DataRate", DataRateValue (DataRate ("100Gb/s")));
   p2ph.SetDeviceAttribute ("Mtu", UintegerValue (1500));
-  p2ph.SetChannelAttribute ("Delay", TimeValue (Seconds (0.30)));
+  p2ph.SetChannelAttribute ("Delay", TimeValue (Seconds (0.010)));
   NetDeviceContainer internetDevices = p2ph.Install (pgw, remoteHost);
   Ipv4AddressHelper ipv4h;
   ipv4h.SetBase ("1.0.0.0", "255.0.0.0");
@@ -120,51 +124,81 @@ Ptr<Node> pgw = epcHelper->GetPgwNode ();
 //creation des noeuds pour eNB et UE
 NodeContainer enbNodes;
 enbNodes.Create (numberOfNodesENB);
+
 NodeContainer ueNodes;
-ueNodes.Create (numberOfNodesUE);
 
 
-  MobilityHelper mobility3;
-  mobility3.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                     "MinX", DoubleValue (20.0),
-                                     "MinY", DoubleValue (5.0),
+
+  MobilityHelper mobility;
+  mobility.SetPositionAllocator ("ns3::GridPositionAllocator",
+                                     "MinX", DoubleValue (800.0),
+                                     "MinY", DoubleValue (2828.0),
                                      "DeltaX", DoubleValue (10.0),
                                      "DeltaY", DoubleValue (10.0),
                                      "GridWidth", UintegerValue (1),
                                      "LayoutType", StringValue ("RowFirst"));
+  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  mobility.Install(remoteHost);
 
-  mobility3.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  mobility3.Install(remoteHost);
 
- 
   Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
-  positionAlloc->Add (Vector(5, 5, 32));
-      
+  positionAlloc->Add (Vector(750, 2828, 32));
   MobilityHelper mobility1;
   mobility1.SetPositionAllocator(positionAlloc);
-
   mobility1.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-
   mobility1.Install(enbNodes);
   mobility1.Install(pgw);
 
+  MobilityHelper mobilityUe;
+  if(cenario == 1){
+  ueNodes.Create (numberOfNodesUE/2);
+  mobilityUe.SetPositionAllocator ("ns3::GridPositionAllocator",
+                                 "MinX", DoubleValue (500.0),
+                                 "MinY", DoubleValue (1414),
+                                 "DeltaX", DoubleValue (5.0),
+                                 "DeltaY", DoubleValue (5.0),
+                                 "GridWidth", UintegerValue (10),
+                                 "LayoutType", StringValue ("RowFirst"));
+    }else{
+          if(cenario == 2){
+            ueNodes.Create (numberOfNodesUE);
+          mobilityUe.SetPositionAllocator ("ns3::GridPositionAllocator",
+                                         "MinX", DoubleValue (2000.0),
+                                         "MinY", DoubleValue (0),
+                                         "DeltaX", DoubleValue (5.0),
+                                         "DeltaY", DoubleValue (5.0),
+                                         "GridWidth", UintegerValue (10),
+                                         "LayoutType", StringValue ("RowFirst"));
+            }else{
+                  if(cenario == 3){
+                    ueNodes.Create (numberOfNodesUE/2);
+                  mobilityUe.SetPositionAllocator ("ns3::GridPositionAllocator",
+                                               "MinX", DoubleValue (0),
+                                               "MinY", DoubleValue (5656),
+                                               "DeltaX", DoubleValue (5.0),
+                                               "DeltaY", DoubleValue (5.0),
+                                               "GridWidth", UintegerValue (10),
+                                               "LayoutType", StringValue ("RowFirst"));
 
-  Ptr<ListPositionAllocator> positionAllocUe = CreateObject<ListPositionAllocator> ();
-  positionAllocUe->Add (Vector(5, 905, 1.5));
-  MobilityHelper mobility;    
-  mobility.SetPositionAllocator(positionAllocUe);
-  
-  // mobility.SetPositionAllocator ("ns3::GridPositionAllocator",
-  //                                    "MinX", DoubleValue (5.0),
-  //                                    "MinY", DoubleValue (505.0),
-  //                                    "DeltaX", DoubleValue (10.0),
-  //                                    "DeltaY", DoubleValue (10.0),
-  //                                    "GridWidth", UintegerValue (5),
-  //                                    "LayoutType", StringValue ("RowFirst"));
-
-  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  mobility.Install(ueNodes);
-
+                    }else{
+                          if(cenario == 4){
+                            ueNodes.Create (numberOfNodesUE/2);
+                          mobilityUe.SetPositionAllocator ("ns3::GridPositionAllocator",
+                                                           "MinX", DoubleValue (1500),
+                                                           "MinY", DoubleValue (4242),
+                                                           "DeltaX", DoubleValue (5.0),
+                                                           "DeltaY", DoubleValue (5.0),
+                                                           "GridWidth", UintegerValue (10),
+                                                           "LayoutType", StringValue ("RowFirst"));
+                          }
+                        }
+                  }
+          }
+   
+  mobilityUe.SetMobilityModel ("ns3::RandomWalk2dMobilityModel",
+                           "Speed", StringValue ("ns3::ConstantRandomVariable[Constant=10.0]"),
+                           "Bounds", StringValue ("-6000|6000|-6000|6000"));
+  mobilityUe.Install(ueNodes);
 
   //pour installer le protocol lte pour enbNodes et ueNodes.
 NetDeviceContainer enbDevs;
@@ -189,7 +223,7 @@ ueDevs = lteHelper->InstallUeDevice (ueNodes);
 //lteHelper->Attach (ueDevs, enbDevs.Get (0));
 uint16_t j = 0;
 
-for (uint16_t i = 0; i < numberOfNodesUE; i++)
+for (uint16_t i = 0; i < ueNodes.GetN(); i++)
   {  
      if (j < numberOfNodesENB)
         {
@@ -238,17 +272,17 @@ for (uint16_t i = 0; i < numberOfNodesUE; i++)
       serverApps.Add (packetSinkHelper.Install (ueNodes.Get(u)));
 
       UdpClientHelper dlClient (ueIpIface.GetAddress (u), dlPort);
-      dlClient.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
+      dlClient.SetAttribute ("MaxPackets", UintegerValue ((uint32_t)(simTime*(1/PacketInterval))));
       dlClient.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
       dlClient.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
 
       UdpClientHelper ulClient (remoteHostAddr, ulPort);
-      ulClient.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
+      ulClient.SetAttribute ("MaxPackets", UintegerValue ((uint32_t)(simTime*(1/PacketInterval))));
       ulClient.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
       ulClient.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
 
       UdpClientHelper client (ueIpIface.GetAddress (u), otherPort);
-      client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
+      client.SetAttribute ("MaxPackets", UintegerValue ((uint32_t)(simTime*(1/PacketInterval))));
       client.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
       client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
 
@@ -268,12 +302,12 @@ for (uint16_t i = 0; i < numberOfNodesUE; i++)
 
   clientApps.Start (Seconds (0.1));
   clientApps.Stop (Seconds (simTime));
+ 
 //FLOW-MONITOR
     
 
     //-----------------FlowMonitor-THROUGHPUT----------------
-
-    std::string fileNameWithNoExtension = "lte_Flow_vs_Throughput";
+    std::string fileNameWithNoExtension = "lte_Flow_vs_Throughput_Group_" + cenario;
     std::string graphicsFileName        = fileNameWithNoExtension + ".png";
     std::string plotFileName            = fileNameWithNoExtension + ".plt";
     std::string plotTitle               = "Flow_vs_Throughput";
@@ -298,7 +332,7 @@ for (uint16_t i = 0; i < numberOfNodesUE; i++)
      
     //-----------------FlowMonitor-Atraso--------------------
 
-    std::string fileNameWithNoExtension2 = "lte_Flow_vs_Delay";
+    std::string fileNameWithNoExtension2 = "lte_Flow_vs_Delay_Group_" + cenario;
     std::string graphicsFileName2      = fileNameWithNoExtension2 + ".png";
     std::string plotFileName2        = fileNameWithNoExtension2 + ".plt";
     std::string plotTitle2           = "Flow_vs_Delay";
@@ -320,7 +354,7 @@ for (uint16_t i = 0; i < numberOfNodesUE; i++)
 
     //-----------------FlowMonitor-LossPackets--------------------
 
-    std::string fileNameWithNoExtension3 = "lte_Flow_vs_Loss";
+    std::string fileNameWithNoExtension3 = "lte_Flow_vs_Loss_Group_" + cenario;
     std::string graphicsFileName3      = fileNameWithNoExtension3 + ".png";
     std::string plotFileName3        = fileNameWithNoExtension3 + ".plt";
     std::string plotTitle3           = "Flow_vs_Loss";
@@ -342,7 +376,7 @@ for (uint16_t i = 0; i < numberOfNodesUE; i++)
    
     //-----------------FlowMonitor-JITTER--------------------
 
-    std::string fileNameWithNoExtension4 = "lte_Flow_vs_Jitter";
+    std::string fileNameWithNoExtension4 = "lte_Flow_vs_Jitter_Group_" + cenario;
     std::string graphicsFileName4      = fileNameWithNoExtension4 + ".png";
     std::string plotFileName4        = fileNameWithNoExtension4 + ".plt";
     std::string plotTitle4           = "Flow_vs_Jitter";
@@ -361,26 +395,24 @@ for (uint16_t i = 0; i < numberOfNodesUE; i++)
     //Ptr<FlowMonitor> allMon = fmHelper.InstallAll();
 
     JitterMonitor(&fmHelper, allMon, dataset4);
+
 //Install NetAnim
-   AnimationInterface anim ("simulation_1/simulation_1_lte.xml"); // Mandatory
+   AnimationInterface anim ("simulation_1_lte.xml"); // Mandatory
         
-        for (uint32_t i = 0; i < ueNodes.GetN(); ++i)
-        {
-          anim.UpdateNodeDescription (ueNodes.Get(i), "ueNodes"); // Optional
-          anim.UpdateNodeColor (ueNodes.Get(i), 255, 0, 0); // Coloração
-        }
-        
-        for (uint32_t i = 0; i < enbNodes.GetN(); ++i)
-        {
-          anim.UpdateNodeDescription (enbNodes.Get(i), "enbNodes"); // Optional
-          anim.UpdateNodeColor (enbNodes.Get(i), 255, 255, 0); // Coloração
-        }
+          anim.UpdateNodeDescription (ueNodes.Get(0), "ueNodes"); // Optional
+          anim.UpdateNodeColor (ueNodes.Get(0), 255, 0, 0); // Coloração
+
+
+          anim.UpdateNodeDescription (enbNodes.Get(0), "enbNodes"); // Optional
+          anim.UpdateNodeColor (enbNodes.Get(0), 255, 255, 0); // Coloração
+       
         anim.EnablePacketMetadata ();
 
 
 
   Simulator::Stop(Seconds(simTime));
   Simulator::Run();
+
   //Gnuplot ...continued
       gnuplot.AddDataset (dataset);
       std::ofstream plotFile (plotFileName.c_str());
@@ -404,8 +436,8 @@ for (uint16_t i = 0; i < numberOfNodesUE; i++)
 
   Simulator::Destroy();
   return 0;
-
 }
+
 
 //-------------------------Metodo-VAZÃO---------------------------
 
@@ -420,6 +452,7 @@ for (uint16_t i = 0; i < numberOfNodesUE; i++)
         Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
         // if(fiveTuple.destinationAddress == "192.168.1.6")
         if(stats->first < 2)
+         // if(fiveTuple.sourceAddress == "7.0.0.2" && fiveTuple.destinationAddress == "10.0.0.5")
         {
              std::cout<<"--------------------------------Vazao---------------------------------"<<std::endl;
               std::cout<<"Flow ID: " << stats->first <<"; "<< fiveTuple.sourceAddress <<" -----> "<<fiveTuple.destinationAddress<<std::endl;
@@ -452,6 +485,7 @@ for (uint16_t i = 0; i < numberOfNodesUE; i++)
                 Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
                 // if(fiveTuple.destinationAddress == "192.168.1.6")
                 if(stats->first < 2)
+                 // if(fiveTuple.sourceAddress == "7.0.0.2" && fiveTuple.destinationAddress == "10.0.0.5")
                 {
                     std::cout<<"--------------------------------Atraso-------------------------------------"<<std::endl;
                     std::cout<<"Flow ID: "<< stats->first <<"; "<< fiveTuple.sourceAddress <<" ------> " <<fiveTuple.destinationAddress<<std::endl;
@@ -484,6 +518,7 @@ for (uint16_t i = 0; i < numberOfNodesUE; i++)
                 Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
                 // if(fiveTuple.destinationAddress == "192.168.1.6")
                 if(stats->first < 2)
+                 // if(fiveTuple.sourceAddress == "7.0.0.2" && fiveTuple.destinationAddress == "10.0.0.5")
                 {
                     std::cout<<"--------------------------------Loss-------------------------------------"<<std::endl;
                     std::cout<<"    Flow ID: "<< stats->first <<"; "<< fiveTuple.sourceAddress <<" ------> " <<fiveTuple.destinationAddress<<std::endl;
@@ -503,8 +538,6 @@ for (uint16_t i = 0; i < numberOfNodesUE; i++)
       // }
   }
 
-
-    
     void JitterMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset4)
     {
       double localJitter=0;
