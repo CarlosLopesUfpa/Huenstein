@@ -68,14 +68,13 @@ NS_LOG_COMPONENT_DEFINE ("Wifi_1");
 int main (int argc, char *argv[]) {
 // Step 1: Reconhecimento da rede.
 //WIFI
-  int nAp = 2;
+  int nAp = 5;
   int nSta = 10;
 
   int col = 1;
 
   double simTime = 100;
   uint32_t MaxPacketSize = 1024;
-  uint32_t maxPacketCount = 400;
   double PacketInterval = 0.25;
 //Variáveis para receber dados do FlowMonitor
     double** Vazao = create(nAp, col);
@@ -108,13 +107,10 @@ int main (int argc, char *argv[]) {
       NodeContainer wifiStaNodes;
       wifiStaNodes.Create (nSta);
 
-      NodeContainer wifiStaNodes2;
-      wifiStaNodes2.Create (nSta);
-
       NodeContainer all;
       all.Add(wifiApNodes);
       all.Add(wifiStaNodes);
-      all.Add(wifiStaNodes2);
+
 
   // // 2. Place nodes somehow, this is required by every wireless simulation
   // for (size_t i = 0; i < wifiStaNodes.GetN(); ++i)
@@ -204,10 +200,10 @@ YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
                                 "ControlMode",StringValue (phyMode));
   // Set it to adhoc mode
   wifiMac.SetType ("ns3::AdhocWifiMac");
-  NetDeviceContainer apDevice = wifi.Install (wifiPhy, wifiMac, wifiApNodes.Get(1));
+  NetDeviceContainer apDevice = wifi.Install (wifiPhy, wifiMac, wifiApNodes);
   NetDeviceContainer staDevice = wifi.Install (wifiPhy, wifiMac, wifiStaNodes);
-  NetDeviceContainer apDevice2 = wifi.Install (wifiPhy, wifiMac, wifiApNodes.Get(0));
-  NetDeviceContainer staDevice2 = wifi.Install (wifiPhy, wifiMac, wifiStaNodes2);
+  // NetDeviceContainer apDevice2 = wifi.Install (wifiPhy, wifiMac, wifiApNodes.Get(0));
+  // NetDeviceContainer staDevice2 = wifi.Install (wifiPhy, wifiMac, wifiStaNodes2);
       
 
       
@@ -233,20 +229,22 @@ YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
                                  "GridWidth", UintegerValue (5),
                                  "LayoutType", StringValue ("RowFirst"));
 
-  mobilitywifiSta.SetMobilityModel ("ns3::RandomWalk2dMobilityModel");
+  mobilitywifiSta.SetMobilityModel ("ns3::RandomWalk2dMobilityModel",
+                           "Speed", StringValue ("ns3::ConstantRandomVariable[Constant=10.0]"),
+                           "Bounds", StringValue ("-6000|6000|-6000|6000"));
   mobilitywifiSta.Install (wifiStaNodes);
 
-  MobilityHelper mobilitywifiSta2;
-  mobilitywifiSta2.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                 "MinX", DoubleValue (20.0),
-                                 "MinY", DoubleValue (10.0),
-                                 "DeltaX", DoubleValue (5.0),
-                                 "DeltaY", DoubleValue (10.0),
-                                 "GridWidth", UintegerValue (5),
-                                 "LayoutType", StringValue ("RowFirst"));
+  // MobilityHelper mobilitywifiSta2;
+  // mobilitywifiSta2.SetPositionAllocator ("ns3::GridPositionAllocator",
+  //                                "MinX", DoubleValue (20.0),
+  //                                "MinY", DoubleValue (10.0),
+  //                                "DeltaX", DoubleValue (5.0),
+  //                                "DeltaY", DoubleValue (10.0),
+  //                                "GridWidth", UintegerValue (5),
+  //                                "LayoutType", StringValue ("RowFirst"));
 
-  mobilitywifiSta2.SetMobilityModel ("ns3::RandomWalk2dMobilityModel");
-  mobilitywifiSta2.Install (wifiStaNodes2);
+  // mobilitywifiSta2.SetMobilityModel ("ns3::RandomWalk2dMobilityModel");
+  // mobilitywifiSta2.Install (wifiStaNodes2);
 
   // Energy
       srand((unsigned)time(0));
@@ -274,15 +272,11 @@ YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
   InternetStackHelper internet;
   internet.Install (wifiApNodes);
   internet.Install (wifiStaNodes);
-  internet.Install (wifiStaNodes2);
-
+  
   Ipv4AddressHelper ipv4;
   ipv4.SetBase ("192.168.1.0", "255.255.255.0");
   Ipv4InterfaceContainer apInterface = ipv4.Assign (apDevice);
   Ipv4InterfaceContainer staInterface = ipv4.Assign (staDevice);
-
-  Ipv4InterfaceContainer apInterface2 = ipv4.Assign (apDevice2);
-  Ipv4InterfaceContainer staInterface2 = ipv4.Assign (staDevice2);
 
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
 
@@ -315,43 +309,44 @@ YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
 
 //
 
-
   uint16_t port = 4000;
-
+for (uint16_t u = 0; u<nAp; ++u){
+  std::string ipAp = "192.168.1." + std::to_string(u+1);
+  port++;
   UdpServerHelper server (port);
-  ApplicationContainer apps = server.Install (wifiApNodes.Get (1));
+  ApplicationContainer apps = server.Install (wifiApNodes);
   apps.Start (Seconds (0.1));
   apps.Stop (Seconds (simTime));
 
-  UdpClientHelper client (apInterface.GetAddress (0), port);
-  client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
+  UdpClientHelper client (Ipv4Address (ipAp.c_str()), port);
+  client.SetAttribute ("MaxPackets", UintegerValue ((uint32_t)(simTime*(1/PacketInterval))));
   client.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
   client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
-  
-  for(int u = 0; u<nSta; ++u){
-  apps = client.Install (wifiStaNodes.Get(u));
+
+  for(uint16_t i = 0; i<nSta; ++i){
+  apps = client.Install (wifiStaNodes.Get(i));
   apps.Start (Seconds (0.1));
   apps.Stop (Seconds (simTime));
   }
+}
 
+  // uint16_t port2 = 4001;
 
-  uint16_t port2 = 4001;
+  // UdpServerHelper server2 (port2);
+  // ApplicationContainer apps2 = server2.Install (wifiApNodes.Get (0));
+  // apps2.Start (Seconds (0.1));
+  // apps2.Stop (Seconds (simTime));
 
-  UdpServerHelper server2 (port2);
-  ApplicationContainer apps2 = server2.Install (wifiApNodes.Get (0));
-  apps2.Start (Seconds (0.1));
-  apps2.Stop (Seconds (simTime));
-
-  UdpClientHelper client2 (apInterface2.GetAddress (0), port);
-  client2.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
-  client2.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
-  client2.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
+  // UdpClientHelper client2 (apInterface2.GetAddress (0), port);
+  // client2.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
+  // client2.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
+  // client2.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
   
-  for(int u = 0; u<nSta; ++u){
-  apps2 = client2.Install (wifiStaNodes2.Get(u));
-  apps2.Start (Seconds (0.1));
-  apps2.Stop (Seconds (simTime));
-  }
+  // for(int u = 0; u<nSta; ++u){
+  // apps2 = client2.Install (wifiStaNodes2.Get(u));
+  // apps2.Start (Seconds (0.1));
+  // apps2.Stop (Seconds (simTime));
+  // }
 
 
 
@@ -375,11 +370,7 @@ YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
           anim.UpdateNodeDescription (wifiApNodes.Get(i), "AP"); // Optional
           anim.UpdateNodeColor (wifiApNodes.Get(i), 255, 255, 0); // Coloração
         }
-         for (uint32_t i = 0; i < wifiStaNodes2.GetN(); ++i)
-        {
-          anim.UpdateNodeDescription (wifiStaNodes2.Get(i), "STA2"); // Optional
-          anim.UpdateNodeColor (wifiStaNodes2.Get(i), 230, 0, 0); // Coloração
-        }
+         
         anim.EnablePacketMetadata (); // Optiona
         anim.EnableIpv4RouteTracking ("routingtable-wireless.xml", Seconds (0), Seconds (5), Seconds (0.25)); //Optional
         anim.EnableWifiMacCounters (Seconds (0), Seconds (10)); //Optional
@@ -387,8 +378,7 @@ YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
 
   Simulator::Stop(Seconds(simTime));
   Simulator::Run();
-
-  // 10. Print per flow statistics
+    // 10. Print per flow statistics
   monitor->CheckForLostPackets ();
   Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier> (flowmon.GetClassifier ());
   FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats ();
@@ -402,7 +392,12 @@ YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
       //   Simulator::Stops at "second 10".
       for(int u=0; u<nAp;++u){
         Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
-      if (t.sourceAddress == "192.168.1.14" && t.destinationAddress == "192.168.1.12")
+
+        std::string ip = "192.168.1." + std::to_string(u+1);
+
+        std::cout<<"IP: " << ip <<std::endl;
+
+      if (t.destinationAddress == ip.c_str() && t.sourceAddress == "192.168.1.12")
         {
           // for(int l = 0; l<nAp; ++l){
             
@@ -412,57 +407,56 @@ YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
             std::cout<<"Tx Packets = " << i->second.txPackets<<std::endl;
             std::cout<<"Rx Packets = " << i->second.rxPackets<<std::endl;
             
-            Loss[0][0] = i->second.txPackets - i->second.rxPackets;
-            std::cout << "Perda de Pacotes: "<< Loss[0][0]<<std::endl;
+            Loss[u][0] = i->second.txPackets - i->second.rxPackets;
+            std::cout << "Perda de Pacotes: "<< Loss[u][0]<<std::endl;
             
-            Vazao[0][0] = i->second.rxBytes * 8.0 / (i->second.timeLastRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds())/1024/1024;
-            std::cout << "Vazão: " << Vazao[0][0] << " Mbps\n";
+            Vazao[u][0] = i->second.rxBytes * 8.0 / (i->second.timeLastRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds())/1024/1024;
+            std::cout << "Vazão: " << Vazao[u][0] << " Mbps\n";
             
-            std::cout << "Energia: "<< Energia[0][0] <<std::endl;
+            std::cout << "Energia: "<< Energia[u][0] <<std::endl;
 
-            Atraso[0][0] = ((i->second.timeLastRxPacket.GetSeconds()) - (i->second.timeLastTxPacket.GetSeconds()));
-            std::cout << "Atraso: "<< Atraso[0][0] <<std::endl;
+            Atraso[u][0] = ((i->second.timeLastRxPacket.GetSeconds()) - (i->second.timeLastTxPacket.GetSeconds()));
+            std::cout << "Atraso: "<< Atraso[u][0] <<std::endl;
 
             atraso2 = i->second.timeLastRxPacket.GetSeconds()-i->second.timeLastTxPacket.GetSeconds();
             atraso1 = i->second.timeFirstRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds();
-            Jitter[0][0] = atraso2 - atraso1;
-            std::cout << "Jitter: "<< Jitter[0][0] <<std::endl;
+            Jitter[u][0] = atraso2 - atraso1;
+            std::cout << "Jitter: "<< Jitter[u][0] <<std::endl;
             std::cout << " " <<std::endl;
-          }else{
-            if(t.sourceAddress == "192.168.1.2" && t.destinationAddress == "192.168.1.1"){
+          // }else{
+          //   if(t.sourceAddress == "192.168.1.2" && t.destinationAddress == "192.168.1.1"){
             
-            std::cout << "Flow " << i->first - 2 << " (" << t.sourceAddress << " -> " << t.destinationAddress << ")\n";
-            std::cout<<"Duration  : "<<(i->second.timeLastRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds())<<std::endl;
+          //   std::cout << "Flow " << i->first - 2 << " (" << t.sourceAddress << " -> " << t.destinationAddress << ")\n";
+          //   std::cout<<"Duration  : "<<(i->second.timeLastRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds())<<std::endl;
 
-            std::cout<<"Tx Packets = " << i->second.txPackets<<std::endl;
-            std::cout<<"Rx Packets = " << i->second.rxPackets<<std::endl;
+          //   std::cout<<"Tx Packets = " << i->second.txPackets<<std::endl;
+          //   std::cout<<"Rx Packets = " << i->second.rxPackets<<std::endl;
             
-            Loss[1][0] = i->second.txPackets - i->second.rxPackets;
-            std::cout << "Perda de Pacotes: "<< Loss[1][0]<<std::endl;
+          //   Loss[u][0] = i->second.txPackets - i->second.rxPackets;
+          //   std::cout << "Perda de Pacotes: "<< Loss[u][0]<<std::endl;
             
-            Vazao[1][0] = i->second.rxBytes * 8.0 / (i->second.timeLastRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds())/1024/1024;
-            std::cout << "Vazão: " << Vazao[1][0] << " Mbps\n";
+          //   Vazao[u][0] = i->second.rxBytes * 8.0 / (i->second.timeLastRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds())/1024/1024;
+          //   std::cout << "Vazão: " << Vazao[u][0] << " Mbps\n";
             
-            std::cout << "Energia: "<< Energia[1][0] <<std::endl;
+          //   std::cout << "Energia: "<< Energia[u][0] <<std::endl;
 
-            Atraso[1][0] = ((i->second.timeLastRxPacket.GetSeconds()) - (i->second.timeLastTxPacket.GetSeconds()));
-            std::cout << "Atraso: "<< Atraso[1][0] <<std::endl;
+          //   Atraso[u][0] = ((i->second.timeLastRxPacket.GetSeconds()) - (i->second.timeLastTxPacket.GetSeconds()));
+          //   std::cout << "Atraso: "<< Atraso[u][0] <<std::endl;
 
-            atraso2 = i->second.timeLastRxPacket.GetSeconds()-i->second.timeLastTxPacket.GetSeconds();
-            atraso1 = i->second.timeFirstRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds();
-            Jitter[1][0] = atraso2 - atraso1;
-            std::cout << "Jitter: "<< Jitter[1][0] <<std::endl;
-            std::cout << " " <<std::endl;
-
-
+          //   atraso2 = i->second.timeLastRxPacket.GetSeconds()-i->second.timeLastTxPacket.GetSeconds();
+          //   atraso1 = i->second.timeFirstRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds();
+          //   Jitter[u][0] = atraso2 - atraso1;
+          //   std::cout << "Jitter: "<< Jitter[u][0] <<std::endl;
+          //   std::cout << " " <<std::endl;
 
 
 
 
-            }
+
+
+          //   }
           }
-        }
-    }
+        }    }
 
 //LÓGICA DE SELEÇÃO
       avalParam(nAp, Vazao, Atraso, Loss, Energia, Jitter);
@@ -623,13 +617,13 @@ YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
         normalmMR[l][5] = (mMR[l][5]/somaJitter);
 
         FinalScore[l][0]=l;
-        FinalScore[l][1]= (((normalmMR[l][1])*100)*0.3)+((normalmMR[l][2]*100)*0.25)+((normalmMR[l][3]*100)*0.2)+(((normalmMR[l][4])*100)*0.15)+(((normalmMR[l][5])*100)*0.1);
+        FinalScore[l][1]= (((1-normalmMR[l][1])*100)*0.3+((normalmMR[l][2]*100)*0.25)+((normalmMR[l][3]*100)*0.2)+((1-normalmMR[l][4])*100)*0.15+((1-normalmMR[l][5])*100)*0.1);
         
-        std::cout << "Nó " << l << " Pontuação perda de pacotes " << ((normalmMR[l][1])*100)*0.3<<std::endl;
+        std::cout << "Nó " << l << " Pontuação perda de pacotes " << ((1-normalmMR[l][1])*100)*0.3<<std::endl;
         std::cout << "Nó " << l << " Pontuação vazão " << (normalmMR[l][2]*100)*0.25<<std::endl;
         std::cout << "Nó " << l << " Pontuação Energia " << (normalmMR[l][3]*100)*0.2<<std::endl;
-        std::cout << "Nó " << l << " Pontuação Delay " << ((normalmMR[l][4])*100)*0.15<<std::endl;
-        std::cout << "Nó " << l << " Pontuação Jitter " << ((normalmMR[l][5])*100)*0.1<<std::endl;
+        std::cout << "Nó " << l << " Pontuação Delay " << ((1-normalmMR[l][4])*100)*0.15<<std::endl;
+        std::cout << "Nó " << l << " Pontuação Jitter " << ((1-normalmMR[l][5])*100)*0.1<<std::endl;
         std::cout << " " <<std::endl;
         }
 
