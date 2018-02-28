@@ -68,8 +68,9 @@ main (int argc, char *argv[])
 
   // int aux_energy = 0;
   int nAp = 1;
-  int nSta = 20;
-  
+  int nSta = 100;
+
+  int cenario = 1;
   CommandLine cmd;
   cmd.AddValue ("Rx", "Number of Packets", Rx);
   cmd.Parse (argc,argv);
@@ -82,16 +83,98 @@ main (int argc, char *argv[])
   
   // 1. Create 3 nodes
 
-      NodeContainer wifiApNodes;
-      wifiApNodes.Create (nAp);
-          
-      NodeContainer wifiStaNodes;
-      wifiStaNodes.Create (nSta);
+  NodeContainer wifiApNodes;
+  wifiApNodes.Create (nAp);
+  NodeContainer wifiStaNodes;
+      
+  MobilityHelper mobilitywifiSta;
 
-      NodeContainer all;
+  MobilityHelper mobilitywifiAp;
+  Ptr<ListPositionAllocator> positionAllocMN = CreateObject<ListPositionAllocator> ();
+  
+  if(cenario == 1){
+  
+  positionAllocMN->Add (Vector(510, 1414, 1.5));
+  mobilitywifiAp.SetPositionAllocator(positionAllocMN);;
+  mobilitywifiAp.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  
+  wifiStaNodes.Create (nSta);
+  mobilitywifiSta.SetPositionAllocator ("ns3::GridPositionAllocator",
+                                 "MinX", DoubleValue (500.0),
+                                 "MinY", DoubleValue (1414),
+                                 "DeltaX", DoubleValue (5.0),
+                                 "DeltaY", DoubleValue (5.0),
+                                 "GridWidth", UintegerValue (10),
+                                 "LayoutType", StringValue ("RowFirst"));
+    }else{
+          if(cenario == 2){
+
+          positionAllocMN->Add (Vector(1900, 0, 1.5));
+          mobilitywifiAp.SetPositionAllocator(positionAllocMN);;
+          mobilitywifiAp.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  
+          wifiStaNodes.Create (nSta);
+          mobilitywifiSta.SetPositionAllocator ("ns3::GridPositionAllocator",
+                                         "MinX", DoubleValue (2000.0),
+                                         "MinY", DoubleValue (0),
+                                         "DeltaX", DoubleValue (5.0),
+                                         "DeltaY", DoubleValue (5.0),
+                                         "GridWidth", UintegerValue (10),
+                                         "LayoutType", StringValue ("RowFirst"));
+            }else{
+                  if(cenario == 3){
+                    
+                    positionAllocMN->Add (Vector(10, 5656, 1.5));
+                    mobilitywifiAp.SetPositionAllocator(positionAllocMN);;
+                    mobilitywifiAp.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+                    
+                    wifiStaNodes.Create (nSta/2);
+                  mobilitywifiSta.SetPositionAllocator ("ns3::GridPositionAllocator",
+                                               "MinX", DoubleValue (0),
+                                               "MinY", DoubleValue (5656),
+                                               "DeltaX", DoubleValue (5.0),
+                                               "DeltaY", DoubleValue (5.0),
+                                               "GridWidth", UintegerValue (10),
+                                               "LayoutType", StringValue ("RowFirst"));
+
+                    }else{
+                          if(cenario == 4){
+                  
+                          positionAllocMN->Add (Vector(1490, 4242, 1.5));
+                          mobilitywifiAp.SetPositionAllocator(positionAllocMN);;
+                          mobilitywifiAp.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+                         
+                          wifiStaNodes.Create (nSta/2);
+                          mobilitywifiSta.SetPositionAllocator ("ns3::GridPositionAllocator",
+                                                           "MinX", DoubleValue (1500),
+                                                           "MinY", DoubleValue (4242),
+                                                           "DeltaX", DoubleValue (5.0),
+                                                           "DeltaY", DoubleValue (5.0),
+                                                           "GridWidth", UintegerValue (10),
+                                                           "LayoutType", StringValue ("RowFirst"));
+                          }
+                        }
+                  }
+          }
+  mobilitywifiAp.Install (wifiApNodes);
+  mobilitywifiSta.SetMobilityModel ("ns3::RandomWalk2dMobilityModel",
+                           "Speed", StringValue ("ns3::ConstantRandomVariable[Constant=10.0]"),
+                           "Bounds", StringValue ("-6000|6000|-6000|6000"));
+  mobilitywifiSta.Install (wifiStaNodes);
+  // mobilityUe.Install(ueNodes);
+  // mobilitywifiSta.SetPositionAllocator ("ns3::GridPositionAllocator",
+  //                                "MinX", DoubleValue (20.0),
+  //                                "MinY", DoubleValue (495.0),
+  //                                "DeltaX", DoubleValue (5.0),
+  //                                "DeltaY", DoubleValue (10.0),
+  //                                "GridWidth", UintegerValue (5),
+  //                                "LayoutType", StringValue ("RowFirst"));
+
+  // mobilitywifiSta.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+
+   NodeContainer all;
       all.Add(wifiApNodes);
       all.Add(wifiStaNodes);
-
   // // 2. Place nodes somehow, this is required by every wireless simulation
   // for (size_t i = 0; i < wifiStaNodes.GetN(); ++i)
   //   {
@@ -175,26 +258,10 @@ main (int argc, char *argv[])
       
 
       
-  MobilityHelper mobilitywifiAp;
-  Ptr<ListPositionAllocator> positionAllocMN = CreateObject<ListPositionAllocator> ();
-  positionAllocMN->Add (Vector(5, 505, 1.5));
-  mobilitywifiAp.SetPositionAllocator(positionAllocMN);;
-
-  mobilitywifiAp.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  mobilitywifiAp.Install (wifiApNodes);
+  
 
 
-  MobilityHelper mobilitywifiSta;
-  mobilitywifiSta.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                 "MinX", DoubleValue (20.0),
-                                 "MinY", DoubleValue (495.0),
-                                 "DeltaX", DoubleValue (5.0),
-                                 "DeltaY", DoubleValue (10.0),
-                                 "GridWidth", UintegerValue (5),
-                                 "LayoutType", StringValue ("RowFirst"));
-
-  mobilitywifiSta.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  mobilitywifiSta.Install (wifiStaNodes);
+  
 
   // // Energy
   //     srand((unsigned)time(0));
@@ -255,37 +322,32 @@ main (int argc, char *argv[])
 //
 // Create one udpServer applications on node one.
 
-//
-  uint16_t port = 4000;
+for (uint16_t u = 0; u<nAp; ++u){
+  std::string ipAp = "192.168.1." + std::to_string(u+1);
+  port++;
   UdpServerHelper server (port);
-  ApplicationContainer apps = server.Install (wifiApNodes.Get (0));
+  ApplicationContainer apps = server.Install (wifiApNodes);
   apps.Start (Seconds (simTime/2));
   apps.Stop (Seconds (simTime));
 
-//
-// Create one UdpClient application to send UDP datagrams from node zero to
-// node one.
-//
-
-  UdpClientHelper client (apInterface.GetAddress (0), port);
+  UdpClientHelper client (Ipv4Address (ipAp.c_str()), port); 
   client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
-  client.SetAttribute ("Interval", TimeValue (Seconds (interPacketInterval)));
+  client.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
   client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
-  
-  for(int u = 0; u<nSta; ++u){
-  apps = client.Install (wifiStaNodes.Get(u));
+
+  for(uint16_t i = 0; i<nSta; ++i){
+  apps = client.Install (wifiStaNodes.Get(i));
   apps.Start (Seconds (simTime/2));
   apps.Stop (Seconds (simTime));
   }
-
-
+}
 
 //FLOW-MONITOR
     
 
     //-----------------FlowMonitor-THROUGHPUT----------------
 
-    std::string fileNameWithNoExtension = "wifi_Flow_vs_Throughput";
+    std::string fileNameWithNoExtension = "wifi_Flow_vs_Throughput_Group_" + std::to_string(cenario);
     std::string graphicsFileName        = fileNameWithNoExtension + ".png";
     std::string plotFileName            = fileNameWithNoExtension + ".plt";
     std::string plotTitle               = "Flow_vs_Throughput";
@@ -310,7 +372,7 @@ main (int argc, char *argv[])
      
     //-----------------FlowMonitor-Atraso--------------------
 
-    std::string fileNameWithNoExtension2 = "wifi_Flow_vs_Delay";
+    std::string fileNameWithNoExtension2 = "wifi_Flow_vs_Delay_Group_" + std::to_string(cenario);
     std::string graphicsFileName2      = fileNameWithNoExtension2 + ".png";
     std::string plotFileName2        = fileNameWithNoExtension2 + ".plt";
     std::string plotTitle2           = "Flow_vs_Delay";
@@ -332,7 +394,7 @@ main (int argc, char *argv[])
 
     //-----------------FlowMonitor-LossPackets--------------------
 
-    std::string fileNameWithNoExtension3 = "wifi_Flow_vs_Loss";
+    std::string fileNameWithNoExtension3 = "wifi_Flow_vs_Loss_Group_" + std::to_string(cenario);
     std::string graphicsFileName3      = fileNameWithNoExtension3 + ".png";
     std::string plotFileName3        = fileNameWithNoExtension3 + ".plt";
     std::string plotTitle3           = "Flow_vs_Loss";
@@ -354,7 +416,7 @@ main (int argc, char *argv[])
    
     //-----------------FlowMonitor-JITTER--------------------
 
-    std::string fileNameWithNoExtension4 = "wifi_Flow_vs_Jitter";
+    std::string fileNameWithNoExtension4 = "wifi_Flow_vs_Jitter_Group_" + std::to_string(cenario);
     std::string graphicsFileName4      = fileNameWithNoExtension4 + ".png";
     std::string plotFileName4        = fileNameWithNoExtension4 + ".plt";
     std::string plotTitle4           = "Flow_vs_Jitter";
@@ -373,9 +435,9 @@ main (int argc, char *argv[])
     //Ptr<FlowMonitor> allMon = fmHelper.InstallAll();
 
     JitterMonitor(&fmHelper, allMon, dataset4);
-
+std::string gp = std::to_string(cenario);
 //NetAnim
-   AnimationInterface anim ("simulation_2/simulation_2_wifi.xml"); // Mandatory
+   AnimationInterface anim (gp + "_group_simulation_2_wifi.xml"); // Mandatory
         
         for (uint32_t i = 0; i < wifiApNodes.GetN(); ++i)
         {
@@ -447,7 +509,7 @@ main (int argc, char *argv[])
       Simulator::Schedule(Seconds(1), &ThroughputMonitor, fmhelper, flowMon, DataSet);
    //if(flowToXml)
       {
-    flowMon->SerializeToXmlFile ("wifi2_Flow.xml", true, true);
+    flowMon->SerializeToXmlFile (gp + "_group_wifi2_Flow.xml", true, true);
       }
   }
 

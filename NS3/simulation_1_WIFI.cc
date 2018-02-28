@@ -68,9 +68,10 @@ NS_LOG_COMPONENT_DEFINE ("Wifi_1");
 int main (int argc, char *argv[]) {
 // Step 1: Reconhecimento da rede.
 //WIFI
-  int nAp = 5;
-  int nSta = 10;
+  int nAp = 10;
+  int nSta = 100;
 
+  int cenario = 1;
   int col = 1;
 
   double simTime = 100;
@@ -101,17 +102,93 @@ int main (int argc, char *argv[]) {
     
   // 1. Create 3 nodes
 
-      NodeContainer wifiApNodes;
-      wifiApNodes.Create (nAp);
-          
-      NodeContainer wifiStaNodes;
-      wifiStaNodes.Create (nSta);
+  NodeContainer wifiApNodes;
+  wifiApNodes.Create (nAp);
+      
+  NodeContainer wifiStaNodes;
+      
+
+   
+
+  MobilityHelper mobilitywifiSta;
+
+  MobilityHelper mobilitywifiAp;
+  Ptr<ListPositionAllocator> positionAllocMN = CreateObject<ListPositionAllocator> ();
+  
+  if(cenario == 1){
+  
+  positionAllocMN->Add (Vector(510, 1414, 1.5));
+  mobilitywifiAp.SetPositionAllocator(positionAllocMN);;
+  mobilitywifiAp.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  
+  wifiStaNodes.Create (nSta);
+  mobilitywifiSta.SetPositionAllocator ("ns3::GridPositionAllocator",
+                                 "MinX", DoubleValue (500.0),
+                                 "MinY", DoubleValue (1414),
+                                 "DeltaX", DoubleValue (5.0),
+                                 "DeltaY", DoubleValue (5.0),
+                                 "GridWidth", UintegerValue (10),
+                                 "LayoutType", StringValue ("RowFirst"));
+    }else{
+          if(cenario == 2){
+
+          positionAllocMN->Add (Vector(1900, 0, 1.5));
+          mobilitywifiAp.SetPositionAllocator(positionAllocMN);;
+          mobilitywifiAp.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  
+          wifiStaNodes.Create (nSta);
+          mobilitywifiSta.SetPositionAllocator ("ns3::GridPositionAllocator",
+                                         "MinX", DoubleValue (2000.0),
+                                         "MinY", DoubleValue (0),
+                                         "DeltaX", DoubleValue (5.0),
+                                         "DeltaY", DoubleValue (5.0),
+                                         "GridWidth", UintegerValue (10),
+                                         "LayoutType", StringValue ("RowFirst"));
+            }else{
+                  if(cenario == 3){
+                    
+                    positionAllocMN->Add (Vector(10, 5656, 1.5));
+                    mobilitywifiAp.SetPositionAllocator(positionAllocMN);;
+                    mobilitywifiAp.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+                    
+                    wifiStaNodes.Create (nSta/2);
+                  mobilitywifiSta.SetPositionAllocator ("ns3::GridPositionAllocator",
+                                               "MinX", DoubleValue (0),
+                                               "MinY", DoubleValue (5656),
+                                               "DeltaX", DoubleValue (5.0),
+                                               "DeltaY", DoubleValue (5.0),
+                                               "GridWidth", UintegerValue (10),
+                                               "LayoutType", StringValue ("RowFirst"));
+
+                    }else{
+                          if(cenario == 4){
+                  
+                          positionAllocMN->Add (Vector(1490, 4242, 1.5));
+                          mobilitywifiAp.SetPositionAllocator(positionAllocMN);;
+                          mobilitywifiAp.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+                         
+                          wifiStaNodes.Create (nSta/2);
+                          mobilitywifiSta.SetPositionAllocator ("ns3::GridPositionAllocator",
+                                                           "MinX", DoubleValue (1500),
+                                                           "MinY", DoubleValue (4242),
+                                                           "DeltaX", DoubleValue (5.0),
+                                                           "DeltaY", DoubleValue (5.0),
+                                                           "GridWidth", UintegerValue (10),
+                                                           "LayoutType", StringValue ("RowFirst"));
+                          }
+                        }
+                  }
+          }
+  mobilitywifiAp.Install (wifiApNodes);
+  mobilitywifiSta.SetMobilityModel ("ns3::RandomWalk2dMobilityModel",
+                           "Speed", StringValue ("ns3::ConstantRandomVariable[Constant=10.0]"),
+                           "Bounds", StringValue ("-6000|6000|-6000|6000"));
+  mobilitywifiSta.Install (wifiStaNodes);
+
 
       NodeContainer all;
       all.Add(wifiApNodes);
       all.Add(wifiStaNodes);
-
-
   // // 2. Place nodes somehow, this is required by every wireless simulation
   // for (size_t i = 0; i < wifiStaNodes.GetN(); ++i)
   //   {
@@ -207,33 +284,6 @@ YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
       
 
       
-  MobilityHelper mobilitywifiAp;
-  mobilitywifiAp.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                 "MinX", DoubleValue (5.0),
-                                 "MinY", DoubleValue (5.0),
-                                 "DeltaX", DoubleValue (10.0),
-                                 "DeltaY", DoubleValue (10.0),
-                                 "GridWidth", UintegerValue (1),
-                                 "LayoutType", StringValue ("RowFirst"));
-
-  mobilitywifiAp.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  mobilitywifiAp.Install (wifiApNodes);
-
-
-  MobilityHelper mobilitywifiSta;
-  mobilitywifiSta.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                 "MinX", DoubleValue (20.0),
-                                 "MinY", DoubleValue (1.0),
-                                 "DeltaX", DoubleValue (5.0),
-                                 "DeltaY", DoubleValue (10.0),
-                                 "GridWidth", UintegerValue (5),
-                                 "LayoutType", StringValue ("RowFirst"));
-
-  mobilitywifiSta.SetMobilityModel ("ns3::RandomWalk2dMobilityModel",
-                           "Speed", StringValue ("ns3::ConstantRandomVariable[Constant=10.0]"),
-                           "Bounds", StringValue ("-6000|6000|-6000|6000"));
-  mobilitywifiSta.Install (wifiStaNodes);
-
   // MobilityHelper mobilitywifiSta2;
   // mobilitywifiSta2.SetPositionAllocator ("ns3::GridPositionAllocator",
   //                                "MinX", DoubleValue (20.0),
@@ -318,7 +368,7 @@ for (uint16_t u = 0; u<nAp; ++u){
   apps.Start (Seconds (0.1));
   apps.Stop (Seconds (simTime));
 
-  UdpClientHelper client (Ipv4Address (ipAp.c_str()), port);
+  UdpClientHelper client (Ipv4Address (ipAp.c_str()), port); 
   client.SetAttribute ("MaxPackets", UintegerValue ((uint32_t)(simTime*(1/PacketInterval))));
   client.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
   client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
@@ -354,10 +404,10 @@ for (uint16_t u = 0; u<nAp; ++u){
   // 8. Install FlowMonitor on all nodes
   FlowMonitorHelper flowmon;
   Ptr<FlowMonitor> monitor = flowmon.InstallAll ();
-
+  std::string gp = std::to_string(cenario);
 //Metodo Animation
 
-        AnimationInterface anim ("simulation_1/simulation_1_wifi.xml"); // Mandatory
+        AnimationInterface anim (gp + "_group_simulation_1_wifi.xml"); // Mandatory
         
         for (uint32_t i = 0; i < wifiStaNodes.GetN(); ++i)
         {
@@ -617,15 +667,16 @@ for (uint16_t u = 0; u<nAp; ++u){
         normalmMR[l][5] = (mMR[l][5]/somaJitter);
 
         FinalScore[l][0]=l;
-        FinalScore[l][1]= (((1-normalmMR[l][1])*100)*0.3+((normalmMR[l][2]*100)*0.25)+((normalmMR[l][3]*100)*0.2)+((1-normalmMR[l][4])*100)*0.15+((1-normalmMR[l][5])*100)*0.1);
+        FinalScore[l][1]= ((((1-normalmMR[l][1])/(nAp-1))*100)*0.3)+((normalmMR[l][2]*100)*0.25)+((normalmMR[l][3]*100)*0.2)+((((1-normalmMR[l][4])/(nAp-1))*100)*0.15)+((((1-normalmMR[l][5])/(nAp-1))*100)*0.1);
         
-        std::cout << "Nó " << l << " Pontuação perda de pacotes " << ((1-normalmMR[l][1])*100)*0.3<<std::endl;
+        std::cout << "Nó " << l << " Pontuação perda de pacotes " << (((1-normalmMR[l][1])/(nAp-1))*100)*0.3<<std::endl;
         std::cout << "Nó " << l << " Pontuação vazão " << (normalmMR[l][2]*100)*0.25<<std::endl;
         std::cout << "Nó " << l << " Pontuação Energia " << (normalmMR[l][3]*100)*0.2<<std::endl;
-        std::cout << "Nó " << l << " Pontuação Delay " << ((1-normalmMR[l][4])*100)*0.15<<std::endl;
-        std::cout << "Nó " << l << " Pontuação Jitter " << ((1-normalmMR[l][5])*100)*0.1<<std::endl;
+        std::cout << "Nó " << l << " Pontuação Delay " << (((1-normalmMR[l][4])/(nAp-1))*100)*0.15<<std::endl;
+        std::cout << "Nó " << l << " Pontuação Jitter " << (((1-normalmMR[l][5])/(nAp-1))*100)*0.1<<std::endl;
         std::cout << " " <<std::endl;
         }
+         // ((1 - (Pa/Spa))/(Qtn - 1)) * Po  
 
         // //Escrever de forma agrupada os pontos de cada nó 
 

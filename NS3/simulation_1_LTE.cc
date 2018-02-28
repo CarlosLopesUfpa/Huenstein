@@ -151,7 +151,7 @@ NodeContainer ueNodes;
 
   MobilityHelper mobilityUe;
   if(cenario == 1){
-  ueNodes.Create (numberOfNodesUE/2);
+  ueNodes.Create (numberOfNodesUE);
   mobilityUe.SetPositionAllocator ("ns3::GridPositionAllocator",
                                  "MinX", DoubleValue (500.0),
                                  "MinY", DoubleValue (1414),
@@ -307,7 +307,7 @@ for (uint16_t i = 0; i < ueNodes.GetN(); i++)
     
 
     //-----------------FlowMonitor-THROUGHPUT----------------
-    std::string fileNameWithNoExtension = "lte_Flow_vs_Throughput_Group_" + cenario;
+    std::string fileNameWithNoExtension = "lte_Flow_vs_Throughput_Group_" + std::to_string(cenario);
     std::string graphicsFileName        = fileNameWithNoExtension + ".png";
     std::string plotFileName            = fileNameWithNoExtension + ".plt";
     std::string plotTitle               = "Flow_vs_Throughput";
@@ -332,7 +332,7 @@ for (uint16_t i = 0; i < ueNodes.GetN(); i++)
      
     //-----------------FlowMonitor-Atraso--------------------
 
-    std::string fileNameWithNoExtension2 = "lte_Flow_vs_Delay_Group_" + cenario;
+    std::string fileNameWithNoExtension2 = "lte_Flow_vs_Delay_Group_" + std::to_string(cenario);
     std::string graphicsFileName2      = fileNameWithNoExtension2 + ".png";
     std::string plotFileName2        = fileNameWithNoExtension2 + ".plt";
     std::string plotTitle2           = "Flow_vs_Delay";
@@ -354,7 +354,7 @@ for (uint16_t i = 0; i < ueNodes.GetN(); i++)
 
     //-----------------FlowMonitor-LossPackets--------------------
 
-    std::string fileNameWithNoExtension3 = "lte_Flow_vs_Loss_Group_" + cenario;
+    std::string fileNameWithNoExtension3 = "lte_Flow_vs_Loss_Group_" + std::to_string(cenario);
     std::string graphicsFileName3      = fileNameWithNoExtension3 + ".png";
     std::string plotFileName3        = fileNameWithNoExtension3 + ".plt";
     std::string plotTitle3           = "Flow_vs_Loss";
@@ -376,7 +376,7 @@ for (uint16_t i = 0; i < ueNodes.GetN(); i++)
    
     //-----------------FlowMonitor-JITTER--------------------
 
-    std::string fileNameWithNoExtension4 = "lte_Flow_vs_Jitter_Group_" + cenario;
+    std::string fileNameWithNoExtension4 = "lte_Flow_vs_Jitter_Group_" + std::to_string(cenario);
     std::string graphicsFileName4      = fileNameWithNoExtension4 + ".png";
     std::string plotFileName4        = fileNameWithNoExtension4 + ".plt";
     std::string plotTitle4           = "Flow_vs_Jitter";
@@ -396,8 +396,10 @@ for (uint16_t i = 0; i < ueNodes.GetN(); i++)
 
     JitterMonitor(&fmHelper, allMon, dataset4);
 
+    std::string gp = std::to_string(cenario);
+
 //Install NetAnim
-   AnimationInterface anim ("simulation_1_lte.xml"); // Mandatory
+   AnimationInterface anim (gp + "_group_simulation_1_lte.xml"); // Mandatory
         
           anim.UpdateNodeDescription (ueNodes.Get(0), "ueNodes"); // Optional
           anim.UpdateNodeColor (ueNodes.Get(0), 255, 0, 0); // Coloração
@@ -467,7 +469,7 @@ for (uint16_t i = 0; i < ueNodes.GetN(); i++)
       Simulator::Schedule(Seconds(1), &ThroughputMonitor, fmhelper, flowMon, DataSet);
    //if(flowToXml)
       {
-    flowMon->SerializeToXmlFile ("lte_Flow.xml", true, true);
+    flowMon->SerializeToXmlFile (gp + "_group_lte_Flow.xml", true, true);
       }
   }
 
