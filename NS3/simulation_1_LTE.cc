@@ -65,7 +65,9 @@ void ThroughputMonitor(FlowMonitorHelper *fmhelper, Ptr<FlowMonitor> flowMon, Gn
 void DelayMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset2);
 void LossMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset3);
 void JitterMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset4);
-
+    
+uint16_t cenario = 1;
+std::string gp = std::to_string(cenario);
 
 int
 main (int argc, char *argv[])
@@ -74,11 +76,11 @@ main (int argc, char *argv[])
   uint16_t numberOfNodesENB = 1;
   uint16_t numberOfNodesUE = 100;
 
-  uint16_t cenario = 1;
+
   // uint16_t numberOfNodes = numberOfNodesENB + numberOfNodesUE;
 
 
-  double PacketInterval = 0.25;
+  double PacketInterval = 0.025;
   double MaxPacketSize = 1024;
   
   double simTime = 100;
@@ -396,7 +398,7 @@ for (uint16_t i = 0; i < ueNodes.GetN(); i++)
 
     JitterMonitor(&fmHelper, allMon, dataset4);
 
-    std::string gp = std::to_string(cenario);
+
 
 //Install NetAnim
    AnimationInterface anim (gp + "_group_simulation_1_lte.xml"); // Mandatory

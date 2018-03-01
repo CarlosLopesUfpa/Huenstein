@@ -76,7 +76,7 @@ int main (int argc, char *argv[]) {
 
   double simTime = 100;
   uint32_t MaxPacketSize = 1024;
-  double PacketInterval = 0.25;
+  double PacketInterval = 0.025;
 //Variáveis para receber dados do FlowMonitor
     double** Vazao = create(nAp, col);
 

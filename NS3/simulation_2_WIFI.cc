@@ -57,11 +57,14 @@ void DelayMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot
 void LossMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset3);
 void JitterMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset4);
 
+int cenario = 1;
+std::string gp = std::to_string(cenario);
+
 int
 main (int argc, char *argv[])
 {
   
-  double interPacketInterval = 0.25;
+  double PacketInterval = 0.025;
   uint32_t MaxPacketSize = 1024;
   double simTime = 100;
   double Rx = 400;
@@ -70,7 +73,7 @@ main (int argc, char *argv[])
   int nAp = 1;
   int nSta = 100;
 
-  int cenario = 1;
+
   CommandLine cmd;
   cmd.AddValue ("Rx", "Number of Packets", Rx);
   cmd.Parse (argc,argv);
@@ -321,7 +324,7 @@ main (int argc, char *argv[])
 
 //
 // Create one udpServer applications on node one.
-
+  uint16_t  port = 9;
 for (uint16_t u = 0; u<nAp; ++u){
   std::string ipAp = "192.168.1." + std::to_string(u+1);
   port++;
@@ -435,7 +438,7 @@ for (uint16_t u = 0; u<nAp; ++u){
     //Ptr<FlowMonitor> allMon = fmHelper.InstallAll();
 
     JitterMonitor(&fmHelper, allMon, dataset4);
-std::string gp = std::to_string(cenario);
+
 //NetAnim
    AnimationInterface anim (gp + "_group_simulation_2_wifi.xml"); // Mandatory
         
