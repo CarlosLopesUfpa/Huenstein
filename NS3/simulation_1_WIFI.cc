@@ -65,18 +65,21 @@ NS_LOG_COMPONENT_DEFINE ("Wifi_1");
 
     void avalParam(int nAp, double** Vazao, double** Atraso, double** Loss, double** Energia, double** Jitterav);
 
+int cenario = 1;
+
 int main (int argc, char *argv[]) {
+
 // Step 1: Reconhecimento da rede.
 //WIFI
   int nAp = 10;
   int nSta = 100;
 
-  int cenario = 1;
+
   int col = 1;
 
   double simTime = 100;
   uint32_t MaxPacketSize = 1024;
-  double PacketInterval = 0.025;
+  double PacketInterval = 100;
 //Variáveis para receber dados do FlowMonitor
     double** Vazao = create(nAp, col);
 
@@ -119,7 +122,7 @@ int main (int argc, char *argv[]) {
   
   positionAllocMN->Add (Vector(510, 1414, 1.5));
   mobilitywifiAp.SetPositionAllocator(positionAllocMN);;
-  mobilitywifiAp.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+
   
   wifiStaNodes.Create (nSta);
   mobilitywifiSta.SetPositionAllocator ("ns3::GridPositionAllocator",
@@ -134,7 +137,7 @@ int main (int argc, char *argv[]) {
 
           positionAllocMN->Add (Vector(1900, 0, 1.5));
           mobilitywifiAp.SetPositionAllocator(positionAllocMN);;
-          mobilitywifiAp.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+
   
           wifiStaNodes.Create (nSta);
           mobilitywifiSta.SetPositionAllocator ("ns3::GridPositionAllocator",
@@ -149,7 +152,7 @@ int main (int argc, char *argv[]) {
                     
                     positionAllocMN->Add (Vector(10, 5656, 1.5));
                     mobilitywifiAp.SetPositionAllocator(positionAllocMN);;
-                    mobilitywifiAp.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+   
                     
                     wifiStaNodes.Create (nSta/2);
                   mobilitywifiSta.SetPositionAllocator ("ns3::GridPositionAllocator",
@@ -165,7 +168,7 @@ int main (int argc, char *argv[]) {
                   
                           positionAllocMN->Add (Vector(1490, 4242, 1.5));
                           mobilitywifiAp.SetPositionAllocator(positionAllocMN);;
-                          mobilitywifiAp.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+                    
                          
                           wifiStaNodes.Create (nSta/2);
                           mobilitywifiSta.SetPositionAllocator ("ns3::GridPositionAllocator",
@@ -179,6 +182,9 @@ int main (int argc, char *argv[]) {
                         }
                   }
           }
+  mobilitywifiAp.SetMobilityModel ("ns3::RandomWalk2dMobilityModel",
+                           "Speed", StringValue ("ns3::ConstantRandomVariable[Constant=10.0]"),
+                           "Bounds", StringValue ("-6000|6000|-6000|6000"));
   mobilitywifiAp.Install (wifiApNodes);
   mobilitywifiSta.SetMobilityModel ("ns3::RandomWalk2dMobilityModel",
                            "Speed", StringValue ("ns3::ConstantRandomVariable[Constant=10.0]"),
@@ -370,7 +376,7 @@ for (uint16_t u = 0; u<nAp; ++u){
 
   UdpClientHelper client (Ipv4Address (ipAp.c_str()), port); 
   client.SetAttribute ("MaxPackets", UintegerValue ((uint32_t)(simTime*(1/PacketInterval))));
-  client.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
+  client.SetAttribute ("Interval", TimeValue (MilliSeconds (PacketInterval)));
   client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
 
   for(uint16_t i = 0; i<nSta; ++i){

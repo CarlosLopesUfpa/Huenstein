@@ -80,7 +80,7 @@ main (int argc, char *argv[])
   // uint16_t numberOfNodes = numberOfNodesENB + numberOfNodesUE;
 
 
-  double PacketInterval = 0.025;
+  double PacketInterval = 100;
   double MaxPacketSize = 1024;
   
   double simTime = 100;
@@ -275,17 +275,17 @@ for (uint16_t i = 0; i < ueNodes.GetN(); i++)
 
       UdpClientHelper dlClient (ueIpIface.GetAddress (u), dlPort);
       dlClient.SetAttribute ("MaxPackets", UintegerValue ((uint32_t)(simTime*(1/PacketInterval))));
-      dlClient.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
+      dlClient.SetAttribute ("Interval", TimeValue (MilliSeconds (PacketInterval)));
       dlClient.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
 
       UdpClientHelper ulClient (remoteHostAddr, ulPort);
       ulClient.SetAttribute ("MaxPackets", UintegerValue ((uint32_t)(simTime*(1/PacketInterval))));
-      ulClient.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
+      ulClient.SetAttribute ("Interval", TimeValue (MilliSeconds (PacketInterval)));
       ulClient.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
 
       UdpClientHelper client (ueIpIface.GetAddress (u), otherPort);
       client.SetAttribute ("MaxPackets", UintegerValue ((uint32_t)(simTime*(1/PacketInterval))));
-      client.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
+      client.SetAttribute ("Interval", TimeValue (MilliSeconds (PacketInterval)));
       client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
 
       clientApps.Add (dlClient.Install (remoteHost));
