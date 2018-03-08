@@ -72,10 +72,10 @@ main (int argc, char *argv[])
 {
 
   uint16_t numberOfNodesENB = 1;
-  uint16_t uE1 = 100;
-  uint16_t uE2 = 100;
-  uint16_t uE3 = 50;
-  uint16_t uE4 = 50;
+  uint16_t uE1 = 50;
+  uint16_t uE2 = 50;
+  uint16_t uE3 = 100;
+  uint16_t uE4 = 100;
   // uint16_t numberOfNodes = numberOfNodesENB + numberOfNodesUE;
 
 
@@ -167,7 +167,7 @@ ueNodes.Add (ueNodes4);
 
   MobilityHelper mobilityUe1;
   mobilityUe1.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                 "MinX", DoubleValue (500.0),
+                                 "MinX", DoubleValue (0.0),
                                  "MinY", DoubleValue (1414),
                                  "DeltaX", DoubleValue (5.0),
                                  "DeltaY", DoubleValue (5.0),
@@ -180,7 +180,7 @@ ueNodes.Add (ueNodes4);
 
   MobilityHelper mobilityUe2;
   mobilityUe2.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                 "MinX", DoubleValue (2000.0),
+                                 "MinX", DoubleValue (1500.0),
                                  "MinY", DoubleValue (0),
                                  "DeltaX", DoubleValue (5.0),
                                  "DeltaY", DoubleValue (5.0),
@@ -194,7 +194,7 @@ ueNodes.Add (ueNodes4);
   MobilityHelper mobilityUe3;
   mobilityUe3.SetPositionAllocator ("ns3::GridPositionAllocator",
                                  "MinX", DoubleValue (0),
-                                 "MinY", DoubleValue (5656),
+                                 "MinY", DoubleValue (4242),
                                  "DeltaX", DoubleValue (5.0),
                                  "DeltaY", DoubleValue (5.0),
                                  "GridWidth", UintegerValue (10),
@@ -207,7 +207,7 @@ ueNodes.Add (ueNodes4);
   MobilityHelper mobilityUe4;
   mobilityUe4.SetPositionAllocator ("ns3::GridPositionAllocator",
                                  "MinX", DoubleValue (1500),
-                                 "MinY", DoubleValue (4242),
+                                 "MinY", DoubleValue (5656),
                                  "DeltaX", DoubleValue (5.0),
                                  "DeltaY", DoubleValue (5.0),
                                  "GridWidth", UintegerValue (10),
@@ -415,7 +415,7 @@ for (uint16_t i = 0; i < ueNodes.GetN(); i++)
     JitterMonitor(&fmHelper, allMon, dataset4);
 
 //Install NetAnim
-   AnimationInterface anim ("simulation_2/simulation_2_lte.xml"); // Mandatory
+   AnimationInterface anim ("simulation_lte_Multi.xml"); // Mandatory
         
           anim.UpdateNodeDescription (ueNodes.Get(0), "ueNodes"); // Optional
           anim.UpdateNodeColor (ueNodes.Get(0), 255, 0, 0); // Coloração

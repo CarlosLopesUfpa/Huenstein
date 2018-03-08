@@ -59,14 +59,14 @@ using namespace ns3;
  * It also  starts yet another flow between each UE pair.
  */
 
-NS_LOG_COMPONENT_DEFINE ("Lte_Simulation_2");
+NS_LOG_COMPONENT_DEFINE ("Lte_Simulation_1");
 
 void ThroughputMonitor(FlowMonitorHelper *fmhelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset DataSet);
 void DelayMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset2);
 void LossMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset3);
 void JitterMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset4);
     
-uint16_t cenario = 1;
+uint16_t cenario = 4;
 std::string gp = std::to_string(cenario);
 
 int
@@ -80,7 +80,7 @@ main (int argc, char *argv[])
   // uint16_t numberOfNodes = numberOfNodesENB + numberOfNodesUE;
 
 
-  double PacketInterval = 100;
+  double PacketInterval = 0.15;
   double MaxPacketSize = 1024;
   
   double simTime = 100;
@@ -153,45 +153,45 @@ NodeContainer ueNodes;
 
   MobilityHelper mobilityUe;
   if(cenario == 1){
-  ueNodes.Create (numberOfNodesUE);
-  mobilityUe.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                 "MinX", DoubleValue (500.0),
-                                 "MinY", DoubleValue (1414),
-                                 "DeltaX", DoubleValue (5.0),
-                                 "DeltaY", DoubleValue (5.0),
-                                 "GridWidth", UintegerValue (10),
-                                 "LayoutType", StringValue ("RowFirst"));
+    ueNodes.Create (numberOfNodesUE/2);
+    mobilityUe.SetPositionAllocator ("ns3::GridPositionAllocator",
+                                   "MinX", DoubleValue (0.0),
+                                   "MinY", DoubleValue (1414),
+                                   "DeltaX", DoubleValue (5.0),
+                                   "DeltaY", DoubleValue (5.0),
+                                   "GridWidth", UintegerValue (10),
+                                   "LayoutType", StringValue ("RowFirst"));
     }else{
           if(cenario == 2){
-            ueNodes.Create (numberOfNodesUE);
-          mobilityUe.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                         "MinX", DoubleValue (2000.0),
-                                         "MinY", DoubleValue (0),
-                                         "DeltaX", DoubleValue (5.0),
-                                         "DeltaY", DoubleValue (5.0),
-                                         "GridWidth", UintegerValue (10),
-                                         "LayoutType", StringValue ("RowFirst"));
+            ueNodes.Create (numberOfNodesUE/2);
+            mobilityUe.SetPositionAllocator ("ns3::GridPositionAllocator",
+                                             "MinX", DoubleValue (1500.0),
+                                             "MinY", DoubleValue (0),
+                                             "DeltaX", DoubleValue (5.0),
+                                             "DeltaY", DoubleValue (5.0),
+                                             "GridWidth", UintegerValue (10),
+                                             "LayoutType", StringValue ("RowFirst"));
             }else{
                   if(cenario == 3){
-                    ueNodes.Create (numberOfNodesUE/2);
-                  mobilityUe.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                               "MinX", DoubleValue (0),
-                                               "MinY", DoubleValue (5656),
-                                               "DeltaX", DoubleValue (5.0),
-                                               "DeltaY", DoubleValue (5.0),
-                                               "GridWidth", UintegerValue (10),
-                                               "LayoutType", StringValue ("RowFirst"));
+                    ueNodes.Create (numberOfNodesUE);
+                    mobilityUe.SetPositionAllocator ("ns3::GridPositionAllocator",
+                                                   "MinX", DoubleValue (0),
+                                                   "MinY", DoubleValue (4242),
+                                                   "DeltaX", DoubleValue (5.0),
+                                                   "DeltaY", DoubleValue (5.0),
+                                                   "GridWidth", UintegerValue (10),
+                                                   "LayoutType", StringValue ("RowFirst"));
 
                     }else{
                           if(cenario == 4){
-                            ueNodes.Create (numberOfNodesUE/2);
-                          mobilityUe.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                                           "MinX", DoubleValue (1500),
-                                                           "MinY", DoubleValue (4242),
-                                                           "DeltaX", DoubleValue (5.0),
-                                                           "DeltaY", DoubleValue (5.0),
-                                                           "GridWidth", UintegerValue (10),
-                                                           "LayoutType", StringValue ("RowFirst"));
+                            ueNodes.Create (numberOfNodesUE);
+                            mobilityUe.SetPositionAllocator ("ns3::GridPositionAllocator",
+                                                         "MinX", DoubleValue (1500),
+                                                         "MinY", DoubleValue (5656),
+                                                         "DeltaX", DoubleValue (5.0),
+                                                         "DeltaY", DoubleValue (5.0),
+                                                         "GridWidth", UintegerValue (10),
+                                                         "LayoutType", StringValue ("RowFirst"));
                           }
                         }
                   }
@@ -275,17 +275,17 @@ for (uint16_t i = 0; i < ueNodes.GetN(); i++)
 
       UdpClientHelper dlClient (ueIpIface.GetAddress (u), dlPort);
       dlClient.SetAttribute ("MaxPackets", UintegerValue ((uint32_t)(simTime*(1/PacketInterval))));
-      dlClient.SetAttribute ("Interval", TimeValue (MilliSeconds (PacketInterval)));
+      dlClient.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
       dlClient.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
 
       UdpClientHelper ulClient (remoteHostAddr, ulPort);
       ulClient.SetAttribute ("MaxPackets", UintegerValue ((uint32_t)(simTime*(1/PacketInterval))));
-      ulClient.SetAttribute ("Interval", TimeValue (MilliSeconds (PacketInterval)));
+      ulClient.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
       ulClient.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
 
       UdpClientHelper client (ueIpIface.GetAddress (u), otherPort);
       client.SetAttribute ("MaxPackets", UintegerValue ((uint32_t)(simTime*(1/PacketInterval))));
-      client.SetAttribute ("Interval", TimeValue (MilliSeconds (PacketInterval)));
+      client.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
       client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
 
       clientApps.Add (dlClient.Install (remoteHost));

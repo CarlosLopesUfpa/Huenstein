@@ -57,14 +57,14 @@ void DelayMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot
 void LossMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset3);
 void JitterMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset4);
 
-int cenario = 1;
+int cenario = 3;
 std::string gp = std::to_string(cenario);
 
 int
 main (int argc, char *argv[])
 {
   
-  double PacketInterval = 100;
+  double PacketInterval = 0.15;
   uint32_t MaxPacketSize = 1024;
   double simTime = 100;
   double Rx = 400;
@@ -97,13 +97,13 @@ main (int argc, char *argv[])
   
   if(cenario == 1){
   
-  positionAllocMN->Add (Vector(510, 1414, 1.5));
+  positionAllocMN->Add (Vector(0, 1414, 1.5));
   mobilitywifiAp.SetPositionAllocator(positionAllocMN);;
 
   
   wifiStaNodes.Create (nSta);
   mobilitywifiSta.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                 "MinX", DoubleValue (500.0),
+                                 "MinX", DoubleValue (0.0),
                                  "MinY", DoubleValue (1414),
                                  "DeltaX", DoubleValue (5.0),
                                  "DeltaY", DoubleValue (5.0),
@@ -112,13 +112,13 @@ main (int argc, char *argv[])
     }else{
           if(cenario == 2){
 
-          positionAllocMN->Add (Vector(1900, 0, 1.5));
+          positionAllocMN->Add (Vector(1500, 0, 1.5));
           mobilitywifiAp.SetPositionAllocator(positionAllocMN);;
 
   
-          wifiStaNodes.Create (nSta);
+          wifiStaNodes.Create (nSta/2);
           mobilitywifiSta.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                         "MinX", DoubleValue (2000.0),
+                                         "MinX", DoubleValue (1500.0),
                                          "MinY", DoubleValue (0),
                                          "DeltaX", DoubleValue (5.0),
                                          "DeltaY", DoubleValue (5.0),
@@ -127,14 +127,14 @@ main (int argc, char *argv[])
             }else{
                   if(cenario == 3){
                     
-                    positionAllocMN->Add (Vector(10, 5656, 1.5));
+                    positionAllocMN->Add (Vector(0, 4242, 1.5));
                     mobilitywifiAp.SetPositionAllocator(positionAllocMN);;
 
                     
-                    wifiStaNodes.Create (nSta/2);
+                    wifiStaNodes.Create (nSta);
                   mobilitywifiSta.SetPositionAllocator ("ns3::GridPositionAllocator",
                                                "MinX", DoubleValue (0),
-                                               "MinY", DoubleValue (5656),
+                                               "MinY", DoubleValue (4242),
                                                "DeltaX", DoubleValue (5.0),
                                                "DeltaY", DoubleValue (5.0),
                                                "GridWidth", UintegerValue (10),
@@ -143,14 +143,14 @@ main (int argc, char *argv[])
                     }else{
                           if(cenario == 4){
                   
-                          positionAllocMN->Add (Vector(1490, 4242, 1.5));
+                          positionAllocMN->Add (Vector(1500, 5656, 1.5));
                           mobilitywifiAp.SetPositionAllocator(positionAllocMN);;
 
                          
-                          wifiStaNodes.Create (nSta/2);
+                          wifiStaNodes.Create (nSta);
                           mobilitywifiSta.SetPositionAllocator ("ns3::GridPositionAllocator",
                                                            "MinX", DoubleValue (1500),
-                                                           "MinY", DoubleValue (4242),
+                                                           "MinY", DoubleValue (5656),
                                                            "DeltaX", DoubleValue (5.0),
                                                            "DeltaY", DoubleValue (5.0),
                                                            "GridWidth", UintegerValue (10),
@@ -338,7 +338,7 @@ for (uint16_t u = 0; u<nAp; ++u){
 
   UdpClientHelper client (Ipv4Address (ipAp.c_str()), port); 
   client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
-  client.SetAttribute ("Interval", TimeValue (MilliSeconds (PacketInterval)));
+  client.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
   client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
 
   for(uint16_t i = 0; i<nSta; ++i){
