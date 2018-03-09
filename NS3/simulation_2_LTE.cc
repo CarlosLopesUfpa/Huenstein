@@ -66,7 +66,7 @@ void DelayMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot
 void LossMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset3);
 void JitterMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset4);
 
-uint16_t cenario = 1;
+uint16_t cenario = 5;
 std::string gp = std::to_string(cenario);
 
 int
@@ -74,7 +74,7 @@ main (int argc, char *argv[])
 {
 
   uint16_t numberOfNodesENB = 1;
-  uint16_t numberOfNodesUE = 1;
+  uint16_t numberOfNodesUE = 3;
 
   // uint16_t numberOfNodes = numberOfNodesENB + numberOfNodesUE;
 
@@ -94,7 +94,7 @@ lteHelper->SetAttribute ("PathlossModel",
                          StringValue ("ns3::FriisPropagationLossModel"));
 lteHelper->SetEnbAntennaModelType ("ns3::IsotropicAntennaModel");
 Ptr<PointToPointEpcHelper>  epcHelper = CreateObject<PointToPointEpcHelper> ();
-Config::SetDefault ("ns3::LteEnbRrc::SrsPeriodicity", UintegerValue (320));
+Config::SetDefault ("ns3::LteEnbRrc::SrsPeriodicity", UintegerValue (5));
 lteHelper->SetEpcHelper (epcHelper);
 
 Ptr<Node> pgw = epcHelper->GetPgwNode (); 
@@ -452,7 +452,7 @@ for (uint16_t i = 0; i < ueNodes.GetN(); i++)
         {
         Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
         // if(fiveTuple.destinationAddress == "192.168.1.6")
-        if(stats->first < 2)
+        if(stats->first == 2)
          // if(fiveTuple.sourceAddress == "7.0.0.2" && fiveTuple.destinationAddress == "10.0.0.5")
         {
              std::cout<<"--------------------------------Vazao---------------------------------"<<std::endl;
@@ -485,7 +485,7 @@ for (uint16_t i = 0; i < ueNodes.GetN(); i++)
              {
                 Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
                 // if(fiveTuple.destinationAddress == "192.168.1.6")
-                if(stats->first < 2)
+                if(stats->first == 2)
                  // if(fiveTuple.sourceAddress == "7.0.0.2" && fiveTuple.destinationAddress == "10.0.0.5")
                 {
                     std::cout<<"--------------------------------Atraso-------------------------------------"<<std::endl;
@@ -518,7 +518,7 @@ for (uint16_t i = 0; i < ueNodes.GetN(); i++)
              {
                 Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
                 // if(fiveTuple.destinationAddress == "192.168.1.6")
-                if(stats->first < 2)
+                if(stats->first == 2)
                  // if(fiveTuple.sourceAddress == "7.0.0.2" && fiveTuple.destinationAddress == "10.0.0.5")
                 {
                     std::cout<<"--------------------------------Loss-------------------------------------"<<std::endl;
@@ -551,7 +551,7 @@ for (uint16_t i = 0; i < ueNodes.GetN(); i++)
            {
             Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
             // if(fiveTuple.destinationAddress == "192.168.1.6")
-            if(stats->first < 2)
+            if(stats->first == 2)
             {
                 std::cout<<"--------------------------------Jitter-------------------------------------"<<std::endl;
                 std::cout<<"Flow ID : "<< stats->first <<"; "<< fiveTuple.sourceAddress <<"------>" <<fiveTuple.destinationAddress<<std::endl;
