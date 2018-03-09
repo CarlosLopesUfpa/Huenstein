@@ -18,20 +18,14 @@
  * Author: Carlos Lopes <carloslopesufpa@gmail.com>
  */
 
-#include "ns3/lte-helper.h"
-#include "ns3/epc-helper.h"
-#include "ns3/core-module.h"
 #include "ns3/network-module.h"
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/internet-module.h"
 #include "ns3/mobility-module.h"
-#include "ns3/lte-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/point-to-point-helper.h"
 #include "ns3/config-store.h"
 #include "ns3/propagation-loss-model.h"
-#include "ns3/propagation-module.h"
-
 #include "ns3/propagation-module.h"
 #include "ns3/netanim-module.h"
 #include "ns3/flow-monitor-module.h"
@@ -45,7 +39,7 @@
 #include <fstream>
 #include "ns3/core-module.h"
 #include "ns3/command-line.h"
-#include "ns3/csma-module.h"
+
 
 //#include "ns3/gtk-config-store.h"
 
@@ -63,7 +57,7 @@ double** create(int rows, int columns){
 }
 NS_LOG_COMPONENT_DEFINE ("Wifi_1");
 
-    void avalParam(int nAp, double** Vazao, double** Atraso, double** Loss, double** Energia, double** Jitterav);
+void avalParam(int nAp, double** Vazao, double** Atraso, double** Loss, double** Energia, double** Jitterav);
 
 int cenario = 1;
 
