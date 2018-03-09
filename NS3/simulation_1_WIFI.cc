@@ -189,67 +189,7 @@ int main (int argc, char *argv[]) {
       NodeContainer all;
       all.Add(wifiApNodes);
       all.Add(wifiStaNodes);
-  // // 2. Place nodes somehow, this is required by every wireless simulation
-  // for (size_t i = 0; i < wifiStaNodes.GetN(); ++i)
-  //   {
-  //     all.Get (i)->AggregateObject (CreateObject<ConstantPositionMobilityModel> ());
-  //   }
-
-  // // 3. Create propagation loss matrix
-  // Ptr<MatrixPropagationLossModel> lossModel = CreateObject<MatrixPropagationLossModel> ();
-  // lossModel->SetDefaultLoss (200); // set default loss to 200 dB (no link)
-  // for(int u = 0; u < nSta; ++u){
-  // lossModel->SetLoss (wifiApNodes.Get (0)->GetObject<MobilityModel> (), wifiStaNodes.Get (u)->GetObject<MobilityModel> (), 50); // set symmetric loss 0 <-> 1 to 50 dB
-  // }
-
-
-
-  // // 4. Create & setup wifi channel
-  // Ptr<YansWifiChannel> wifiChannel = CreateObject <YansWifiChannel> ();
-  // // wifiChannel->SetPropagationLossModel (lossModel);
-  // // wifiChannel->SetPropagationDelayModel (CreateObject <ConstantSpeedPropagationDelayModel> ());
-  //     YansWifiChannelHelper channel = YansWifiChannelHelper::Default ();
-  //     // channel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
-  //     // channel.AddPropagationLoss ("ns3::FriisPropagationLossModel");
-
-  //     YansWifiPhyHelper wifiPhy = YansWifiPhyHelper::Default ();
-  //     wifiPhy.SetPcapDataLinkType (YansWifiPhyHelper::DLT_IEEE802_11_RADIO);
-  //     wifiPhy.SetChannel (channel.Create ());
-
-  //     WifiHelper wifi;
-  //     wifi.SetStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
-  //     wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue ("HtMcs7"), "ControlMode", StringValue ("HtMcs0"));
-  //     WifiMacHelper wifiMac;
-
-  // NetDeviceContainer staDevice, staDevice2, apDevice, apDevice2;
-  // Ssid ssid;
-
-  // //Network A
-  // ssid = Ssid ("network-A");
-  // wifiPhy.Set ("ChannelNumber", UintegerValue (36));
-  // wifiMac.SetType ("ns3::StaWifiMac",
-  //                  "Ssid", SsidValue (ssid));
-  // staDevice = wifi.Install (wifiPhy, wifiMac, wifiStaNodes);
-
-  // wifiMac.SetType ("ns3::ApWifiMac",
-  //              "Ssid", SsidValue (ssid),
-  //              "EnableBeaconJitter", BooleanValue (false));
-  // apDevice = wifi.Install (wifiPhy, wifiMac, wifiApNodes.Get(1));
-
-
-  // //Network B
-  // ssid = Ssid ("network-B");
-  // wifiPhy.Set ("ChannelNumber", UintegerValue (36));
-  // wifiMac.SetType ("ns3::StaWifiMac",
-  //                  "Ssid", SsidValue (ssid));
-  // staDevice2 = wifi.Install (wifiPhy, wifiMac, wifiStaNodes2);
-
-  // wifiMac.SetType ("ns3::ApWifiMac",
-  //              "Ssid", SsidValue (ssid),
-  //              "EnableBeaconJitter", BooleanValue (false));
-  // apDevice2 = wifi.Install (wifiPhy, wifiMac, wifiApNodes.Get(0));
-
-  std::string phyMode ("DsssRate1Mbps");
+  std::string phyMode ("DsssRate5Mbps");
   bool verbose = false;
 // The below set of helpers will help us to put together the wifi NICs we want
   WifiHelper wifi;
@@ -258,7 +198,7 @@ int main (int argc, char *argv[]) {
       wifi.EnableLogComponents ();  // Turn on all Wifi logging
     }
 
-YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
+  YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
   // set it to zero; otherwise, gain will be added
   wifiPhy.Set ("RxGain", DoubleValue (-10) );
   // ns-3 supports RadioTap and Prism tracing extensions for 802.11b
@@ -275,26 +215,32 @@ YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
   wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager",
                                 "DataMode",StringValue (phyMode),
                                 "ControlMode",StringValue (phyMode));
-  // Set it to adhoc mode
-  wifiMac.SetType ("ns3::AdhocWifiMac");
-  NetDeviceContainer apDevice = wifi.Install (wifiPhy, wifiMac, wifiApNodes);
-  NetDeviceContainer staDevice = wifi.Install (wifiPhy, wifiMac, wifiStaNodes);
-  // NetDeviceContainer apDevice2 = wifi.Install (wifiPhy, wifiMac, wifiApNodes.Get(0));
-  // NetDeviceContainer staDevice2 = wifi.Install (wifiPhy, wifiMac, wifiStaNodes2);
+  
+  // AP/STA HOC - NETWORK
+  NetDeviceContainer staDevice, apDevice;
+  Ssid ssid;
+
+  //Network A
+  ssid = Ssid ("network-A");
+  wifiPhy.Set ("ChannelNumber", UintegerValue (36));
+  wifiMac.SetType ("ns3::StaWifiMac",
+                   "Ssid", SsidValue (ssid));
+  staDevice = wifi.Install (wifiPhy, wifiMac, wifiStaNodes);
+
+
+  wifiMac.SetType ("ns3::ApWifiMac",
+               "Ssid", SsidValue (ssid),
+               "EnableBeaconJitter", BooleanValue (false));
+  apDevice = wifi.Install (wifiPhy, wifiMac, wifiApNodes);
+
+
+
+  // //AD HOC - NETWORK
+  // wifiMac.SetType ("ns3::AdhocWifiMac");
+  // NetDeviceContainer apDevice = wifi.Install (wifiPhy, wifiMac, wifiApNodes);
+  // NetDeviceContainer staDevice = wifi.Install (wifiPhy, wifiMac, wifiStaNodes);
       
 
-      
-  // MobilityHelper mobilitywifiSta2;
-  // mobilitywifiSta2.SetPositionAllocator ("ns3::GridPositionAllocator",
-  //                                "MinX", DoubleValue (20.0),
-  //                                "MinY", DoubleValue (10.0),
-  //                                "DeltaX", DoubleValue (5.0),
-  //                                "DeltaY", DoubleValue (10.0),
-  //                                "GridWidth", UintegerValue (5),
-  //                                "LayoutType", StringValue ("RowFirst"));
-
-  // mobilitywifiSta2.SetMobilityModel ("ns3::RandomWalk2dMobilityModel");
-  // mobilitywifiSta2.Install (wifiStaNodes2);
 
   // Energy
       srand((unsigned)time(0));
@@ -373,7 +319,7 @@ for (uint16_t u = 0; u<nAp; ++u){
   client.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
   client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
 
-  for(uint16_t i = 0; i<nSta; ++i){
+  for(uint16_t i = 0; i<nSta.GetN(); ++i){
   apps = client.Install (wifiStaNodes.Get(i));
   apps.Start (Seconds (0.1));
   apps.Stop (Seconds (simTime));
@@ -404,6 +350,7 @@ for (uint16_t u = 0; u<nAp; ++u){
   // 8. Install FlowMonitor on all nodes
   FlowMonitorHelper flowmon;
   Ptr<FlowMonitor> monitor = flowmon.InstallAll ();
+
   std::string gp = std::to_string(cenario);
 //Metodo Animation
 

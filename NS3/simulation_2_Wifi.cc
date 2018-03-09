@@ -27,16 +27,17 @@
 #include "ns3/point-to-point-helper.h"
 #include "ns3/config-store.h"
 #include "ns3/propagation-loss-model.h"
+
 #include "ns3/propagation-module.h"
 #include "ns3/netanim-module.h"
 #include "ns3/flow-monitor-module.h"
 #include "ns3/wifi-module.h"
 #include <time.h>
 #include "ns3/gnuplot.h"
+
 #include <fstream>
 #include "ns3/core-module.h"
 #include "ns3/command-line.h"
-#include "ns3/csma-module.h"
 
 //#include "ns3/gtk-config-store.h"
 
@@ -52,7 +53,8 @@ void JitterMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplo
 int cenario = 1;
 std::string gp = std::to_string(cenario);
 
-int main (int argc, char *argv[]) {
+int main (int argc, char *argv[])
+{
   
   double PacketInterval = 0.15;
   uint32_t MaxPacketSize = 1024;
@@ -67,8 +69,6 @@ int main (int argc, char *argv[]) {
   CommandLine cmd;
   cmd.AddValue ("Rx", "Number of Packets", Rx);
   cmd.Parse (argc,argv);
-
-  uint32_t maxPacketCount = Rx;
 
   // double Energia;
 
@@ -132,22 +132,14 @@ int main (int argc, char *argv[]) {
                            "Bounds", StringValue ("-6000|6000|-6000|6000"));
   mobilitywifi.Install (wifiStaNodes);
   mobilitywifi.Install (wifiApNodes);
-  // mobilityUe.Install(ueNodes);
-  // mobilitywifi.SetPositionAllocator ("ns3::GridPositionAllocator",
-  //                                "MinX", DoubleValue (20.0),
-  //                                "MinY", DoubleValue (495.0),
-  //                                "DeltaX", DoubleValue (5.0),
-  //                                "DeltaY", DoubleValue (10.0),
-  //                                "GridWidth", UintegerValue (5),
-  //                                "LayoutType", StringValue ("RowFirst"));
 
-  // mobilitywifi.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  NodeContainer all;
+  all.Add(wifiApNodes);
+  all.Add(wifiStaNodes);
 
-   NodeContainer all;
-      all.Add(wifiApNodes);
-      all.Add(wifiStaNodes);
+  
 
-  std::string phyMode ("DsssRate5_5Mbps");
+  std::string phyMode ("DsssRate1Mbps");
   bool verbose = false;
 // The below set of helpers will help us to put together the wifi NICs we want
   WifiHelper wifi;
@@ -174,56 +166,29 @@ int main (int argc, char *argv[]) {
                                 "DataMode",StringValue (phyMode),
                                 "ControlMode",StringValue (phyMode));
   
-  // AP/STA HOC - NETWORK
-  NetDeviceContainer staDevice, apDevice;
-  Ssid ssid;
+  // AP/STA - NETWORK
+  // NetDeviceContainer staDevice, apDevice;
+  // Ssid ssid;
 
-  //Network A
-  ssid = Ssid ("network-A");
-  wifiPhy.Set ("ChannelNumber", UintegerValue (36));
-  wifiMac.SetType ("ns3::StaWifiMac",
-                   "Ssid", SsidValue (ssid));
-  staDevice = wifi.Install (wifiPhy, wifiMac, wifiStaNodes);
-
-
-  wifiMac.SetType ("ns3::ApWifiMac",
-               "Ssid", SsidValue (ssid),
-               "EnableBeaconJitter", BooleanValue (false));
-  apDevice = wifi.Install (wifiPhy, wifiMac, wifiApNodes);
+  // //Network A
+  // ssid = Ssid ("network-A");
+  // wifiPhy.Set ("ChannelNumber", UintegerValue (36));
+  // wifiMac.SetType ("ns3::StaWifiMac",
+  //                  "Ssid", SsidValue (ssid));
+  // staDevice = wifi.Install (wifiPhy, wifiMac, wifiStaNodes);
 
 
-
-  // //AD HOC - NETWORK
-  // wifiMac.SetType ("ns3::AdhocWifiMac");
-  // NetDeviceContainer apDevice = wifi.Install (wifiPhy, wifiMac, wifiApNodes);
-  // NetDeviceContainer staDevice = wifi.Install (wifiPhy, wifiMac, wifiStaNodes);
-      
-
-      
-  
+  // wifiMac.SetType ("ns3::ApWifiMac",
+  //              "Ssid", SsidValue (ssid),
+  //              "EnableBeaconJitter", BooleanValue (false));
+  // apDevice = wifi.Install (wifiPhy, wifiMac, wifiApNodes);
 
 
-  
 
-  // // Energy
-  //     srand((unsigned)time(0));
-  //     for (int l=0; l<nAp; ++l)
-  //       {
-  //         aux_energy = rand()%(100);
-  //         Ptr<BasicEnergySource> energySource = CreateObject<BasicEnergySource>();
-  //         Ptr<SimpleDeviceEnergyModel> energyModel = CreateObject<SimpleDeviceEnergyModel>();
-
-  //         energySource->SetInitialEnergy (aux_energy);
-  //         energyModel->SetEnergySource (energySource);
-  //         energySource->AppendDeviceEnergyModel (energyModel);
-  //         energyModel->SetCurrentA (20);
-
-  //         // aggregate energy source to node
-  //         wifiApNodes.Get(l)->AggregateObject (energySource);
-  //         // energy[l][0] = energySource;
-  //         Energia = aux_energy;
-  //       }
-
+  //AD HOC - NETWORK
+  wifiMac.SetType ("ns3::AdhocWifiMac");
+  NetDeviceContainer apDevice = wifi.Install (wifiPhy, wifiMac, wifiApNodes);
+  NetDeviceContainer staDevice = wifi.Install (wifiPhy, wifiMac, wifiStaNodes);
 
 
   // // 6. Install TCP/IP stack & assign IP addresses
@@ -232,8 +197,8 @@ int main (int argc, char *argv[]) {
 
   Ipv4AddressHelper ipv4;
   ipv4.SetBase ("192.168.1.0", "255.255.255.0");
-  Ipv4InterfaceContainer apInterface = ipv4.Assign (apDevice);
-  Ipv4InterfaceContainer staInterface = ipv4.Assign (staDevice);
+  // Ipv4InterfaceContainer apInterface = ipv4.Assign (apDevice);
+  // Ipv4InterfaceContainer staInterface = ipv4.Assign (staDevice);
 
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
 
@@ -266,21 +231,22 @@ int main (int argc, char *argv[]) {
   uint16_t  port = 9;
 for (uint16_t u = 0; u<nAp; ++u){
   std::string ipAp = "192.168.1." + std::to_string(u+1);
+  
   port++;
   UdpServerHelper server (port);
-  ApplicationContainer apps = server.Install (wifiApNodes);
-  apps.Start (Seconds (49.0));
-  apps.Stop (Seconds (simTime));
+  ApplicationContainer appsS = server.Install (wifiApNodes);
+  appsS.Start (Seconds (simTime/2));
+  appsS.Stop (Seconds (simTime));
 
   UdpClientHelper client (Ipv4Address (ipAp.c_str()), port); 
-  client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
+  client.SetAttribute ("MaxPackets", UintegerValue (Rx));
   client.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
   client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
 
-  for(uint16_t i = 0; i<wifiStaNodes.GetN (); ++i){
-  apps = client.Install (wifiStaNodes.Get(i));
-  apps.Start (Seconds (49.0));
-  apps.Stop (Seconds (simTime));
+  for(uint16_t i = 0; i<nSta; ++i){
+  ApplicationContainer appsC = client.Install (wifiStaNodes.Get(i));
+  appsC.Start (Seconds (simTime/2));
+  appsC.Stop (Seconds (simTime));
   }
 }
 
@@ -436,7 +402,7 @@ for (uint16_t u = 0; u<nAp; ++u){
         {
         Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
         // if(fiveTuple.destinationAddress == "192.168.1.6")
-        if(stats->first == 15)
+        if(stats->first < 2)
         {
              std::cout<<"--------------------------------Vazao---------------------------------"<<std::endl;
               std::cout<<"Flow ID: " << stats->first <<"; "<< fiveTuple.sourceAddress <<" -----> "<<fiveTuple.destinationAddress<<std::endl;
@@ -468,7 +434,7 @@ for (uint16_t u = 0; u<nAp; ++u){
              {
                 Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
                 // if(fiveTuple.destinationAddress == "192.168.1.6")
-                if(stats->first == 15)
+                if(stats->first < 2)
                 {
                     std::cout<<"--------------------------------Atraso-------------------------------------"<<std::endl;
                     std::cout<<"Flow ID: "<< stats->first <<"; "<< fiveTuple.sourceAddress <<" ------> " <<fiveTuple.destinationAddress<<std::endl;
@@ -500,7 +466,7 @@ for (uint16_t u = 0; u<nAp; ++u){
              {
                 Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
                 // if(fiveTuple.destinationAddress == "192.168.1.6")
-                if(stats->first == 15)
+                if(stats->first < 2)
                 {
                     std::cout<<"--------------------------------Loss-------------------------------------"<<std::endl;
                     std::cout<<"    Flow ID: "<< stats->first <<"; "<< fiveTuple.sourceAddress <<" ------> " <<fiveTuple.destinationAddress<<std::endl;
@@ -534,7 +500,7 @@ for (uint16_t u = 0; u<nAp; ++u){
            {
             Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
             // if(fiveTuple.destinationAddress == "192.168.1.6")
-            if(stats->first == 15)
+            if(stats->first < 2)
             {
                 std::cout<<"--------------------------------Jitter-------------------------------------"<<std::endl;
                 std::cout<<"Flow ID : "<< stats->first <<"; "<< fiveTuple.sourceAddress <<"------>" <<fiveTuple.destinationAddress<<std::endl;
