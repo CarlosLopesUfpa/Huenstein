@@ -1,4 +1,3 @@
-/* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
  * Copyright (c) 2017 Laboratory Of Development Systems
  *
@@ -36,7 +35,7 @@
 #include <fstream>
 #include "ns3/core-module.h"
 #include "ns3/command-line.h"
-#include "ns3/csma-module.h"
+#include "ns3/csma-module.h" 
 
 //#include "ns3/gtk-config-store.h"
 
@@ -49,7 +48,7 @@ void DelayMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot
 void LossMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset3);
 void JitterMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset4);
 
-int cenario = 1;
+int cenario = 4;
 std::string gp = std::to_string(cenario);
 
 int main (int argc, char *argv[]) {
@@ -130,8 +129,9 @@ int main (int argc, char *argv[]) {
   mobilitywifi.SetMobilityModel ("ns3::RandomWalk2dMobilityModel",
                            "Speed", StringValue ("ns3::ConstantRandomVariable[Constant=10.0]"),
                            "Bounds", StringValue ("-6000|6000|-6000|6000"));
-  mobilitywifi.Install (wifiStaNodes);
   mobilitywifi.Install (wifiApNodes);
+  mobilitywifi.Install (wifiStaNodes);
+  
   // mobilityUe.Install(ueNodes);
   // mobilitywifi.SetPositionAllocator ("ns3::GridPositionAllocator",
   //                                "MinX", DoubleValue (20.0),
@@ -436,7 +436,7 @@ for (uint16_t u = 0; u<nAp; ++u){
         {
         Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
         // if(fiveTuple.destinationAddress == "192.168.1.6")
-        if(stats->first == 15)
+        if(stats->first == 5)
         {
              std::cout<<"--------------------------------Vazao---------------------------------"<<std::endl;
               std::cout<<"Flow ID: " << stats->first <<"; "<< fiveTuple.sourceAddress <<" -----> "<<fiveTuple.destinationAddress<<std::endl;
@@ -468,7 +468,7 @@ for (uint16_t u = 0; u<nAp; ++u){
              {
                 Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
                 // if(fiveTuple.destinationAddress == "192.168.1.6")
-                if(stats->first == 15)
+                if(stats->first == 5)
                 {
                     std::cout<<"--------------------------------Atraso-------------------------------------"<<std::endl;
                     std::cout<<"Flow ID: "<< stats->first <<"; "<< fiveTuple.sourceAddress <<" ------> " <<fiveTuple.destinationAddress<<std::endl;
@@ -500,7 +500,7 @@ for (uint16_t u = 0; u<nAp; ++u){
              {
                 Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
                 // if(fiveTuple.destinationAddress == "192.168.1.6")
-                if(stats->first == 15)
+                if(stats->first == 5)
                 {
                     std::cout<<"--------------------------------Loss-------------------------------------"<<std::endl;
                     std::cout<<"    Flow ID: "<< stats->first <<"; "<< fiveTuple.sourceAddress <<" ------> " <<fiveTuple.destinationAddress<<std::endl;
@@ -533,8 +533,8 @@ for (uint16_t u = 0; u<nAp; ++u){
            for(std::map<FlowId, FlowMonitor::FlowStats>::const_iterator stats = flowstats.begin(); stats != flowstats.end(); ++stats)
            {
             Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
-            // if(fiveTuple.destinationAddress == "192.168.1.6")
-            if(stats->first == 15)
+            // if(fiveTuple< 2nationAddress == "192.168.1.6")
+            if(stats->first == 5)
             {
                 std::cout<<"--------------------------------Jitter-------------------------------------"<<std::endl;
                 std::cout<<"Flow ID : "<< stats->first <<"; "<< fiveTuple.sourceAddress <<"------>" <<fiveTuple.destinationAddress<<std::endl;
