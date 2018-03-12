@@ -48,7 +48,7 @@ void DelayMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot
 void LossMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset3);
 void JitterMonitor(FlowMonitorHelper *fmHelper, Ptr<FlowMonitor> flowMon, Gnuplot2dDataset Dataset4);
 
-int cenario = 4;
+int cenario = 5;
 std::string gp = std::to_string(cenario);
 
 int main (int argc, char *argv[]) {
@@ -59,7 +59,7 @@ int main (int argc, char *argv[]) {
   double Rx = 326;
 
   // int aux_energy = 0;
-  int nAp = 1;
+  int nAp = 3;
   int nSta = 100;
 
 
@@ -112,7 +112,7 @@ int main (int argc, char *argv[]) {
                                                "LayoutType", StringValue ("RowFirst"));
 
                     }else{
-                          if(cenario == 4){
+                          if(cenario == 4 || cenario == 5){
                           wifiStaNodes.Create (nSta);
                           mobilitywifi.SetPositionAllocator ("ns3::GridPositionAllocator",
                                                            "MinX", DoubleValue (1500),

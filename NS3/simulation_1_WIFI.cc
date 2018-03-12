@@ -65,7 +65,7 @@ int main (int argc, char *argv[]) {
 
 // Step 1: Reconhecimento da rede.
 //WIFI
-  int nAp = 2;
+  int nAp = 5;
   int nSta = 100;
 
 
@@ -189,7 +189,7 @@ int main (int argc, char *argv[]) {
       NodeContainer all;
       all.Add(wifiApNodes);
       all.Add(wifiStaNodes);
-  std::string phyMode ("DsssRate5Mbps");
+  std::string phyMode ("DsssRate5_5Mbps");
   bool verbose = false;
 // The below set of helpers will help us to put together the wifi NICs we want
   WifiHelper wifi;
@@ -319,7 +319,7 @@ for (uint16_t u = 0; u<nAp; ++u){
   client.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
   client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
 
-  for(uint16_t i = 0; i<nSta.GetN(); ++i){
+  for(uint16_t i = 0; i<wifiStaNodes.GetN(); ++i){
   apps = client.Install (wifiStaNodes.Get(i));
   apps.Start (Seconds (0.1));
   apps.Stop (Seconds (simTime));

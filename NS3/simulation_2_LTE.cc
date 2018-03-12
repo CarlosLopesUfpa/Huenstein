@@ -181,7 +181,7 @@ ueNodes.Create (numberOfNodesUE);
                                                "LayoutType", StringValue ("RowFirst"));
 
                     }else{
-                          if(cenario == 4){
+                          if(cenario == 4 || cenario == 5){
                             
                           mobilityUe.SetPositionAllocator ("ns3::GridPositionAllocator",
                                                            "MinX", DoubleValue (1500),
