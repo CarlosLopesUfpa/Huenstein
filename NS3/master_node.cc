@@ -38,7 +38,7 @@
 #include <fstream>
 #include "ns3/core-module.h"
 #include "ns3/command-line.h"
-
+#include "ns3/wifi-phy.h"
 using namespace ns3;
 
 //Criação das Matrizes
@@ -62,10 +62,13 @@ int main (int argc, char *argv[]) {
 
 // Simulação 1: Reconhecimento da rede.
 //Configurações da rede
-    int nAll = 3; 
-    double simTime = 101;
+    int nAll = 100; 
+    double simTime = 102;
     uint32_t MaxPacketSize = 1024;
     double PacketInterval = 0.15;
+    uint16_t grid = 500;
+    std::string gr = std::to_string(grid);
+
     bool constant = true;
     bool random = false;
     
@@ -92,8 +95,8 @@ int main (int argc, char *argv[]) {
 
 
   mobilitywifiAll.SetPositionAllocator ("ns3::RandomRectanglePositionAllocator",
-                            "X", StringValue ("ns3::UniformRandomVariable[Min=0.0|Max=100.0]"),
-                            "Y", StringValue ("ns3::UniformRandomVariable[Min=0.0|Max=100.0]"));
+                            "X", StringValue ("ns3::UniformRandomVariable[Min=0.0|Max="+gr+"]"),
+                            "Y", StringValue ("ns3::UniformRandomVariable[Min=0.0|Max="+gr+"]"));
 
 if(constant == true){
 //Constante Mobillity
@@ -104,12 +107,12 @@ if(random == true){
 //Random Mobillity
   mobilitywifiAll.SetMobilityModel ("ns3::RandomWalk2dMobilityModel",
                            "Speed", StringValue ("ns3::ConstantRandomVariable[Constant=100.0]"),
-                           "Bounds", StringValue ("-100|100|-100|100"));
+                           "Bounds", StringValue ("-"+gr+"|"+gr+"|-"+gr+"|"+gr+""));
 }
   mobilitywifiAll.Install (wifiAll);
 
 //Configuração da rede
-  std::string phyMode ("HeMcs11");
+  std::string phyMode ("OfdmRate54Mbps");
   bool verbose = false;
 
 // The below set of helpers will help us to put together the wifi NICs we want
@@ -128,12 +131,14 @@ if(random == true){
 // Criação do modelo de propagação da rede
   YansWifiChannelHelper wifiChannel;
   wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
-  wifiChannel.AddPropagationLoss ("ns3::RandomPropagationLossModel");
+  wifiChannel.AddPropagationLoss ("ns3::LogDistancePropagationLossModel",
+                                  "Exponent", DoubleValue (3.0));
+
   wifiPhy.SetChannel (wifiChannel.Create ());
 
 // Adição do mac
   WifiMacHelper wifiMac;
-  wifi.SetStandard (WIFI_PHY_STANDARD_80211b);
+  wifi.SetStandard (WIFI_PHY_STANDARD_80211a);
   wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager",
                                 "DataMode",StringValue (phyMode),
                                 "ControlMode",StringValue (phyMode));
@@ -251,8 +256,8 @@ int u = -1;
                 Loss[u][0] = i->second.txPackets - i->second.rxPackets;
                 std::cout << "Perda de Pacotes: "<< Loss[u][0]<<std::endl;
 
-                Vazao[u][0] = i->second.rxBytes * 8.0 / (i->second.timeLastRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds())/1024;
-                std::cout << "Vazão: " << Vazao[u][0] << " Kbps\n";
+                Vazao[u][0] = i->second.rxBytes * 8.0 / (i->second.timeLastRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds())/1024/1024;
+                std::cout << "Vazão: " << Vazao[u][0] << " Mbps\n";
 
                 std::cout << "Energia: "<< Energia[u][0] <<std::endl;
 
@@ -390,7 +395,7 @@ void avalParam(int nAll, double** Vazao, double** Atraso, double** Loss, double*
       std::cout << " " <<std::endl;
       std::cout << " " << " " <<std::endl;
       if(somaPerdaPct==0){
-          somaPerdaPct++;
+          somaPerdaPct--;
           std::cout << "Somatória LossPackets " << somaPerdaPct  << " #Alterada " <<std::endl;
       }else{
           std::cout << "Somatória LossPackets " << somaPerdaPct  << " " <<std::endl;
@@ -422,11 +427,18 @@ void avalParam(int nAll, double** Vazao, double** Atraso, double** Loss, double*
       FinalScore[l][1]= ((((1-normalmMR[l][1])/(nAll-1))*100)*0.3)+((normalmMR[l][2]*100)*0.25)+((normalmMR[l][3]*100)*0.2)+((((1-normalmMR[l][4])/(nAll-1))*100)*0.15)+((((1-normalmMR[l][5])/(nAll-1))*100)*0.1);
   }
 //Escrevendo (FinalScore) referente à cada Nó
+  double sum = 0;
+//Escrevendo (FinalScore) referente à cada Nó
   for(int l=0; l<nAll; ++l){           
       std::cout << "Nó " << l << " Pontuação Geral " << FinalScore[l][1] <<std::endl;
       std::cout << "////////////////////////////" <<std::endl;
+      sum = FinalScore[l][1] + sum;
+    
   }
-
+  std::cout << " " <<std::endl;
+  std::cout << " " <<std::endl;
+  std::cout << "Somatória da Pontuação " << sum <<std::endl;
+    
 //Imprimir Nó Mestre
   float maior_ic = 0;
   int id = 0;
