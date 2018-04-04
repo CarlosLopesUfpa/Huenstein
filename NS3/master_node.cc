@@ -63,7 +63,7 @@ int main (int argc, char *argv[]) {
 // Simulação 1: Reconhecimento da rede.
 //Configurações da rede
     int nAll = 100; 
-    double simTime = 102;
+    double simTime = 101;
     uint32_t MaxPacketSize = 1024;
     double PacketInterval = 0.15;
     uint16_t grid = 500;
@@ -112,7 +112,7 @@ if(random == true){
   mobilitywifiAll.Install (wifiAll);
 
 //Configuração da rede
-  std::string phyMode ("OfdmRate54Mbps");
+  std::string phyMode ("ErpOfdmRate54Mbps");
   bool verbose = false;
 
 // The below set of helpers will help us to put together the wifi NICs we want
@@ -138,7 +138,7 @@ if(random == true){
 
 // Adição do mac
   WifiMacHelper wifiMac;
-  wifi.SetStandard (WIFI_PHY_STANDARD_80211a);
+  wifi.SetStandard (WIFI_PHY_STANDARD_80211g);
   wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager",
                                 "DataMode",StringValue (phyMode),
                                 "ControlMode",StringValue (phyMode));
