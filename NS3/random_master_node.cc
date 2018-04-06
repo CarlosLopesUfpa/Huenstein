@@ -62,10 +62,10 @@ int main (int argc, char *argv[]) {
 
 // Simulação 1: Reconhecimento da rede.
 //Configurações da rede
-    int nRn = 3;
+    int nRn = 4;
     int nAll = 10; 
-    double simTime = 100;
-    uint32_t MaxPacketSize = 1024;
+    double simTime = 1200;
+    uint32_t MaxPacketSize = 1000;
     double PacketInterval = 0.15;
     uint16_t grid = 50;
     std::string gr = std::to_string(grid);
@@ -134,6 +134,10 @@ if(random == true){
   wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
   wifiChannel.AddPropagationLoss ("ns3::LogDistancePropagationLossModel",
                                   "Exponent", DoubleValue (3.0));
+  // YansWifiChannelHelper wifiChannel;
+  // wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
+  // wifiChannel.AddPropagationLoss ("ns3::TwoRayGroundPropagationLossModel",
+  //                                 "Frequency", DoubleValue (5.150e9));
 
   wifiPhy.SetChannel (wifiChannel.Create ());
 
@@ -191,23 +195,20 @@ NetDeviceContainer allDevice;
   
 // ERRORRRR
 
-  int vet[nRn][1] = {0, 1, 2};
-      
-
+  int vet[nRn-1][1] = {2, 3, 6};
+    
   for(int s = 0; s < nRn; ++s){
     UdpServerHelper server (port);
-
-
-    server.Install (wifiAll.Get(vet[s][0]));  
     
-    if(s != vet[i][0]){
-      rn = rand() % nAll;  
-      Rn[s][0] = rn;
-      server.Install (wifiAll.Get(rn));  
+    if(s < nRn-1){
+      server.Install (wifiAll.Get(vet[s][0]));  
+      Rn[s][0] = vet[s][0];
+      rn = vet[s][0];
+      }else{
+        rn = rand() % nAll;  
+        Rn[s][0] = rn;
+        server.Install (wifiAll.Get(rn));  
     }
-
-
-    
     
     apps.Start (Seconds (0.1));
     apps.Stop (Seconds (simTime));
