@@ -65,7 +65,7 @@ int main (int argc, char *argv[]) {
 //Configurações da rede
     int nRn = cenario;
 // Setar Relay Nodes instalados
-    uint32_t vet[nRn][1] = {0, 1};
+    int vet[nRn][1] = {0, 1};
     int nAll = 10; 
     double simTime = 100;
     uint32_t MaxPacketSize = 300;
@@ -89,11 +89,48 @@ int main (int argc, char *argv[]) {
     int aux_energy = 0;
       
 //Criando Nós da Simulação
-      
+uint16_t rn = 0;  
 
+int nCli = nAll-nRn;
 // Criando Grupo de todos os nós
+for(int l = 0; l<nRn; ++l){
+    
+      rn = rand() % nAll;
+      while(rn == vet[l][0]){
+       std::cout << "Antigo Rn " << rn << "\n";
+       rn = rand() % nAll;  
+       std::cout << "Novo Rn " << rn << "\n";
+   
+      }
+      vet[nRn-1][0] = rn;
+    
+}
+
   NodeContainer wifiAll;
   wifiAll.Create (nAll);
+
+  NodeContainer wifiClient;
+
+    int x = 0;
+    bool xx = false;
+    int y = 0;
+
+        while(xx == false){
+          if(y != rn && y != 0 && y != 1){
+              wifiClient.Add(wifiAll.Get(y));
+              // std::cout<<"Instalado: "<< y <<std::endl;
+              x++;    
+          }
+          y++;
+          if(x==nCli){
+            xx = true;
+          }
+        }
+        
+    
+
+  
+
 
 //Setar Mobilidade dos nós
   MobilityHelper mobilitywifiAll;
@@ -196,47 +233,92 @@ NetDeviceContainer allDevice;
 
 // Criação da aplicação UDP
   uint16_t port = 4000;
-  uint32_t rn = 0;
+  // uint32_t rn = 0;
   std::string ipAp[nRn][1];
-  uint32_t Rn[nRn][1];
-  int x = 0;
+  // uint32_t Rn[nRn][1];
+
+  int nc = 0;
+  int nr = 0;
+  int aux = 0;
   ApplicationContainer apps;
 // Instalação dos Relay Nodes (RN)
   for(int s = 0; s < nRn; ++s){
     UdpServerHelper server (port);
-    
-    if(s < nRn-1){
-      server.Install (wifiAll.Get(vet[s][0]));  
-      Rn[s][0] = vet[s][0];
-      rn = vet[s][0];
-      }else{
-// Instalação do Relay Node (RN) Aleatóriamente
-          rn = rand() % nAll; 
-          while(rn == vet[x][0]){
-           std::cout << "Antigo Rn " << rn << "\n";
-           rn = rand() % nAll;  
-           std::cout << "Novo Rn " << rn << "\n";
-           x++;
-          }
-        Rn[s][0] = rn;
-        server.Install (wifiAll.Get(rn));  
+    server.Install (wifiAll.Get(vet[s][0]));  
+    apps.Start (Seconds (0.1));
+    apps.Stop (Seconds (simTime));
+    aux = vet[s][0] + 1;
+    ipAp[s][0] = "192.168.1." + std::to_string(aux);
+    // std::cout << "IP: " << ipAp[s][0] << "\n";
     }
-    
-    apps.Start (Seconds (0.1));
-    apps.Stop (Seconds (simTime));
-    std::string aux = "192.168.1." + std::to_string(rn + 1); 
+
+xx = false;
+x = 0;
+int install[nAll][1];
+
+
+// for(int s = 0; s<nCli; ++s){
+//   install[s][0] = 0;
+// }
+ 
   // Set Random IP
-    ipAp[s][0] = aux;
-  //Configuração da aplicação   
-    UdpClientHelper client (Ipv4Address (ipAp[s][0].c_str()), port); 
-    client.SetAttribute ("MaxPackets", UintegerValue ((uint32_t)(simTime*(1/PacketInterval))));
-    client.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
-    client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
-  // Instalar Aplicação em todos os nós Usuários
-    apps = client.Install (wifiAll);
-    apps.Start (Seconds (0.1));
-    apps.Stop (Seconds (simTime));
-}
+
+
+ while(xx == false){
+    nc = rand() % nAll; 
+    nr = rand() % nRn;
+
+   
+  
+      
+      for(int t = 0; t < x; ++t){
+      
+         if(nc == install[t][0]){
+          std::cout << "Pré-Alterado-Cliente: " << nc << "\n";
+            nc = rand() % nAll; 
+            std::cout << " " << "\n";
+            std::cout << "Alterado-Cliente: " << nc << "\n";
+            std::cout << "Alterado-Contador: " << x << "\n";
+                
+          }
+      }
+  
+    
+    
+          if(nc != rn && nc != 0 && nc != 1){
+              //Configuração da aplicação   
+              UdpClientHelper client (Ipv4Address (ipAp[nr][0].c_str()), port); 
+              client.SetAttribute ("MaxPackets", UintegerValue ((uint32_t)(simTime*(1/PacketInterval))));
+              client.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
+              client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
+              
+              // Instalar Aplicação em todos os nós Usuários
+              apps = client.Install (wifiClient.Get(nc));
+              apps.Start (Seconds (0.1));
+              apps.Stop (Seconds (simTime));   
+              
+              install[x][0] = nc;
+                          
+              xx = false;
+              std::cout << " " << "\n";
+              std::cout << "Cliente-Vet: " << install[x][0] << "\n";
+              std::cout << "Ok Cliente: " << nc << "\n";
+              std::cout << "Ok Server: " << nr << "\n";
+              std::cout << "Contador: " << x << "\n";
+              x++;  
+              }else{
+                std::cout << "Fail. " << "\n";
+              }
+          
+          if(x==nCli){
+            xx = true;
+          }
+  }
+     
+   
+   
+  
+
       
 //FLOW-MONITOR
 //Intalar FlowMonitor em todos os Nós
@@ -246,14 +328,14 @@ NetDeviceContainer allDevice;
 //Gerar animação
         AnimationInterface anim ("random/" + gp + "_random_master_node.xml"); // Mandatory
         
-        for (uint32_t i = 0; i < wifiAll.GetN(); ++i){
+        for (int i = 0; i < nCli; ++i){
           anim.UpdateNodeDescription (wifiAll.Get(i), "Node"); // Optional
           anim.UpdateNodeColor (wifiAll.Get(i), 255, 0, 0); // Coloração
         }
         
         for (int i = 0; i<nRn; ++i){
-            anim.UpdateNodeDescription (wifiAll.Get(Rn[i][0]), "RN"); // Optional
-            anim.UpdateNodeColor (wifiAll.Get(Rn[i][0]), 255, 255, 255); // Coloração
+            anim.UpdateNodeDescription (wifiAll.Get(vet[i][0]), "RN"); // Optional
+            anim.UpdateNodeColor (wifiAll.Get(vet[i][0]), 255, 255, 255); // Coloração
         }
         
         anim.EnablePacketMetadata (); // Optiona
@@ -285,61 +367,23 @@ double medLoss = 0;
 double medAtraso = 0;
 double medJitter = 0;
 double dur = 0;
-bool install = false;
+
 // std::string ipv = " ";
-std::string ip = " ";
-std::string ins[nAll][col];
-int l = 0;
+// std::string ip = " ";
+// std::string ins[nAll][col];
+// int l = 0;
    
   for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin (); i != stats.end (); ++i){
       
       Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
       dur = (i->second.timeLastRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds());
 
-      if(dur > 0)
-      {
-
-
-
-        for(int w = 0; w<nAll; w++)
-        {
-
-
-           if(ins[w][0].c_str() == t.sourceAddress)
-           {
-             install = true;
-           }
-           else
-           {
-                install = false;
-           }
-
-
-        } 
-
-
-
-        if(install == false)
-        {
-            for(int s = 0; s<nRn; ++s)
+      // if(dur > 0)
+      // {
+           for(int s = 0; s<nRn; ++s)
             { 
                if (t.destinationAddress == ipAp[s][0].c_str())
                {
-                    
-
-
-
-                    for(int x = 1; x<=nAll; ++x)
-                    {
-                      ip = "192.168.1." + std::to_string(x);
-                      if(t.sourceAddress == ip.c_str())
-                      {
-                        ins[l][0] = ip;
-                        std::cout<<"IPV4: "<< ip <<std::endl;  
-                        x = nAll+1;
-                      
-                      }                   
-                    }
 
                      
                     
@@ -373,11 +417,7 @@ int l = 0;
                     u++;
                 }
             }
-            l++;
-            }else{
-            std::cout << "Flow " << i->first << " (" << t.sourceAddress << ") Já conectado\n";
-            }
-      }
+      // }
   }
       
   
