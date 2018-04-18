@@ -57,7 +57,7 @@ NS_LOG_COMPONENT_DEFINE ("Wifi_Random");
 
 void avalParam(int nAll, double** Vazao, double** Atraso, double** Loss, double** Energia, double** Jitterav);
 
-int cenario = 1;
+int cenario = 10;
 std::string gp = std::to_string(cenario);
 int main (int argc, char *argv[]) {
 
@@ -65,7 +65,7 @@ int main (int argc, char *argv[]) {
 //Configurações da rede
     int nRn = cenario;
 // Setar Relay Nodes instalados
-    int vet[nRn][1] = {0};
+    int vet[nRn][1] = {33, 27, 43, 35, 42, 21, 36, 40, 13};
     int nAll = 50; 
     double simTime = 1200;
     uint32_t MaxPacketSize = 300;
@@ -92,17 +92,19 @@ int main (int argc, char *argv[]) {
 int rn = 0;  
 int nCli = nAll-nRn;
 
+rn = rand() % nAll;
+
 for(int l = 0; l<nRn; ++l){
-    
-      rn = rand() % nAll;
+
       while(rn == vet[l][0]){
        std::cout << "Antigo Rn " << rn << "\n";
        rn = rand() % nAll;  
        std::cout << "Novo Rn " << rn << "\n";
    
       }
+      vet[nRn-1][0] = rn;
 }
-vet[nRn-1][0] = rn;
+
 
   NodeContainer wifiAll;
   wifiAll.Create (nAll);
@@ -221,7 +223,7 @@ NetDeviceContainer allDevice;
     }
   
   for(int p = 0; p<nAll; ++p){
-          if(p != rn && p != 0 && p != 1){
+          if(p != rn && p != 33 && p != 27 && p != 43 && p != 35 && p != 42 && p != 21 && p != 36 && p != 40 && p != 13){
               //Configuração da aplicação   
               nr = rand() % nRn;
               UdpClientHelper client (Ipv4Address (ipAp[nr][0].c_str()), port); 
@@ -277,7 +279,6 @@ NetDeviceContainer allDevice;
 
 int u = 0;
 int cont = 0;
-double Tx = 0;
 double nsumLoss = 0;
 double nmedLoss = 0;
 
@@ -289,7 +290,6 @@ double sumJitter = 0;
 
 double medThroughput = 0;
 double medLoss = 0;
-double medPdr = 0;
 double medEnergy = 0;
 double medAtraso = 0;
 double medJitter = 0;
@@ -338,7 +338,6 @@ double dur = 0;
           }
       }else{
         cont++;
-        Tx = i->second.txPackets;
         nsumLoss = nsumLoss + i->second.txPackets;
       }
   }
@@ -352,7 +351,6 @@ double dur = 0;
    medEnergy = sumEnergy / (u+1);
    medAtraso = sumAtraso / (u+1);
    medJitter = sumJitter / (u+1);
-   medPdr = (nmedLoss / Tx)*100;
    std::cout << " " <<std::endl;
    std::cout << "Média Loss(Conectados): "<<std::endl;
    std::cout << "Média Loss(Total): "<<std::endl;
@@ -360,8 +358,7 @@ double dur = 0;
    std::cout << "Média Atraso: "<<std::endl;
    std::cout << "Média Jitter: "<<std::endl;
    std::cout << "Média Energia: "<<std::endl;
-   std::cout << "Média PDR(%): "<<std::endl;
-   
+
 
   std::cout << " " <<std::endl;
   std::cout << medLoss <<std::endl;
@@ -370,7 +367,6 @@ double dur = 0;
   std::cout << medAtraso <<std::endl;
   std::cout << medJitter <<std::endl;
   std::cout << medEnergy <<std::endl;
-  std::cout << medPdr <<std::endl;
   std::cout << " " <<std::endl;
   std::cout << "Usuários Não Cobertos: "<< (cont) <<std::endl;
   std::cout << " " <<std::endl;

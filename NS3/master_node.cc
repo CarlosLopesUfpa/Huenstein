@@ -62,11 +62,11 @@ int main (int argc, char *argv[]) {
 
 // Simulação 1: Reconhecimento da rede.
 //Configurações da rede
-    int nAll = 3; 
-    double simTime = 101;
-    uint32_t MaxPacketSize = 1024;
-    double PacketInterval = 0.15;
-    uint16_t grid = 50;
+    int nAll = 100; 
+    double simTime = 1200;
+    uint32_t MaxPacketSize = 300;
+    double PacketInterval = 0.1;
+    uint16_t grid = 500;
     std::string gr = std::to_string(grid);
 
     bool constant = true;
@@ -211,7 +211,7 @@ for (int ip = 1; ip<=nAll; ++ip){
 //Intalar FlowMonitor em todos os Nós
   FlowMonitorHelper flowmon;
   Ptr<FlowMonitor> monitor = flowmon.InstallAll ();
-  std::string gp = std::to_string(cenario);
+  std::string gp = std::to_string(nAll);
 
 //Gerar animação
         AnimationInterface anim (gp + "_master_node.xml"); // Mandatory
