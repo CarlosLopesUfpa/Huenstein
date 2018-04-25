@@ -55,23 +55,44 @@ double** create(int rows, int columns){
 }
 NS_LOG_COMPONENT_DEFINE ("Wifi_1");
 
-void avalParam(int nAll, double** Vazao, double** Atraso, double** Loss, double** Energia, double** Jitterav);
+
 
 int cenario = 1;
 
 int main (int argc, char *argv[]) {
 
-// Simulação 1: Reconhecimento da rede.
 //Configurações da rede
+    // Novo Retransmissor
+    int rn = 44;
+    // Total de usuários da rede
     int nAll = 50; 
+    int nRn = cenario;
+    // Numero de Clientes NÃO RETRANSMISSORES
+    int nCli = nAll - nRn;
+    // Numero de nós previamente conectados
+    int nCon = 0;
+    // Vetor com todos os Retransmissores
+    int vet[nRn][1] = {rn};
+    // Vetor com clientes previamente instalados
+    int cli[nCon][1];
+    // Vetor com Retransmissores previamente instalados
+    int ser[nCon][1];
+ 
+
     double simTime = 1200;
+    // Tamanho máximo de Pacotes
     uint32_t MaxPacketSize = 300;
+    // Intervalo de envio de pacotes
     double PacketInterval = 0.1;
+    // Quantidade de Quadrantes
+    int nQd = 1;
+    std::string qd = std::to_string(nQd);
+    //Tamanho da Grade da Simulação 
     uint16_t grid = 500;
     std::string gr = std::to_string(grid);
-
+    // Tipos de Mobilidade
     bool constant = true;
-    bool manual = false;
+    bool manual = true;
     
 //Variáveis para receber dados do FlowMonitor
     int col = 1;
@@ -108,13 +129,13 @@ int main (int argc, char *argv[]) {
   }
   for(int i = 0; i<nAll; ++i){
       // Lê uma linha (inclusive com o '\n')
-      resultx = fgets(Linhax, nAll, arqx);  // o 'fgets' lê até 99 caracteres ou até o '\n'
+      resultx = fgets(Linhax, nAll, arqx);  // Ler os caracteres ou até '\n'
       if (resultx)  // Se foi possível ler
       xAux = Linhax;
       x[i][0] = atof(xAux);
 
       // Lê uma linha (inclusive com o '\n')
-      resulty = fgets(Linhay, nAll, arqy);  // o 'fgets' lê até 99 caracteres ou até o '\n'
+      resulty = fgets(Linhay, nAll, arqy);  // Ler os caracteres ou até '\n'
       if (resulty)  // Se foi possível ler
       yAux = Linhay;
       y[i][0] = atof(yAux);
@@ -135,27 +156,25 @@ int main (int argc, char *argv[]) {
                                 "X", StringValue ("ns3::UniformRandomVariable[Min=0.0|Max="+gr+"]"),
                                 "Y", StringValue ("ns3::UniformRandomVariable[Min=0.0|Max="+gr+"]"));
   }
-  if(manual == true){
-    for(int i = 0; i < nAll; ++i){
-    mobilitywifiAll.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                         "MinX", DoubleValue (x[i][0]),
-                                         "MinY", DoubleValue (y[i][0]));
-    }
+
+  if(constant == true){
+  //Constante Mobillity
+    mobilitywifiAll.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   }
 
-if(constant == true){
-//Constante Mobillity
-  mobilitywifiAll.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-}
-
-if(constant == false){
-//Random Mobillity
-  mobilitywifiAll.SetMobilityModel ("ns3::RandomWalk2dMobilityModel",
-                           "Speed", StringValue ("ns3::ConstantRandomVariable[Constant=100.0]"),
-                           "Bounds", StringValue ("-"+gr+"|"+gr+"|-"+gr+"|"+gr+""));
-}
+  if(constant == false){
+  //Random Mobillity
+    mobilitywifiAll.SetMobilityModel ("ns3::RandomWalk2dMobilityModel",
+                             "Speed", StringValue ("ns3::ConstantRandomVariable[Constant=100.0]"),
+                             "Bounds", StringValue ("-"+gr+"|"+gr+"|-"+gr+"|"+gr+""));
+  }
   mobilitywifiAll.Install (wifiAll);
 
+  if(manual == true){   
+    for(int i = 0; i < nAll; ++i){ 
+        wifiAll.Get (i)->GetObject<MobilityModel> ()->SetPosition (Vector (x[i][0], y[i][0], 0));
+     } 
+  }     
 //Configuração da rede
   std::string phyMode ("ErpOfdmRate54Mbps");
   bool verbose = false;
@@ -176,8 +195,7 @@ if(constant == false){
 // Criação do modelo de propagação da rede
   YansWifiChannelHelper wifiChannel;
   wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
-  wifiChannel.AddPropagationLoss ("ns3::LogDistancePropagationLossModel",
-                                  "Exponent", DoubleValue (3.0));
+  wifiChannel.AddPropagationLoss ("ns3::FriisPropagationLossModel");
 
   wifiPhy.SetChannel (wifiChannel.Create ());
 
@@ -229,63 +247,107 @@ NetDeviceContainer allDevice;
 // Criação da aplicação UDP
 // Aplicação para rede AP/STA
   
-    uint16_t port = 4000;
-
-      port++;
+uint16_t port = 4000;
+  std::string ipAp[nRn][1];
+  int aux = 0;
+  bool first = true;
+  
+  // int l = 1;
+  bool entra = true;
+  ApplicationContainer apps;
+// Instalação dos Relay Nodes (RN)
+                   
+    for(int s = 0; s < nRn; ++s){
       UdpServerHelper server (port);
-      ApplicationContainer apps = server.Install (wifiAll);
-      apps.Start (Seconds (1.0));
+      server.Install (wifiAll.Get(vet[s][0]));  
+      apps.Start (Seconds (0.1));
       apps.Stop (Seconds (simTime));
-
-for (int ip = 1; ip<=nAll; ++ip){
-//Configuração da aplicação   
-      std::string ipAp = "192.168.1." + std::to_string(ip);
-      UdpClientHelper client (Ipv4Address (ipAp.c_str()), port); 
-// UdpClientHelper client (Ipv4Address (allInterface.GetAddress(0)), port); 
-      client.SetAttribute ("MaxPackets", UintegerValue ((uint32_t)(simTime*(1/PacketInterval))));
-      client.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
-      client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
-
-// Intalar Aplicação em todos os nós(Usuários)
-      apps = client.Install (wifiAll);
-      apps.Start (Seconds (1.0));
-      apps.Stop (Seconds (simTime));
+      aux = vet[s][0] + 1;
+      ipAp[s][0] = "192.168.1." + std::to_string(aux);
+      std::cout<<"IP = " << ipAp[s][0] <<std::endl;
     }
-      
+  
+  for(int p = 0; p<nAll; ++p)
+  {
+          entra = true;  
+        if(first == false){
+          for(int s = 1; s<nRn; ++s)
+          {
+              for(int x = 0; x<nCon; ++x)
+              {
+                  if(p == cli[x][0] && ser[x][0] == vet[s][0])
+                  {
+                      entra=false;
+                      UdpClientHelper client (Ipv4Address (ipAp[s][0].c_str()), port); 
+                      client.SetAttribute ("MaxPackets", UintegerValue ((uint32_t)(simTime*(1/PacketInterval))));
+                      client.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
+                      client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
+                      
+                      // Instalar Aplicação em todos os nós Usuários
+                      apps = client.Install (wifiAll.Get(p));
+                      apps.Start (Seconds (0.1));
+                      apps.Stop (Seconds (simTime));   
+                      std::cout<<"Padrão:    Client = " << p <<"    Server = " << ipAp[s][0] <<std::endl;
+                    
+                  }
+              }
+          }
+        }
+          if(entra == true){
+              if(p != rn && p != 10)
+              {
+                  //Configuração da aplicação   
+                  UdpClientHelper client (Ipv4Address (ipAp[0][0].c_str()), port); 
+                  client.SetAttribute ("MaxPackets", UintegerValue ((uint32_t)(simTime*(1/PacketInterval))));
+                  client.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
+                  client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
+
+                  std::cout<<"Client = " << p <<"    Server = " << ipAp[0][0] <<std::endl;
+                  
+                  // Instalar Aplicação em todos os nós Usuários
+                  apps = client.Install (wifiAll.Get(p));
+                  apps.Start (Seconds (0.1));
+                  apps.Stop (Seconds (simTime)); 
+                  
+              }
+            }
+  }
+  
 //FLOW-MONITOR
 //Intalar FlowMonitor em todos os Nós
   FlowMonitorHelper flowmon;
   Ptr<FlowMonitor> monitor = flowmon.InstallAll ();
-  std::string gp = std::to_string(nAll);
+  std::string gp = std::to_string(cenario);
 
 //Gerar animação
-        AnimationInterface anim (gp + "_master_node.xml"); // Mandatory
+        AnimationInterface anim ("algorithm/" + gp + "_master_node_pos.xml"); // Mandatory
         
-        for (uint32_t i = 0; i < wifiAll.GetN(); ++i)
-        {
+        for (int i = 0; i < nCli; ++i){
           anim.UpdateNodeDescription (wifiAll.Get(i), "Node"); // Optional
           anim.UpdateNodeColor (wifiAll.Get(i), 255, 0, 0); // Coloração
         }
         
+        for (int i = 0; i<nRn; ++i){
+            anim.UpdateNodeDescription (wifiAll.Get(vet[i][0]), "RN"); // Optional
+            anim.UpdateNodeColor (wifiAll.Get(vet[i][0]), 255, 255, 255); // Coloração
+        }
         
-          anim.UpdateNodeDescription (wifiAll.Get(0), "Server"); // Optional
-          anim.UpdateNodeColor (wifiAll.Get(0), 255, 255, 255); // Coloração
-        
-         
         anim.EnablePacketMetadata (); // Optiona
-        anim.EnableIpv4RouteTracking ("routingtable-wireless.xml", Seconds (0), Seconds (5), Seconds (0.25)); //Optional
-        anim.EnableWifiMacCounters (Seconds (0), Seconds (10)); //Optional
-        anim.EnableWifiPhyCounters (Seconds (0), Seconds (10)); //Optional
-
+        anim.EnableIpv4RouteTracking ("algorithm/" + gp + "_master_node_pos_route.xml", Seconds (0), Seconds (5), Seconds (0.25)); //Optional
+        anim.EnableWifiMacCounters (Seconds (0), Seconds (simTime)); //Optional
+        anim.EnableWifiPhyCounters (Seconds (0), Seconds (simTime)); //Optional
   Simulator::Stop(Seconds(simTime));
   Simulator::Run();
-
+ 
 //Imprimir resultados da simulação
   monitor->CheckForLostPackets ();
   Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier> (flowmon.GetClassifier ());
   FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats ();
 
-int u = -1;
+int u = 0;
+int cont = 0;
+double nsumLoss = 0;
+double nmedLoss = 0;
 
 double sumThroughput = 0;
 double sumLoss = 0;
@@ -298,238 +360,90 @@ double medLoss = 0;
 double medEnergy = 0;
 double medAtraso = 0;
 double medJitter = 0;
+double dur = 0;
 
-  for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin (); i != stats.end (); ++i){
-        
-           Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
-                   
-      if (t.destinationAddress == "192.168.1.1"){
-                u++;
-                std::cout << "Flow " << i->first << " (" << t.sourceAddress << " -> " << t.destinationAddress << ")\n";
-                std::cout<<"Duration  : "<<(i->second.timeLastRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds())<<std::endl;
+  for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin (); i != stats.end (); ++i)
+  {
+      Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
+      dur = (i->second.timeLastRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds());
+      if(dur > 0)
+      {        
+          for(int s = 0; s<nRn; ++s)
+            { 
+               if (t.destinationAddress == ipAp[s][0].c_str())
+               {                    
+                    std::cout << "Flow " << i->first << " (" << t.sourceAddress << " -> " << t.destinationAddress << ")\n";
+                    std::cout<<"Duration  : "<< dur <<std::endl;
+                    std::cout<<"Tx Packets = " << i->second.txPackets<<std::endl;
+                    std::cout<<"Rx Packets = " << i->second.rxPackets<<std::endl;
+                    
+                    Loss[u][0] = i->second.txPackets - i->second.rxPackets;
+                    std::cout << "Perda de Pacotes: "<< Loss[u][0]<<std::endl;
+                    
+                    Vazao[u][0] = i->second.rxBytes * 8.0 / (i->second.timeLastRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds())/1024;
+                    std::cout << "Vazão: " << Vazao[u][0] << " Kbps\n";
 
-                std::cout<<"Tx Packets = " << i->second.txPackets<<std::endl;
-                std::cout<<"Rx Packets = " << i->second.rxPackets<<std::endl;
+                    std::cout << "Energia: "<< Energia[u][0] <<std::endl;
 
-                Loss[u][0] = i->second.txPackets - i->second.rxPackets;
-                std::cout << "Perda de Pacotes: "<< Loss[u][0]<<std::endl;
+                    Atraso[u][0] = ((i->second.timeLastRxPacket.GetSeconds()) - (i->second.timeLastTxPacket.GetSeconds()));
+                    std::cout << "Atraso: "<< Atraso[u][0] <<std::endl;
 
-                sumLoss = sumLoss + Loss[u][0];
+                    atraso2 = i->second.timeLastRxPacket.GetSeconds()-i->second.timeLastTxPacket.GetSeconds();
+                    atraso1 = i->second.timeFirstRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds();
+                    Jitter[u][0] = atraso2 - atraso1;
+                    std::cout << "Jitter: "<< Jitter[u][0] <<std::endl;
+                    
+                    sumLoss = sumLoss + Loss[u][0];
+                    sumThroughput = sumThroughput + Vazao[u][0];
+                    sumEnergy = sumEnergy + Energia[u][0];
+                    sumAtraso = sumAtraso + Atraso[u][0];
+                    sumJitter = sumJitter + Jitter[u][0];
+                    std::cout << " " <<std::endl;
 
-                Vazao[u][0] = i->second.rxBytes * 8.0 / (i->second.timeLastRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds())/1024/1024;
-                std::cout << "Vazão: " << Vazao[u][0] << " Mbps\n";
-
-                sumThroughput = sumThroughput + Vazao[u][0];
-
-                std::cout << "Energia: "<< Energia[u][0] <<std::endl;
-
-                sumEnergy = sumEnergy + Energia[u][0];
-
-                Atraso[u][0] = ((i->second.timeLastRxPacket.GetSeconds()) - (i->second.timeLastTxPacket.GetSeconds()));
-                std::cout << "Atraso: "<< Atraso[u][0] <<std::endl;
-
-                sumAtraso = sumAtraso + Atraso[u][0];
-
-                atraso2 = i->second.timeLastRxPacket.GetSeconds()-i->second.timeLastTxPacket.GetSeconds();
-                atraso1 = i->second.timeFirstRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds();
-                Jitter[u][0] = atraso2 - atraso1;
-                std::cout << "Jitter: "<< Jitter[u][0] <<std::endl;
-
-                 sumJitter = sumJitter + Jitter[u][0];
-                
-                std::cout << " " <<std::endl;
-            } 
-        
+                    u++;
+                }
+          }
+      }else{
+        cont++;
+        nsumLoss = nsumLoss + i->second.txPackets;
+      }
+  }
       
-   }
+  
+  
 // Obter Média da Simulação
    medLoss = sumLoss / (u+1);
+   nmedLoss = (nsumLoss+sumLoss)/nCli;
    medThroughput = sumThroughput / (u+1);
    medEnergy = sumEnergy / (u+1);
    medAtraso = sumAtraso / (u+1);
    medJitter = sumJitter / (u+1);
+   std::cout << " " <<std::endl;
+   std::cout << "Média Loss(Conectados): "<<std::endl;
+   std::cout << "Média Loss(Total): "<<std::endl;
+   std::cout << "Média Vazão: "<<std::endl;
+   std::cout << "Média Atraso: "<<std::endl;
+   std::cout << "Média Jitter: "<<std::endl;
+   std::cout << "Média Energia: "<<std::endl;
+
 
   std::cout << " " <<std::endl;
-  std::cout << "Média Loss: "<< medLoss <<std::endl;
-  std::cout << "Média Vazão: "<< medThroughput <<std::endl;
-  std::cout << "Média Energia: "<< medEnergy <<std::endl;
-  std::cout << "Média Atraso: "<< medAtraso <<std::endl;
-  std::cout << "Média Jitter: "<< medJitter <<std::endl;
+  std::cout << medLoss <<std::endl;
+  std::cout << nmedLoss <<std::endl;
+  std::cout << medThroughput <<std::endl;
+  std::cout << medAtraso <<std::endl;
+  std::cout << medJitter <<std::endl;
+  std::cout << medEnergy <<std::endl;
   std::cout << " " <<std::endl;
+  std::cout << "Usuários Não Cobertos: "<< cont-nRn <<std::endl;
+  std::cout << " " <<std::endl;
+  std::cout << "Usuários Cobertos "<< u <<std::endl;
+  std::cout << " " <<std::endl;
+  std::cout << "Nó Selecionado "<< vet[0][0] <<std::endl;
 
 //LÓGICA DE SELEÇÃO
-      avalParam(nAll, Vazao, Atraso, Loss, Energia, Jitter);
 
   Simulator::Destroy();
   return 0;
 
-}
-// Step 2: Analise dos Parametros e avaliação do nó mestre.
-      
-
-void avalParam(int nAll, double** Vazao, double** Atraso, double** Loss, double** Energia, double** Jitterav){
-//Determinar quantidade de parâmetros
-  int nPar = 5;
-
-  //Determinar os Parametros utilizados
-  double LossPackets [nAll][1];
-  double Throughput [nAll][1];
-  double Energy [nAll][1];
-  double Delay [nAll][1];
-  double Jitter [nAll][1];
-
-//Atribuir 0 a todas as posições da matriz (limpar)
-  for(int l=0; l<nAll; ++l){
-     LossPackets [nAll][0] = 0;
-     Throughput [nAll][0] = 0;
-     Energy [nAll][0] = 0;
-     Delay [nAll][0] = 0;
-     Jitter [nAll][0] = 0;
-  }
-
-//Atribuir valores dos Parâmetros
-  srand((unsigned)time(0));
-  for (int l = 0; l<nAll; ++l){
-
-      if(Loss[l][0]==0){
-          LossPackets [l][0] = 1;
-          }else{
-              LossPackets [l][0]= Loss[l][0];
-      }
-                      
-      Throughput [l][0]= Vazao[l][0];
-      Energy [l][0]= Energia[l][0];
-      Delay [l][0]= Atraso[l][0];
-      Jitter [l][0]= Jitterav[l][0];
-  }
-
-  std::cout << "Valor de parametros: " <<std::endl;
-  for(int l=0;l<nAll; l++){
-      std::cout << " " <<std::endl;
-      std::cout << "Nó: " << l <<std::endl;
-      std::cout << "LossPackets " << LossPackets [l][0] << " " <<std::endl;
-      std::cout << "Throughput " << Throughput[l][0] << " " <<std::endl;
-      std::cout << "Energy " << Energy[l][0] << " " <<std::endl;
-      std::cout << "Delay " << Delay[l][0]<< " " <<std::endl;
-      std::cout << "Jitter " << Jitter[l][0] << " " <<std::endl;
-  }
-          
-//Criar Matriz dos nós de retransmissão
-//mMR[0][1]= perda de pacotes      |    
-//mMR[0][2]= vazão                 |
-//mMR[0][3]= energia               |   Médias/Valores "brutos", ainda nao normalizadas
-//mMR[0][4]= delay                 |
-//mMR[0][5]= jitter                |
-
-  double mMR [nAll][nPar+1];
-
-  for (int l = 0; l < nAll; ++l)
-  {
-    for (int c = 0; c <= nPar; ++c)
-    {
-      switch(c){
-        case 0:
-        mMR [l][c] = l;
-        break;
-        case 1:
-        mMR [l][c] = LossPackets [l][0];  
-        break;        
-        case 2:
-        mMR [l][c] = Throughput [l][0];
-        break;
-        case 3:
-        mMR [l][c] = Energy [l][0];
-        break;
-        case 4:
-        mMR [l][c] = Delay [l][0];
-        break;
-        case 5:
-        mMR [l][c] = Jitter [l][0];
-        break;
-        default:
-        break;
-      }
-    }
-  }
-
-//Normalização dos resultados
-//somaPerdaPct   | 
-//somaVazão      |
-//somaEnergia    |  Essas variáveis recebem a soma dos valores dos parametros de todos os nós, 
-//somaDelay      |  vamos usar pra normalizar os valores antes de usar na fórmula
-//somaAlcance    |
-
-  double somaPerdaPct = 0;
-  double somaVazao = 0;
-  double somaEnergia = 0;
-  double somaDelay = 0;
-  double somaJitter = 0; 
-
-  for (int l = 0; l < nAll; ++l){
-    somaPerdaPct =  somaPerdaPct +  mMR[l][1];  
-    somaVazao    =  somaVazao    +  mMR[l][2];
-    somaEnergia  =  somaEnergia  +  mMR[l][3];
-    somaDelay    =  somaDelay    +  mMR[l][4];
-    somaJitter   =  somaJitter   +  mMR[l][5];
-  }
-
-  for(int l = 0; l<1; l++){
-      std::cout << " " <<std::endl;
-      std::cout << " " << " " <<std::endl;
-      if(somaPerdaPct==0){
-          somaPerdaPct--;
-          std::cout << "Somatória LossPackets " << somaPerdaPct  << " #Alterada " <<std::endl;
-      }else{
-          std::cout << "Somatória LossPackets " << somaPerdaPct  << " " <<std::endl;
-      }
-      std::cout << "Somatória Throughput " << somaVazao  << " " <<std::endl;
-      std::cout << "Somatória Energy " << somaEnergia  << " " <<std::endl;
-      std::cout << "Somatória Delay " << somaDelay  << " " <<std::endl;
-      std::cout << "Somatória Jitter " << somaJitter  << " " <<std::endl;
-  }
-std::cout << " " <<std::endl;
-
-  float normalmMR[nAll][nPar];
-  float FinalScore[nAll][2];
-
-  for (int l = 0; l < nAll; ++l){
-      normalmMR[l][1] = (mMR[l][1]/somaPerdaPct);
-      normalmMR[l][2] = (mMR[l][2]/somaVazao);
-      normalmMR[l][3] = (mMR[l][3]/somaEnergia);
-      normalmMR[l][4] = (mMR[l][4]/somaDelay);
-      normalmMR[l][5] = (mMR[l][5]/somaJitter);
-// Atribuição da pontuação de acordo com o peso de cada atributo
-      std::cout << "Nó " << l << " Pontuação perda de pacotes " << (((1-normalmMR[l][1])/(nAll-1))*100)*0.3<<std::endl;
-      std::cout << "Nó " << l << " Pontuação vazão " << (normalmMR[l][2]*100)*0.25<<std::endl;
-      std::cout << "Nó " << l << " Pontuação Energia " << (normalmMR[l][3]*100)*0.2<<std::endl;
-      std::cout << "Nó " << l << " Pontuação Delay " << (((1-normalmMR[l][4])/(nAll-1))*100)*0.15<<std::endl;
-      std::cout << "Nó " << l << " Pontuação Jitter " << (((1-normalmMR[l][5])/(nAll-1))*100)*0.1<<std::endl;
-      std::cout << " " <<std::endl;
-      FinalScore[l][0] = l;
-      FinalScore[l][1]= ((((1-normalmMR[l][1])/(nAll-1))*100)*0.3)+((normalmMR[l][2]*100)*0.25)+((normalmMR[l][3]*100)*0.2)+((((1-normalmMR[l][4])/(nAll-1))*100)*0.15)+((((1-normalmMR[l][5])/(nAll-1))*100)*0.1);
-  }
-//Escrevendo (FinalScore) referente à cada Nó
-  double sum = 0;
-//Escrevendo (FinalScore) referente à cada Nó
-  for(int l=0; l<nAll; ++l){           
-      std::cout << "Nó " << l << " Pontuação Geral " << FinalScore[l][1] <<std::endl;
-      std::cout << "////////////////////////////" <<std::endl;
-      sum = FinalScore[l][1] + sum;
-    
-  }
-  std::cout << " " <<std::endl;
-  std::cout << " " <<std::endl;
-  std::cout << "Somatória da Pontuação " << sum <<std::endl;
-    
-//Imprimir Nó Mestre
-  float maior_ic = 0;
-  int id = 0;
-  for (int l=0; l<nAll; ++l){
-      if(FinalScore[l][1] > maior_ic){
-          maior_ic = FinalScore[l][1];
-          id = l;
-      }
-  }
-  std::cout << " " <<std::endl;
-  std::cout << "Nó de Retransmissão Mestre " << id << " Pontuação: " << maior_ic <<std::endl;
 }
