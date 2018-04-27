@@ -64,8 +64,11 @@ int main (int argc, char *argv[]) {
 // Simulação 1: Reconhecimento da rede.
 //Configurações da rede
     int nRn = cenario;
+    int nCon = 0;
 // Setar Relay Nodes instalados
-    int vet[nRn][1] = {0};
+    int vet[nRn][1];
+    int cli[nCon][1];
+    int ser[nCon][1];
     int nAll = 50; 
     double simTime = 1200;
     uint32_t MaxPacketSize = 300;
@@ -114,6 +117,12 @@ rn = rand() % nAll;
 
 vet[nRn-1][0] = rn;
 
+for(int i = 0; i<nCon; ++i){
+  std::cout << "Client " << cli[i][0] << "    Server " << ser[i][0] << "\n";
+}
+
+
+
   NodeContainer wifiAll;
   wifiAll.Create (nAll);
 // Criando Grupo de todos os nós
@@ -151,7 +160,7 @@ if(random == true){
 
   YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
 // set it to zero; otherwise, gain will be added
-  wifiPhy.Set ("RxGain", DoubleValue (0) );
+  wifiPhy.Set ("RxGain", DoubleValue (0));
 // ns-3 supports RadioTap and Prism tracing extensions for 802.11b
   wifiPhy.SetPcapDataLinkType (YansWifiPhyHelper::DLT_IEEE802_11_RADIO);
 
@@ -190,7 +199,7 @@ NetDeviceContainer allDevice;
 //Atribuindo energia nos dispositivos
       srand((unsigned)time(0));
       for (int l=0; l<nAll; ++l){
-          aux_energy = rand() % 100; 
+          aux_energy = rand()%((100-50) + 50);
 
           Ptr<BasicEnergySource> energySource = CreateObject<BasicEnergySource>();
           Ptr<SimpleDeviceEnergyModel> energyModel = CreateObject<SimpleDeviceEnergyModel>();
@@ -217,8 +226,12 @@ NetDeviceContainer allDevice;
 
   uint16_t port = 4000;
   std::string ipAp[nRn][1];
-  int nr = 0;
+  // int nr = 0;
   int aux = 0;
+  bool entra = true;  
+  
+  // int l = 1;
+  bool first = true;
   ApplicationContainer apps;
 // Instalação dos Relay Nodes (RN)
   for(int s = 0; s < nRn; ++s){
@@ -230,30 +243,49 @@ NetDeviceContainer allDevice;
     ipAp[s][0] = "192.168.1." + std::to_string(aux);
     }
   
-  for(int p = 0; p<nAll; ++p){
-          if(p != rn){
-              //Configuração da aplicação   
-              nr = rand() % nRn;
-              UdpClientHelper client (Ipv4Address (ipAp[nr][0].c_str()), port); 
-              client.SetAttribute ("MaxPackets", UintegerValue ((uint32_t)(simTime*(1/PacketInterval))));
-              client.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
-              client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
-              
-              // Instalar Aplicação em todos os nós Usuários
-              apps = client.Install (wifiAll.Get(p));
-              apps.Start (Seconds (0.1));
-              apps.Stop (Seconds (simTime));   
-              // std::cout << " " << "\n";
-              // std::cout << "Ok Cliente: " << p << "\n";
-              // std::cout << "Ok Server: " << nr << "\n";
-              
-              // x++;  
+ for(int p = 0; p<nAll; ++p)
+  {
+        entra = true;  
+        if(first == false){
+          for(int s = 1; s<nRn; ++s)
+          {
+              for(int x = 0; x<nCon; ++x)
+              {
+                  if(p == cli[x][0] && ser[x][0] == vet[s][0])
+                  {
+                      entra=false;
+                      UdpClientHelper client (Ipv4Address (ipAp[s][0].c_str()), port); 
+                      client.SetAttribute ("MaxPackets", UintegerValue ((uint32_t)(simTime*(1/PacketInterval))));
+                      client.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
+                      client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
+                      
+                      // Instalar Aplicação em todos os nós Usuários
+                      apps = client.Install (wifiAll.Get(p));
+                      apps.Start (Seconds (0.1));
+                      apps.Stop (Seconds (simTime));   
+                      std::cout<<"Padrão:    Client = " << p <<"    Server = " << ipAp[s][0] <<std::endl;
+                    
+                  }
               }
-              else{
-                // std::cout << "Fail. " << "\n";
+          }
+        }
+          if(entra == true){
+              if(p != rn)
+              {
+                  //Configuração da aplicação   
+                  
+                  UdpClientHelper client (Ipv4Address (ipAp[0][0].c_str()), port); 
+                  client.SetAttribute ("MaxPackets", UintegerValue ((uint32_t)(simTime*(1/PacketInterval))));
+                  client.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
+                  client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
+                   // Instalar Aplicação em todos os nós Usuários
+                  apps = client.Install (wifiAll.Get(p));
+                  apps.Start (Seconds (0.1));
+                  apps.Stop (Seconds (simTime)); 
+                }
               }
   }
-      
+
 //FLOW-MONITOR
 //Intalar FlowMonitor em todos os Nós
   FlowMonitorHelper flowmon;
@@ -273,7 +305,7 @@ NetDeviceContainer allDevice;
         }
         
         anim.EnablePacketMetadata (); // Optiona
-        anim.EnableIpv4RouteTracking ("random/" + gp + "_routingtable-wireless.xml", Seconds (0), Seconds (5), Seconds (0.25)); //Optional
+        anim.EnableIpv4RouteTracking ("random/" + gp + "_random_master_node_route.xml", Seconds (0), Seconds (5), Seconds (0.25)); //Optional
         anim.EnableWifiMacCounters (Seconds (0), Seconds (simTime)); //Optional
         anim.EnableWifiPhyCounters (Seconds (0), Seconds (simTime)); //Optional
   Simulator::Stop(Seconds(simTime));
@@ -321,7 +353,6 @@ double dur = 0;
                     Loss[u][0] = i->second.txPackets - i->second.rxPackets;
                     std::cout << "Perda de Pacotes: "<< Loss[u][0]<<std::endl;
                     
-                    
                     Vazao[u][0] = i->second.rxBytes * 8.0 / (i->second.timeLastRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds())/1024;
                     std::cout << "Vazão: " << Vazao[u][0] << " Kbps\n";
 
@@ -341,6 +372,7 @@ double dur = 0;
                     sumAtraso = sumAtraso + Atraso[u][0];
                     sumJitter = sumJitter + Jitter[u][0];
                     std::cout << " " <<std::endl;
+
                     u++;
                 }
           }
@@ -376,13 +408,11 @@ double dur = 0;
   std::cout << medJitter <<std::endl;
   std::cout << medEnergy <<std::endl;
   std::cout << " " <<std::endl;
-  std::cout << "Usuários Não Cobertos: "<< (cont+nRn) <<std::endl;
+  std::cout << "Usuários Não Cobertos: "<< cont+nRn <<std::endl;
+  std::cout << " " <<std::endl;
+  std::cout << "Usuários Cobertos "<< u <<std::endl;
   std::cout << " " <<std::endl;
   std::cout << "Nó Selecionado "<< rn <<std::endl;
-
-//LÓGICA DE SELEÇÃO
-     
-
 
   Simulator::Destroy();
   return 0;

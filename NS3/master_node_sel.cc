@@ -66,7 +66,7 @@ int main (int argc, char *argv[]) {
 
 // Simulação 1: Reconhecimento da rede.
 //Configurações da rede
-    int nAll = 50; 
+    int nAll = 100; 
     double simTime = 1200;
     uint32_t MaxPacketSize = 300;
     double PacketInterval = 0.1;
@@ -78,13 +78,13 @@ int main (int argc, char *argv[]) {
     
 //Variáveis para receber dados do FlowMonitor
     int col = 1;
-    double** Vazao = create(nAll*50, col);
-    double** Atraso = create(nAll*50, col);
-    double** Loss = create(nAll*50, col);
-    double** Jitter = create(nAll*50, col);
+    double** Vazao = create(nAll*nAll, col);
+    double** Atraso = create(nAll*nAll, col);
+    double** Loss = create(nAll*nAll, col);
+    double** Jitter = create(nAll*nAll, col);
     double atraso1 = 0;
     double atraso2 = 0;
-    double** Energia = create(nAll*50, col);
+    double** Energia = create(nAll*nAll, col);
     int aux_energy = 0;
 
   
@@ -102,8 +102,8 @@ int main (int argc, char *argv[]) {
   char *resultx;
   char *resulty;
   // Abre um arquivo TEXTO para LEITURA
-  arqx = fopen("scratch/50_pos_x.txt", "rt");
-  arqy = fopen("scratch/50_pos_y.txt", "rt");
+  arqx = fopen("100_pos_x.txt", "rt");
+  arqy = fopen("100_pos_y.txt", "rt");
   if (arqx == NULL || arqy == NULL)  // Se houve erro na abertura
   {
      printf("Problemas na abertura do arquivo\n");

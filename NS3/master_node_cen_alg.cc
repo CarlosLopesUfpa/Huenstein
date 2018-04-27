@@ -57,26 +57,28 @@ NS_LOG_COMPONENT_DEFINE ("Wifi_1");
 
 
 
-int cenario = 1;
+int cenario = 4;
 
 int main (int argc, char *argv[]) {
 
 //Configurações da rede
     // Novo Retransmissor
-    int rn = 44;
+    int rn = 33;
     // Total de usuários da rede
     int nAll = 50; 
     int nRn = cenario;
+  
     // Numero de Clientes NÃO RETRANSMISSORES
     int nCli = nAll - nRn;
     // Numero de nós previamente conectados
-    int nCon = 0;
+    int nCon = 18;
     // Vetor com todos os Retransmissores
-    int vet[nRn][1] = {rn};
+    int vet[nRn][1] = {rn, 44, 0, 14};
     // Vetor com clientes previamente instalados
-    int cli[nCon][1];
+    int cli[nCon][1] = {47, 46, 41, 40, 33, 29, 27, 14, 5, 3, 1, 13, 19, 22, 23, 42, 43, 20};
     // Vetor com Retransmissores previamente instalados
-    int ser[nCon][1];
+    int ser[nCon][1] = {44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 0, 0, 0, 0, 0, 0, 14};
+ 
  
 
     double simTime = 1200;
@@ -105,8 +107,6 @@ int main (int argc, char *argv[]) {
     double** Energia = create(nAll, col);
     int aux_energy = 0;
 
-  
-
 
 //Obter posição de arquivo .txt
   double x[nAll][1];
@@ -120,8 +120,8 @@ int main (int argc, char *argv[]) {
   char *resultx;
   char *resulty;
   // Abre um arquivo TEXTO para LEITURA
-  arqx = fopen("scratch/50_pos_x.txt", "rt");
-  arqy = fopen("scratch/50_pos_y.txt", "rt");
+  arqx = fopen("algorithm/quadrante 1/1_1_50_pos_x.txt", "rt");
+  arqy = fopen("algorithm/quadrante 1/1_1_50_pos_y.txt", "rt");
   if (arqx == NULL || arqy == NULL)  // Se houve erro na abertura
   {
      printf("Problemas na abertura do arquivo\n");
@@ -270,7 +270,7 @@ uint16_t port = 4000;
   for(int p = 0; p<nAll; ++p)
   {
           entra = true;  
-        if(first == false){
+        if(first == true){
           for(int s = 1; s<nRn; ++s)
           {
               for(int x = 0; x<nCon; ++x)
@@ -294,7 +294,7 @@ uint16_t port = 4000;
           }
         }
           if(entra == true){
-              if(p != rn && p != 10)
+              if(p != rn && p != 44 && p != 0  && p != 14)
               {
                   //Configuração da aplicação   
                   UdpClientHelper client (Ipv4Address (ipAp[0][0].c_str()), port); 
@@ -320,7 +320,7 @@ uint16_t port = 4000;
   std::string gp = std::to_string(cenario);
 
 //Gerar animação
-        AnimationInterface anim ("algorithm/" + gp + "_master_node_pos.xml"); // Mandatory
+        AnimationInterface anim ("algorithm/" + gp + "_master_node_cen_alg.xml"); // Mandatory
         
         for (int i = 0; i < nCli; ++i){
           anim.UpdateNodeDescription (wifiAll.Get(i), "Node"); // Optional
@@ -333,7 +333,7 @@ uint16_t port = 4000;
         }
         
         anim.EnablePacketMetadata (); // Optiona
-        anim.EnableIpv4RouteTracking ("algorithm/" + gp + "_master_node_pos_route.xml", Seconds (0), Seconds (5), Seconds (0.25)); //Optional
+        anim.EnableIpv4RouteTracking ("algorithm/" + gp + "_master_node_cen_alg_route.xml", Seconds (0), Seconds (5), Seconds (0.25)); //Optional
         anim.EnableWifiMacCounters (Seconds (0), Seconds (simTime)); //Optional
         anim.EnableWifiPhyCounters (Seconds (0), Seconds (simTime)); //Optional
   Simulator::Stop(Seconds(simTime));
@@ -351,13 +351,11 @@ double nmedLoss = 0;
 
 double sumThroughput = 0;
 double sumLoss = 0;
-double sumEnergy = 0;
 double sumAtraso = 0;
 double sumJitter = 0;
 
 double medThroughput = 0;
 double medLoss = 0;
-double medEnergy = 0;
 double medAtraso = 0;
 double medJitter = 0;
 double dur = 0;
@@ -395,7 +393,6 @@ double dur = 0;
                     
                     sumLoss = sumLoss + Loss[u][0];
                     sumThroughput = sumThroughput + Vazao[u][0];
-                    sumEnergy = sumEnergy + Energia[u][0];
                     sumAtraso = sumAtraso + Atraso[u][0];
                     sumJitter = sumJitter + Jitter[u][0];
                     std::cout << " " <<std::endl;
@@ -408,32 +405,74 @@ double dur = 0;
         nsumLoss = nsumLoss + i->second.txPackets;
       }
   }
-      
+
   
   
 // Obter Média da Simulação
    medLoss = sumLoss / (u+1);
    nmedLoss = (nsumLoss+sumLoss)/nCli;
    medThroughput = sumThroughput / (u+1);
-   medEnergy = sumEnergy / (u+1);
+  
    medAtraso = sumAtraso / (u+1);
    medJitter = sumJitter / (u+1);
+
+ double sumDeVazao = 0;
+ double sumDeLoss = 0;
+ double sumDeAtraso = 0;
+ double sumDeJitter = 0;
+ double VarVazao = 0;
+ double VarLoss = 0;
+ double VarAtraso = 0;
+ double VarJitter  = 0;
+ double DesVazao = 0;
+ double DesLoss = 0;
+ double DesAtraso  = 0;
+ double DesJitter = 0;
+
+
+
+      for(int y = 0; y<u; ++y){
+        sumDeVazao = sumDeVazao + (Vazao[y][0]-medThroughput)*(Vazao[y][0]-medThroughput);
+        sumDeLoss = sumDeLoss + (Loss[y][0]-medLoss)*(Loss[y][0]-medLoss);
+        sumDeAtraso = sumDeAtraso + (Atraso[y][0]-medAtraso)*(Atraso[y][0]-medAtraso);
+        sumDeJitter = sumDeJitter + (Jitter[y][0]-medJitter)*(Jitter[y][0]-medJitter);
+      }
+      VarVazao = sumDeVazao/u;
+      VarLoss = sumDeLoss/u;
+      VarAtraso = sumDeAtraso/u;
+      VarJitter = sumDeJitter/u;
+      
+      DesVazao = sqrt(VarVazao);
+      DesLoss = sqrt(VarLoss);
+      DesAtraso = sqrt(VarAtraso);
+      DesJitter = sqrt(VarJitter);
+
    std::cout << " " <<std::endl;
    std::cout << "Média Loss(Conectados): "<<std::endl;
    std::cout << "Média Loss(Total): "<<std::endl;
    std::cout << "Média Vazão: "<<std::endl;
    std::cout << "Média Atraso: "<<std::endl;
    std::cout << "Média Jitter: "<<std::endl;
-   std::cout << "Média Energia: "<<std::endl;
+   
+   std::cout << " " <<std::endl;
+   std::cout << medLoss <<std::endl;
+   std::cout << nmedLoss <<std::endl;
+   std::cout << medThroughput <<std::endl;
+   std::cout << medAtraso <<std::endl;
+   std::cout << medJitter <<std::endl;
+
+   std::cout << "Desvio Padrão Loss(Conectados): "<<std::endl;
+   std::cout << "Desvio Padrão Vazão: "<<std::endl;
+   std::cout << "Desvio Padrão Atraso: "<<std::endl;
+   std::cout << "Desvio Padrão Jitter: "<<std::endl;
+   
+   std::cout << " " <<std::endl;
+   std::cout << DesLoss <<std::endl;
+   std::cout << DesVazao <<std::endl;
+   std::cout << DesAtraso <<std::endl;
+   std::cout << DesJitter <<std::endl;
 
 
-  std::cout << " " <<std::endl;
-  std::cout << medLoss <<std::endl;
-  std::cout << nmedLoss <<std::endl;
-  std::cout << medThroughput <<std::endl;
-  std::cout << medAtraso <<std::endl;
-  std::cout << medJitter <<std::endl;
-  std::cout << medEnergy <<std::endl;
   std::cout << " " <<std::endl;
   std::cout << "Usuários Não Cobertos: "<< cont-nRn <<std::endl;
   std::cout << " " <<std::endl;

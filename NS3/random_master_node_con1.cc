@@ -57,20 +57,20 @@ NS_LOG_COMPONENT_DEFINE ("Wifi_Random");
 
 void avalParam(int nAll, double** Vazao, double** Atraso, double** Loss, double** Energia, double** Jitterav);
 
-int cenario = 2;
+int cenario = 6;
 std::string gp = std::to_string(cenario);
 int main (int argc, char *argv[]) {
 
 // Simulação 1: Reconhecimento da rede.
 //Configurações da rede
     int nRn = cenario;
-    int nCon = 15;
+    int nCon = 18;
 // Setar Relay Nodes instalados
-    int vet[nRn][1] = {33};
-    int cli[nCon][1] = {0,1,3,12,14,22,27,28,29,41,42,43,44,46,47};
-    int ser[nCon][1] = {33,33,33,33,33,33,33,33,33,33,33,33,33,33,33};
+    int vet[nRn][1] = {33, 36, 27, 15};
+    int cli[nCon][1] = {0, 1, 3, 12, 14, 22, 27, 28, 29, 41, 42, 43, 44, 46, 47, 7, 45, 2};
+    int ser[nCon][1] = {33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 36, 36, 27};
     int nAll = 50; 
-    double simTime = 10;
+    double simTime = 1200;
     uint32_t MaxPacketSize = 300;
     double PacketInterval = 0.1;
     uint16_t grid = 500;
@@ -118,7 +118,7 @@ rn = rand() % nAll;
 vet[nRn-1][0] = rn;
 
 for(int i = 0; i<nCon; ++i){
-  std::cout << "Clients " << cli[i][0] << "    Servers " << ser[i][0] << "\n";
+  std::cout << "Client " << cli[i][0] << "    Server " << ser[i][0] << "\n";
 }
 
 
@@ -199,7 +199,7 @@ NetDeviceContainer allDevice;
 //Atribuindo energia nos dispositivos
       srand((unsigned)time(0));
       for (int l=0; l<nAll; ++l){
-          aux_energy = rand() % 100; 
+          aux_energy = rand()%((100-50) + 50)
 
           Ptr<BasicEnergySource> energySource = CreateObject<BasicEnergySource>();
           Ptr<SimpleDeviceEnergyModel> energyModel = CreateObject<SimpleDeviceEnergyModel>();
@@ -228,8 +228,8 @@ NetDeviceContainer allDevice;
   std::string ipAp[nRn][1];
   int nr = 0;
   int aux = 0;
- bool entra = true;  
- 
+  bool entra = true;  
+  
   // int l = 1;
   // bool first = true;
   ApplicationContainer apps;
@@ -274,7 +274,7 @@ NetDeviceContainer allDevice;
 
         
           // l = 0;
-              if(p != rn && p != 33 && entra)
+              if(entra && p != rn && p != 33 && p != 36 && p != 27 && p != 15 && p != 43)
               {
                   //Configuração da aplicação   
                   nr = rand() % nRn;
@@ -320,7 +320,7 @@ NetDeviceContainer allDevice;
         }
         
         anim.EnablePacketMetadata (); // Optiona
-        anim.EnableIpv4RouteTracking ("random1/" + gp + "_routingtable-wireless.xml", Seconds (0), Seconds (5), Seconds (0.25)); //Optional
+        anim.EnableIpv4RouteTracking ("random1/" + gp + "_random_master_node_route.xml", Seconds (0), Seconds (5), Seconds (0.25)); //Optional
         anim.EnableWifiMacCounters (Seconds (0), Seconds (simTime)); //Optional
         anim.EnableWifiPhyCounters (Seconds (0), Seconds (simTime)); //Optional
   Simulator::Stop(Seconds(simTime));
@@ -367,7 +367,6 @@ double dur = 0;
                     
                     Loss[u][0] = i->second.txPackets - i->second.rxPackets;
                     std::cout << "Perda de Pacotes: "<< Loss[u][0]<<std::endl;
-                    
                     
                     Vazao[u][0] = i->second.rxBytes * 8.0 / (i->second.timeLastRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds())/1024;
                     std::cout << "Vazão: " << Vazao[u][0] << " Kbps\n";
@@ -424,7 +423,7 @@ double dur = 0;
   std::cout << medJitter <<std::endl;
   std::cout << medEnergy <<std::endl;
   std::cout << " " <<std::endl;
-  std::cout << "Usuários Não Cobertos: "<< cont <<std::endl;
+  std::cout << "Usuários Não Cobertos: "<< cont+nRn <<std::endl;
   std::cout << " " <<std::endl;
   std::cout << "Usuários Cobertos "<< u <<std::endl;
   std::cout << " " <<std::endl;
