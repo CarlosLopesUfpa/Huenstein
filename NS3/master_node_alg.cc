@@ -54,17 +54,17 @@ double** create(int rows, int columns){
     }
     return table;
 }
-NS_LOG_COMPONENT_DEFINE ("Wifi_1");
+NS_LOG_COMPONENT_DEFINE ("Wifi_Alg");
 
 
 
-int cenario = 2;
+int cenario = 1;
 
 int main (int argc, char *argv[]) {
 
 //Configurações da rede
     // Novo Retransmissor
-    int rn = 14;
+    int rn = 13;
     // Total de usuários da rede
     int nAll = 50; 
     std::string nall = std::to_string(nAll);
@@ -75,13 +75,13 @@ int main (int argc, char *argv[]) {
     // Numero de Clientes NÃO RETRANSMISSORES
     int nCli = nAll - nRn;
     // Numero de nós previamente conectados
-    int nCon = 12;
+    int nCon = 0;
     // Vetor com todos os Retransmissores
-    int vet[nRn][1] = {rn, 0};
+    int vet[nRn][1] = {rn};
     // Vetor com clientes previamente instalados
-    int cli[nCon][1] = {3, 13, 14, 15, 19, 22, 23, 29, 33, 41, 42, 46};
+    int cli[nCon][1];
     // Vetor com Retransmissores previamente instalados
-    int ser[nCon][1] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    int ser[nCon][1];
  
 
     double simTime = 1200;
@@ -123,8 +123,8 @@ int main (int argc, char *argv[]) {
   char *resultx;
   char *resulty;
   // Abre um arquivo TEXTO para LEITURA
-  arqx = fopen("algorithm/quadrante 1/1_1_50_pos_x.txt", "rt");
-  arqy = fopen("algorithm/quadrante 1/1_1_50_pos_y.txt", "rt");
+  arqx = fopen("Master_Node/coordenadas/quadrante_1/1_1_50_pos_x.txt", "rt"); 
+  arqy = fopen("Master_Node/coordenadas/quadrante_1/1_1_50_pos_y.txt", "rt");
   if (arqx == NULL || arqy == NULL)  // Se houve erro na abertura
   {
      printf("Problemas na abertura do arquivo\n");
@@ -323,7 +323,7 @@ uint16_t port = 4000;
   std::string gp = std::to_string(cenario);
 
 //Gerar animação
-        AnimationInterface anim ("algorithm/" + gp + "_master_node_alg.xml"); // Mandatory
+        AnimationInterface anim ("Master_Node/algoritmo/" + gp + "_master_node_alg.xml"); // Mandatory
         
         for (int i = 0; i < nCli; ++i){
           anim.UpdateNodeDescription (wifiAll.Get(i), "Node"); // Optional
@@ -336,7 +336,7 @@ uint16_t port = 4000;
         }
         
         anim.EnablePacketMetadata (); // Optiona
-        anim.EnableIpv4RouteTracking ("algorithm/" + gp + "_master_node_alg_route.xml", Seconds (0), Seconds (5), Seconds (0.25)); //Optional
+        anim.EnableIpv4RouteTracking ("Master_Node/algoritmo/" + gp + "_master_node_alg_route.xml", Seconds (0), Seconds (5), Seconds (0.25)); //Optional
         anim.EnableWifiMacCounters (Seconds (0), Seconds (simTime)); //Optional
         anim.EnableWifiPhyCounters (Seconds (0), Seconds (simTime)); //Optional
   Simulator::Stop(Seconds(simTime));
@@ -362,6 +362,14 @@ double medLoss = 0;
 double medAtraso = 0;
 double medJitter = 0;
 double dur = 0;
+double install[nAll][1];
+
+for(int x = 0; x< nAll; ++x){
+install[x][0] = 0;
+}
+
+std::string ipc;
+std::string ips;
 
   for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin (); i != stats.end (); ++i)
   {
@@ -399,6 +407,16 @@ double dur = 0;
                     sumAtraso = sumAtraso + Atraso[u][0];
                     sumJitter = sumJitter + Jitter[u][0];
                     std::cout << " " <<std::endl;
+                    
+                    for(int j = 0; j<nAll; ++j){
+                      ipc = "192.168.1." + std::to_string(j+1);
+                      if(t.sourceAddress == ipc.c_str()){
+                        install[j][0] = j;
+                        std::cout << "Client "<< install[j][0] <<std::endl;
+                       
+                      }else 
+                      install[j][0] = 999;
+                    }
 
                     u++;
                 }
@@ -477,11 +495,41 @@ double dur = 0;
 
 
   std::cout << " " <<std::endl;
-  std::cout << "Usuários Não Cobertos: "<< cont-nRn <<std::endl;
+  std::cout << "Usuários Não Cobertos: "<< cont <<std::endl;
   std::cout << " " <<std::endl;
-  std::cout << "Usuários Cobertos "<< u <<std::endl;
+  std::cout << "Usuários Cobertos "<< u+nRn <<std::endl;
   std::cout << " " <<std::endl;
   std::cout << "Nó Selecionado "<< vet[0][0] <<std::endl;
+
+
+    std::ofstream myfile ("Master_Node/algoritmo/"+gp+"_Results_Algoritmo.csv");
+     
+ if (myfile.is_open())
+  {
+      myfile << "Nó Selecionado, Qt. Nós Cobertos, Média Loss(Conectados), DP Loss(Conectados), Perda de Pacotes (%), Média Loss(Total), Média Vazão, DP Vazão, Média Atraso, DP Atraso, Média Jitter, DPJitter, PDR\n";
+      myfile << std::to_string(vet[0][0])+", "+std::to_string(u+nRn)+", "+std::to_string(medLoss)+", "+std::to_string(DesLoss)+", "+std::to_string(((medLoss/11999)*100))+", "+std::to_string(nmedLoss)+","+std::to_string(medThroughput)+","+std::to_string(DesVazao)+", "+std::to_string(medAtraso)+", "+std::to_string(DesAtraso)+", "+std::to_string(medJitter)+","+std::to_string(DesJitter)+", "+std::to_string(((11999-medLoss)/11999)*100)+"\n";
+      myfile.close();
+  }
+  else std::cout << "Unable to open file";
+
+  std::ofstream con ("Master_Node/algoritmo/"+gp+"_Conectados_Alg.txt");
+
+ if (con.is_open())
+  {
+      con<<"Servidores     Clientes"<<std::endl;
+
+    // for(int i = 0; i<nRn; ++i)
+    // {
+      for(int j = 0; j<nAll; ++j){
+        if(install[j][0] != 999){
+          con<< std::to_string(rn)+"             "+std::to_string(install[j][0]) <<std::endl;
+        }
+      }
+    // }
+    con.close();
+  }
+  else std::cout << "Unable to open file";
+
 
 //LÓGICA DE SELEÇÃO
 

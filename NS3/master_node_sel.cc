@@ -40,6 +40,8 @@
 #include "ns3/command-line.h"
 #include "ns3/wifi-phy.h"
 #include <stdlib.h>
+#include <iostream>
+
 using namespace ns3;
 
 //Criação das Matrizes
@@ -53,7 +55,7 @@ double** create(int rows, int columns){
     }
     return table;
 }
-NS_LOG_COMPONENT_DEFINE ("Wifi_1");
+NS_LOG_COMPONENT_DEFINE ("Wifi_Sel");
 
 void avalParam(int nAll, double** Vazao, double** Atraso, double** Loss, double** Energia, double** Jitterav);
 
@@ -61,12 +63,16 @@ int cenario = 1;
 int nQd = 1;
 
 std::string qd = std::to_string(nQd);
+int nAll = 50; 
+std::string gp = std::to_string(cenario);
+
+std::string numAll = std::to_string(nAll);
 
 int main (int argc, char *argv[]) {
 
 // Simulação 1: Reconhecimento da rede.
 //Configurações da rede
-    int nAll = 100; 
+    
     double simTime = 1200;
     uint32_t MaxPacketSize = 300;
     double PacketInterval = 0.1;
@@ -102,8 +108,8 @@ int main (int argc, char *argv[]) {
   char *resultx;
   char *resulty;
   // Abre um arquivo TEXTO para LEITURA
-  arqx = fopen("100_pos_x.txt", "rt");
-  arqy = fopen("100_pos_y.txt", "rt");
+  arqx = fopen("Master_Node/coordenadas/quadrante_1/1_1_50_pos_x.txt", "rt");
+  arqy = fopen("Master_Node/coordenadas/quadrante_1/1_1_50_pos_y.txt", "rt");
   if (arqx == NULL || arqy == NULL)  // Se houve erro na abertura
   {
      printf("Problemas na abertura do arquivo\n");
@@ -260,7 +266,7 @@ for (int ip = 1; ip<=nAll; ++ip){
   std::string gp = std::to_string(nAll);
 
 //Gerar animação
-        AnimationInterface anim ("algorithm/quadrante " + qd + "/" + gp + "_master_node_sel.xml"); // Mandatory
+        AnimationInterface anim ("Master_Node/resultados_selecao/" + gp + "_master_node_sel.xml"); // Mandatory
         
         for (uint32_t i = 0; i < wifiAll.GetN(); ++i)
         {
@@ -269,7 +275,7 @@ for (int ip = 1; ip<=nAll; ++ip){
         }
 
         anim.EnablePacketMetadata (); // Optiona
-        anim.EnableIpv4RouteTracking ("algorithm/quadrante " + qd + "/" + gp + "_master_node_sel_route.xml", Seconds (0), Seconds (5), Seconds (0.25)); //Optional
+        anim.EnableIpv4RouteTracking ("Master_Node/resultados_selecao/" + gp + "_master_node_sel_route.xml", Seconds (0), Seconds (5), Seconds (0.25)); //Optional
         anim.EnableWifiMacCounters (Seconds (0), Seconds (10)); //Optional
         anim.EnableWifiPhyCounters (Seconds (0), Seconds (10)); //Optional
 
@@ -510,10 +516,19 @@ for(int i = 0; i<nAll; ++i)
     }
 
   }
+
+
+
+  std::ofstream myfile ("Master_Node/resultados_selecao/"+gp+"_Point_Relay_Nodes.txt");
      std::cout << " " <<std::endl;
      std::cout << "Ranking" <<std::endl;
-  for(int i = 0; i<nAll; ++i)
+ if (myfile.is_open())
   {
-     std::cout << "Nós de Retransmissão " << FinalScore[i][0] << " Pontuação: " << FinalScore[i][1] <<std::endl;
+    for(int i = 0; i<nAll; ++i)
+    {
+      myfile<< "Nós de Retransmissão " << FinalScore[i][0] << " Pontuação: " << FinalScore[i][1] <<std::endl;
+    }
+    myfile.close();
   }
+  else std::cout << "Unable to open file";
 }
