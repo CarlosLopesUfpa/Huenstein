@@ -57,13 +57,13 @@ NS_LOG_COMPONENT_DEFINE ("Wifi_Cen_Alg");
 
 
 
-int cenario = 2;
+int cenario = 3;
 
 int main (int argc, char *argv[]) {
 
 //Configurações da rede
     // Novo Retransmissor
-    int rn = 13;
+    int rn = 43;
     // Total de usuários da rede
     int nAll = 50; 
     int nRn = cenario;
@@ -71,13 +71,13 @@ int main (int argc, char *argv[]) {
     // Numero de Clientes NÃO RETRANSMISSORES
     int nCli = nAll - nRn;
     // Numero de nós previamente conectados
-    int nCon = 11;
+    int nCon = 16;
     // Vetor com todos os Retransmissores
-    int vet[nRn][1] = {rn, 44};
+    int vet[nRn][1] = {rn, 44, 13};
     // Vetor com clientes previamente instalados
-    int cli[nCon][1] = {47, 46, 41, 40, 33, 29, 27, 14, 5, 3, 1};
+    int cli[nCon][1] = {47, 46, 41, 40, 33, 29, 27, 14, 5, 3, 1, 19, 22, 23, 42, 43};
     // Vetor com Retransmissores previamente instalados
-    int ser[nCon][1] = {44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44};
+    int ser[nCon][1] = {44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 13, 13, 13, 13, 13};
  
  
 
@@ -250,7 +250,7 @@ NetDeviceContainer allDevice;
 uint16_t port = 4000;
   std::string ipAp[nRn][1];
   int aux = 0;
-  bool first = true;
+  bool first = false;
   
   // int l = 1;
   bool entra = true;
@@ -270,7 +270,7 @@ uint16_t port = 4000;
   for(int p = 0; p<nAll; ++p)
   {
           entra = true;  
-        if(first == true){
+        if(first == false){
           for(int s = 1; s<nRn; ++s)
           {
               for(int x = 0; x<nCon; ++x)
@@ -294,7 +294,7 @@ uint16_t port = 4000;
           }
         }
           if(entra == true){
-              if(p != rn && p != 44 && p != 0  && p != 14)
+              if(p != rn && p != 44 && p != 13)
               {
                   //Configuração da aplicação   
                   UdpClientHelper client (Ipv4Address (ipAp[0][0].c_str()), port); 
@@ -359,7 +359,8 @@ double medLoss = 0;
 double medAtraso = 0;
 double medJitter = 0;
 double dur = 0;
-double install[nAll][1];
+int install[nAll][1];
+
 
 for(int x = 0; x< nAll; ++x){
 install[x][0] = 0;
@@ -404,16 +405,19 @@ std::string ips;
                     sumAtraso = sumAtraso + Atraso[u][0];
                     sumJitter = sumJitter + Jitter[u][0];
                     std::cout << " " <<std::endl;
-
-                    for(int j = 0; j<nAll; ++j){
-                      ipc = "192.168.1." + std::to_string(j+1);
-                      if(t.sourceAddress == ipc.c_str()){
-                        install[j][0] = j;
-                        std::cout << "Client "<< install[j][0] <<std::endl;
-                       
-                      }else 
-                      install[j][0] = 999;
+               
+                if (t.destinationAddress == ipAp[0][0].c_str()){
+                 for(int j = 0; j<nAll; ++j){
+                    ipc = "192.168.1." + std::to_string(j+1);
+                    if(t.sourceAddress == ipc.c_str()){
+                      install[u][0] = j;
+                      std::cout << "Client "<< install[u][0] <<std::endl;
+                      break;
+                    }else{
+                      install[u][0] = 999;
                     }
+                  }
+                }
 
                 u++;
                 }
@@ -466,39 +470,29 @@ std::string ips;
       DesJitter = sqrt(VarJitter);
 
    std::cout << " " <<std::endl;
-   std::cout << "Média Loss(Conectados): "<<std::endl;
-   std::cout << "Média Loss(Total): "<<std::endl;
-   std::cout << "Média Vazão: "<<std::endl;
-   std::cout << "Média Atraso: "<<std::endl;
-   std::cout << "Média Jitter: "<<std::endl;
+   std::cout << "Média Loss(Conectados): " << medLoss <<std::endl;
+   std::cout << "Média Loss(Total): " << nmedLoss <<std::endl;
+   std::cout << "Média Vazão: " << medThroughput <<std::endl;
+   std::cout << "Média Atraso: " << medAtraso <<std::endl;
+   std::cout << "Média Jitter: " << medJitter <<std::endl;
    
    std::cout << " " <<std::endl;
-   std::cout << medLoss <<std::endl;
-   std::cout << nmedLoss <<std::endl;
-   std::cout << medThroughput <<std::endl;
-   std::cout << medAtraso <<std::endl;
-   std::cout << medJitter <<std::endl;
-
-   std::cout << "Desvio Padrão Loss(Conectados): "<<std::endl;
-   std::cout << "Desvio Padrão Vazão: "<<std::endl;
-   std::cout << "Desvio Padrão Atraso: "<<std::endl;
-   std::cout << "Desvio Padrão Jitter: "<<std::endl;
-   
-   std::cout << " " <<std::endl;
-   std::cout << DesLoss <<std::endl;
-   std::cout << DesVazao <<std::endl;
-   std::cout << DesAtraso <<std::endl;
-   std::cout << DesJitter <<std::endl;
-
+  
+   std::cout << "Desvio Padrão Loss(Conectados): " << DesLoss <<std::endl;
+   std::cout << "Desvio Padrão Vazão: " << DesVazao <<std::endl;
+   std::cout << "Desvio Padrão Atraso: " << DesAtraso <<std::endl;
+   std::cout << "Desvio Padrão Jitter: " << DesJitter <<std::endl;
 
   std::cout << " " <<std::endl;
   std::cout << "Usuários Não Cobertos: "<< cont <<std::endl;
   std::cout << " " <<std::endl;
-  std::cout << "Usuários Cobertos "<< u+nRn <<std::endl;
+  std::cout << "Usuários Cobertos "<< u <<std::endl;
+  std::cout << " " <<std::endl;
+  std::cout << "Quantidade de Retransmissores "<< nRn <<std::endl;
   std::cout << " " <<std::endl;
   std::cout << "Nó Selecionado "<< vet[0][0] <<std::endl;
   
-  std::ofstream myfile ("Master_Node/centroide_Algoritmo/"+gp+"Results_cen_alg.csv");
+  std::ofstream myfile ("Master_Node/centroide_Algoritmo/"+gp+"_Results_cen_alg.csv");
   if (myfile.is_open())
   {
       myfile << "Nó Selecionado, Qt. Nós Cobertos, Média Loss(Conectados), DP Loss(Conectados), Perda de Pacotes (%), Média Loss(Total), Média Vazão, DP Vazão, Média Atraso, DP Atraso, Média Jitter, DPJitter, PDR\n";
@@ -507,21 +501,20 @@ std::string ips;
   }
   else std::cout << "Unable to open file";
 
-  std::ofstream con ("Master_Node/centroide_Algoritmo/"+gp+"_Conectados_Cen_Alg.txt");
+  std::ofstream con ("Master_Node/centroide_Algoritmo/"+gp+"_Conectados_Cen_Alg.csv");
 
  if (con.is_open())
   {
-      con<<"Servidores     Clientes"<<std::endl;
+      con<<"Servidor "+std::to_string(rn)<<std::endl;
+      con<<"Clientes"<<std::endl;
 
-    // for(int i = 0; i<nRn; ++i)
-    // {
-      for(int j = 0; j<nAll; ++j){
-        if(install[j][0] != 999){
-          con<< std::to_string(rn)+"             "+std::to_string(install[j][0]) <<std::endl;
+     for(int j = 0; j<=u; ++j){
+        if(install[j][0] != 0.000000){
+          con<< std::to_string(install[j][0]) <<std::endl;
+          std::cout<< std::to_string(install[j][0]) <<std::endl;
         }
       }
-    // }
-    con.close();
+     con.close();
   }
   else std::cout << "Unable to open file";
 
