@@ -57,19 +57,18 @@ NS_LOG_COMPONENT_DEFINE ("Wifi_Random");
 
 void avalParam(int nAll, double** Vazao, double** Atraso, double** Loss, double** Energia, double** Jitterav);
 
-int cenario = 3;
+int cenario = 2;
 std::string gp = std::to_string(cenario);
 int main (int argc, char *argv[]) {
 
 // Simulação 1: Reconhecimento da rede.
 //Configurações da rede
     int nRn = cenario;
-    int nCon = 20;
+    int nCon = 15;
 // Setar Relay Nodes instalados
-    int rn = 0; 
-    int vet[nRn][1] = {rn, 33, 36};
-    int cli[nCon][1]= {0, 1, 3, 12, 14, 22, 27, 28, 29, 41, 42, 43, 44, 46, 47, 7, 10, 31, 32, 45};
-    int ser[nCon][1]= {33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 36, 36, 36, 36, 36};
+    int vet[nRn][1] = {33};
+    int cli[nCon][1]= {0, 1, 3, 12, 14, 22, 27, 28, 29, 41, 42, 43, 44, 46, 47};
+    int ser[nCon][1]= {33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33};
     int nAll = 50; 
     double simTime = 1200;
     uint32_t MaxPacketSize = 300;
@@ -93,6 +92,7 @@ int main (int argc, char *argv[]) {
     int aux_energy = 0;
       
 //Criando Nós da Simulação
+int rn = 0;  
 int nCli = nAll-nRn;
 int j = 0;
 bool ig = true;
@@ -231,7 +231,7 @@ NetDeviceContainer allDevice;
   bool entra = true;  
   
   // int l = 1;
-  bool first = false;
+  bool first = true;
   ApplicationContainer apps;
 // Instalação dos Relay Nodes (RN)
   for(int s = 0; s < nRn; ++s){
@@ -270,11 +270,11 @@ NetDeviceContainer allDevice;
           }
         }
           if(entra == true){
-              if(p != rn && p != 33 && p != 36)
+              if(p != rn)
               {
                   //Configuração da aplicação   
                   
-                  UdpClientHelper client (Ipv4Address (ipAp[0][0].c_str()), port); 
+                  UdpClientHelper client (Ipv4Address (ipAp[nRn-1][0].c_str()), port); 
                   client.SetAttribute ("MaxPackets", UintegerValue ((uint32_t)(simTime*(1/PacketInterval))));
                   client.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
                   client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
@@ -282,7 +282,6 @@ NetDeviceContainer allDevice;
                   apps = client.Install (wifiAll.Get(p));
                   apps.Start (Seconds (0.1));
                   apps.Stop (Seconds (simTime)); 
-                  std::cout<<"Client = " << p <<"    Server = " << ipAp[0][0] <<std::endl;
                 }
               }
   }
@@ -333,7 +332,7 @@ double medLoss = 0;
 double medAtraso = 0;
 double medJitter = 0;
 double dur = 0;
-int install[nAll][1];
+double install[nAll][1];
 
 for(int x = 0; x< nAll; ++x){
 install[x][0] = 0;
@@ -379,18 +378,15 @@ std::string ips;
                     sumJitter = sumJitter + Jitter[u][0];
                     std::cout << " " <<std::endl;
                     
-              if (t.destinationAddress == ipAp[0][0].c_str()){
-                 for(int j = 0; j<nAll; ++j){
-                    ipc = "192.168.1." + std::to_string(j+1);
-                    if(t.sourceAddress == ipc.c_str()){
-                      install[u][0] = j;
-                      std::cout << "Client "<< install[u][0] <<std::endl;
-                      break;
-                    }else{
-                      install[u][0] = 999;
+                    for(int j = 0; j<nAll; ++j){
+                      ipc = "192.168.1." + std::to_string(j+1);
+                      if(t.sourceAddress == ipc.c_str()){
+                        install[j][0] = j;
+                        std::cout << "Client "<< install[j][0] <<std::endl;
+                       
+                      }else 
+                      install[j][0] = 999;
                     }
-                  }
-                }
                     u++;
                 }
           }
@@ -441,25 +437,37 @@ std::string ips;
       DesJitter = sqrt(VarJitter);
   
    std::cout << " " <<std::endl;
-   std::cout << "Média Loss(Conectados): " << medLoss <<std::endl;
-   std::cout << "Média Loss(Total): " << nmedLoss <<std::endl;
-   std::cout << "Média Vazão: " << medThroughput <<std::endl;
-   std::cout << "Média Atraso: " << medAtraso <<std::endl;
-   std::cout << "Média Jitter: " << medJitter <<std::endl;
+   std::cout << "Média Loss(Conectados): "<<std::endl;
+   std::cout << "Média Loss(Total): "<<std::endl;
+   std::cout << "Média Vazão: "<<std::endl;
+   std::cout << "Média Atraso: "<<std::endl;
+   std::cout << "Média Jitter: "<<std::endl;
 
-   std::cout << " " <<std::endl;
 
-  std::cout << "Desvio Padrão Loss(Conectados): " << DesLoss <<std::endl;
-  std::cout << "Desvio Padrão Vazão: " << DesVazao <<std::endl;
-  std::cout << "Desvio Padrão Atraso: " << DesAtraso <<std::endl;
-  std::cout << "Desvio Padrão Jitter: " << DesJitter <<std::endl;
+  std::cout << " " <<std::endl;
+  std::cout << medLoss <<std::endl;
+  std::cout << nmedLoss <<std::endl;
+  std::cout << medThroughput <<std::endl;
+  std::cout << medAtraso <<std::endl;
+  std::cout << medJitter <<std::endl;
+   
+
+  std::cout << "Desvio Padrão Loss(Conectados): "<<std::endl;
+  std::cout << "Desvio Padrão Vazão: "<<std::endl;
+  std::cout << "Desvio Padrão Atraso: "<<std::endl;
+  std::cout << "Desvio Padrão Jitter: "<<std::endl;
+   
+  std::cout << " " <<std::endl;
+  std::cout << DesLoss <<std::endl;
+  std::cout << DesVazao <<std::endl;
+  std::cout << DesAtraso <<std::endl;
+  std::cout << DesJitter <<std::endl;
+
 
   std::cout << " " <<std::endl;
   std::cout << "Usuários Não Cobertos: "<< cont <<std::endl;
   std::cout << " " <<std::endl;
-  std::cout << "Usuários Cobertos "<< u <<std::endl;
-  std::cout << " " <<std::endl;
-  std::cout << "Quantidade de Retransmissores "<< nRn <<std::endl;
+  std::cout << "Usuários Cobertos "<< u+nRn <<std::endl;
   std::cout << " " <<std::endl;
   std::cout << "Nó Selecionado "<< vet[0][0] <<std::endl;
   
@@ -472,23 +480,30 @@ std::string ips;
   }
   else std::cout << "Unable to open file";
   
-  std::ofstream con ("Master_Node/random/"+gp+"_Conectados_random.csv");
+  std::ofstream con ("Master_Node/random/"+gp+"_Conectados_random.txt");
  
-if (con.is_open())
+ if (con.is_open())
   {
-      con<<"Servidor "+std::to_string(rn)<<std::endl;
-      con<<"Clientes"<<std::endl;
+      con<<"Servidores     Clientes"<<std::endl;
 
-     for(int j = 0; j<=u; ++j){
-        if(install[j][0] != 0.000000){
-          con<< std::to_string(install[j][0]) <<std::endl;
-          std::cout<< std::to_string(install[j][0]) <<std::endl;
+    // for(int i = 0; i<nRn; ++i)
+    // {
+      for(int j = 0; j<nAll; ++j){
+        if(install[j][0] != 999){
+          con<< std::to_string(rn)+"             "+std::to_string(install[j][0]) <<std::endl;
         }
       }
-     con.close();
+    // }
+    con.close();
   }
   else std::cout << "Unable to open file";
 
+  std::cout << " " <<std::endl;
+  std::cout << "Usuários Não Cobertos: "<< cont+nRn <<std::endl;
+  std::cout << " " <<std::endl;
+  std::cout << "Usuários Cobertos "<< u <<std::endl;
+  std::cout << " " <<std::endl;
+  std::cout << "Nó Selecionado "<< rn <<std::endl;
 
   Simulator::Destroy();
   return 0;
