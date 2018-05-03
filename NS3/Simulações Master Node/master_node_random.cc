@@ -39,7 +39,6 @@
 #include "ns3/core-module.h"
 #include "ns3/command-line.h"
 #include "ns3/wifi-phy.h"
-#include <stdlib.h>
 using namespace ns3;
 
 //Criação das Matrizes
@@ -53,133 +52,106 @@ double** create(int rows, int columns){
     }
     return table;
 }
-NS_LOG_COMPONENT_DEFINE ("Wifi_Cen_Alg");
 
+NS_LOG_COMPONENT_DEFINE ("Wifi_Random");
 
+void avalParam(int nAll, double** Vazao, double** Atraso, double** Loss, double** Energia, double** Jitterav);
 
-int cenario = 3;
-
+int cenario = 2;
+std::string gp = std::to_string(cenario);
 int main (int argc, char *argv[]) {
 
+// Simulação 1: Reconhecimento da rede.
 //Configurações da rede
-    // Novo Retransmissor
-    int rn = 43;
-    // Total de usuários da rede
-    int nAll = 50; 
     int nRn = cenario;
-  
-    // Numero de Clientes NÃO RETRANSMISSORES
-    int nCli = nAll - nRn;
-    // Numero de nós previamente conectados
-    int nCon = 16;
-    // Vetor com todos os Retransmissores
-    int vet[nRn][1] = {rn, 44, 13};
-    // Vetor com clientes previamente instalados
-    int cli[nCon][1] = {47, 46, 41, 40, 33, 29, 27, 14, 5, 3, 1, 19, 22, 23, 42, 43};
-    // Vetor com Retransmissores previamente instalados
-    int ser[nCon][1] = {44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 13, 13, 13, 13, 13};
- 
- 
-
+    int nCon = 15;
+// Setar Relay Nodes instalados
+    int vet[nRn][1] = {33};
+    int cli[nCon][1]= {0, 1, 3, 12, 14, 22, 27, 28, 29, 41, 42, 43, 44, 46, 47};
+    int ser[nCon][1]= {33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33};
+    int nAll = 50; 
     double simTime = 1200;
-    // Tamanho máximo de Pacotes
     uint32_t MaxPacketSize = 300;
-    // Intervalo de envio de pacotes
     double PacketInterval = 0.1;
-    // Quantidade de Quadrantes
-    int nQd = 1;
-    std::string qd = std::to_string(nQd);
-    //Tamanho da Grade da Simulação 
     uint16_t grid = 500;
     std::string gr = std::to_string(grid);
-    // Tipos de Mobilidade
+
     bool constant = true;
-    bool manual = true;
+    bool random = false;
     
 //Variáveis para receber dados do FlowMonitor
     int col = 1;
     double** Vazao = create(nAll, col);
     double** Atraso = create(nAll, col);
     double** Loss = create(nAll, col);
+    // double** install = create(nAll, col);
     double** Jitter = create(nAll, col);
     double atraso1 = 0;
     double atraso2 = 0;
     double** Energia = create(nAll, col);
     int aux_energy = 0;
-
-
-//Obter posição de arquivo .txt
-  double x[nAll][1];
-  double y[nAll][1];
-  FILE *arqx;
-  FILE *arqy;
-  char Linhax[nAll];
-  char Linhay[nAll];
-  char *xAux;
-  char *yAux;
-  char *resultx;
-  char *resulty;
-  // Abre um arquivo TEXTO para LEITURA
-  arqx = fopen("Master_Node/coordenadas/quadrante_1/1_1_50_pos_x.txt", "rt");
-  arqy = fopen("Master_Node/coordenadas/quadrante_1/1_1_50_pos_y.txt", "rt");
-  if (arqx == NULL || arqy == NULL)  // Se houve erro na abertura
-  {
-     printf("Problemas na abertura do arquivo\n");
-     return(0);
-  }
-  for(int i = 0; i<nAll; ++i){
-      // Lê uma linha (inclusive com o '\n')
-      resultx = fgets(Linhax, nAll, arqx);  // Ler os caracteres ou até '\n'
-      if (resultx)  // Se foi possível ler
-      xAux = Linhax;
-      x[i][0] = atof(xAux);
-
-      // Lê uma linha (inclusive com o '\n')
-      resulty = fgets(Linhay, nAll, arqy);  // Ler os caracteres ou até '\n'
-      if (resulty)  // Se foi possível ler
-      yAux = Linhay;
-      y[i][0] = atof(yAux);
-  }
-
-
-
-
+      
 //Criando Nós da Simulação
-// Criando Grupo de todos os nós
+int rn = 0;  
+int nCli = nAll-nRn;
+int j = 0;
+bool ig = true;
+rn = rand() % nAll;
+ 
+  while(ig == true){
+    for(int l = 0; l < nRn; ++l){
+      if(rn == vet[l][0]){
+       std::cout << "Antigo Rn " << rn << "\n";
+       rn = rand() % nAll;
+       std::cout << "Novo Rn " << rn << "\n";
+       ig = true;
+       j++;
+      }
+      if(j == 0){
+       ig = false;
+      }
+    }
+  j = 0;
+  }
+
+
+vet[0][0] = rn;
+
+for(int i = 0; i<nCon; ++i){
+  std::cout << "Client " << cli[i][0] << "    Server " << ser[i][0] << "\n";
+}
+
+
+
   NodeContainer wifiAll;
   wifiAll.Create (nAll);
-
+// Criando Grupo de todos os nós
 //Setar Mobilidade dos nós
   MobilityHelper mobilitywifiAll;
-  if(manual == false){
-    mobilitywifiAll.SetPositionAllocator ("ns3::RandomRectanglePositionAllocator",
-                                "X", StringValue ("ns3::UniformRandomVariable[Min=0.0|Max="+gr+"]"),
-                                "Y", StringValue ("ns3::UniformRandomVariable[Min=0.0|Max="+gr+"]"));
-  }
 
-  if(constant == true){
-  //Constante Mobillity
-    mobilitywifiAll.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  }
 
-  if(constant == false){
-  //Random Mobillity
-    mobilitywifiAll.SetMobilityModel ("ns3::RandomWalk2dMobilityModel",
-                             "Speed", StringValue ("ns3::ConstantRandomVariable[Constant=100.0]"),
-                             "Bounds", StringValue ("-"+gr+"|"+gr+"|-"+gr+"|"+gr+""));
-  }
+  mobilitywifiAll.SetPositionAllocator ("ns3::RandomRectanglePositionAllocator",
+                            "X", StringValue ("ns3::UniformRandomVariable[Min=0.0|Max="+gr+"]"),
+                            "Y", StringValue ("ns3::UniformRandomVariable[Min=0.0|Max="+gr+"]"));
+
+if(constant == true){
+//Constante Mobillity
+  mobilitywifiAll.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+}
+
+if(random == true){
+//Random Mobillity
+  mobilitywifiAll.SetMobilityModel ("ns3::RandomWalk2dMobilityModel",
+                           "Speed", StringValue ("ns3::ConstantRandomVariable[Constant=100.0]"),
+                           "Bounds", StringValue ("-"+gr+"|"+gr+"|-"+gr+"|"+gr+""));
+}
   mobilitywifiAll.Install (wifiAll);
 
-  if(manual == true){   
-    for(int i = 0; i < nAll; ++i){ 
-        wifiAll.Get (i)->GetObject<MobilityModel> ()->SetPosition (Vector (x[i][0], y[i][0], 0));
-     } 
-  }     
 //Configuração da rede
   std::string phyMode ("ErpOfdmRate54Mbps");
   bool verbose = false;
 
-// The below set of helpers will help us to put together the wifi NICs we want
+
   WifiHelper wifi;
   if (verbose)
     {
@@ -188,11 +160,20 @@ int main (int argc, char *argv[]) {
 
   YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
 // set it to zero; otherwise, gain will be added
-  wifiPhy.Set ("RxGain", DoubleValue (0) );
+  wifiPhy.Set ("RxGain", DoubleValue (0));
 // ns-3 supports RadioTap and Prism tracing extensions for 802.11b
   wifiPhy.SetPcapDataLinkType (YansWifiPhyHelper::DLT_IEEE802_11_RADIO);
 
 // Criação do modelo de propagação da rede
+  // YansWifiChannelHelper wifiChannel;
+  // wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
+  // wifiChannel.AddPropagationLoss ("ns3::LogDistancePropagationLossModel",
+  //                                 "Exponent", DoubleValue (3.0));
+  // YansWifiChannelHelper wifiChannel;
+  // wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
+  // wifiChannel.AddPropagationLoss ("ns3::TwoRayGroundPropagationLossModel",
+  //                                 "Frequency", DoubleValue (5.150e9));
+
   YansWifiChannelHelper wifiChannel;
   wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
   wifiChannel.AddPropagationLoss ("ns3::FriisPropagationLossModel");
@@ -218,7 +199,7 @@ NetDeviceContainer allDevice;
 //Atribuindo energia nos dispositivos
       srand((unsigned)time(0));
       for (int l=0; l<nAll; ++l){
-          aux_energy = rand()%((100-50) + 50); 
+          aux_energy = rand()%((100-50) + 50);
 
           Ptr<BasicEnergySource> energySource = CreateObject<BasicEnergySource>();
           Ptr<SimpleDeviceEnergyModel> energyModel = CreateObject<SimpleDeviceEnergyModel>();
@@ -230,7 +211,6 @@ NetDeviceContainer allDevice;
 
           // aggregate energy source to node
           wifiAll.Get(l)->AggregateObject (energySource);
-          // energy[l][0] = energySource;
           Energia[l][0] = aux_energy;
         }
 
@@ -244,32 +224,28 @@ NetDeviceContainer allDevice;
   
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
 
-// Criação da aplicação UDP
-// Aplicação para rede AP/STA
-  
-uint16_t port = 4000;
+  uint16_t port = 4000;
   std::string ipAp[nRn][1];
+  // int nr = 0;
   int aux = 0;
-  bool first = false;
+  bool entra = true;  
   
   // int l = 1;
-  bool entra = true;
+  bool first = true;
   ApplicationContainer apps;
 // Instalação dos Relay Nodes (RN)
-                   
-    for(int s = 0; s < nRn; ++s){
-      UdpServerHelper server (port);
-      server.Install (wifiAll.Get(vet[s][0]));  
-      apps.Start (Seconds (0.1));
-      apps.Stop (Seconds (simTime));
-      aux = vet[s][0] + 1;
-      ipAp[s][0] = "192.168.1." + std::to_string(aux);
-      std::cout<<"IP = " << ipAp[s][0] <<std::endl;
+  for(int s = 0; s < nRn; ++s){
+    UdpServerHelper server (port);
+    server.Install (wifiAll.Get(vet[s][0]));  
+    apps.Start (Seconds (0.1));
+    apps.Stop (Seconds (simTime));
+    aux = vet[s][0] + 1;
+    ipAp[s][0] = "192.168.1." + std::to_string(aux);
     }
   
-  for(int p = 0; p<nAll; ++p)
+ for(int p = 0; p<nAll; ++p)
   {
-          entra = true;  
+        entra = true;  
         if(first == false){
           for(int s = 1; s<nRn; ++s)
           {
@@ -294,33 +270,29 @@ uint16_t port = 4000;
           }
         }
           if(entra == true){
-              if(p != rn && p != 44 && p != 13)
+              if(p != rn)
               {
                   //Configuração da aplicação   
-                  UdpClientHelper client (Ipv4Address (ipAp[0][0].c_str()), port); 
+                  
+                  UdpClientHelper client (Ipv4Address (ipAp[nRn-1][0].c_str()), port); 
                   client.SetAttribute ("MaxPackets", UintegerValue ((uint32_t)(simTime*(1/PacketInterval))));
                   client.SetAttribute ("Interval", TimeValue (Seconds (PacketInterval)));
                   client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
-
-                  std::cout<<"Client = " << p <<"    Server = " << ipAp[0][0] <<std::endl;
-                  
-                  // Instalar Aplicação em todos os nós Usuários
+                   // Instalar Aplicação em todos os nós Usuários
                   apps = client.Install (wifiAll.Get(p));
                   apps.Start (Seconds (0.1));
                   apps.Stop (Seconds (simTime)); 
-                  
+                }
               }
-            }
   }
-  
+
 //FLOW-MONITOR
 //Intalar FlowMonitor em todos os Nós
   FlowMonitorHelper flowmon;
   Ptr<FlowMonitor> monitor = flowmon.InstallAll ();
-  std::string gp = std::to_string(cenario);
-
+  
 //Gerar animação
-        AnimationInterface anim ("Master_Node/centroide_Algoritmo/" + gp + "_master_node_cen_alg.xml"); // Mandatory
+        AnimationInterface anim ("Master_Node/random/" + gp + "_random_master_node.xml"); // Mandatory
         
         for (int i = 0; i < nCli; ++i){
           anim.UpdateNodeDescription (wifiAll.Get(i), "Node"); // Optional
@@ -333,12 +305,13 @@ uint16_t port = 4000;
         }
         
         anim.EnablePacketMetadata (); // Optiona
-        anim.EnableIpv4RouteTracking ("Master_Node/centroide_Algoritmo/" + gp + "_master_node_cen_alg_route.xml", Seconds (0), Seconds (5), Seconds (0.25)); //Optional
+        anim.EnableIpv4RouteTracking ("Master_Node/random/" + gp + "_random_master_node_route.xml", Seconds (0), Seconds (5), Seconds (0.25)); //Optional
         anim.EnableWifiMacCounters (Seconds (0), Seconds (simTime)); //Optional
         anim.EnableWifiPhyCounters (Seconds (0), Seconds (simTime)); //Optional
   Simulator::Stop(Seconds(simTime));
   Simulator::Run();
  
+
 //Imprimir resultados da simulação
   monitor->CheckForLostPackets ();
   Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier> (flowmon.GetClassifier ());
@@ -359,8 +332,7 @@ double medLoss = 0;
 double medAtraso = 0;
 double medJitter = 0;
 double dur = 0;
-int install[nAll][1];
-
+double install[nAll][1];
 
 for(int x = 0; x< nAll; ++x){
 install[x][0] = 0;
@@ -369,8 +341,8 @@ install[x][0] = 0;
 std::string ipc;
 std::string ips;
 
-  for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin (); i != stats.end (); ++i)
-  {
+  for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin (); i != stats.end (); ++i){
+      
       Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
       dur = (i->second.timeLastRxPacket.GetSeconds()-i->second.timeFirstTxPacket.GetSeconds());
       if(dur > 0)
@@ -405,21 +377,17 @@ std::string ips;
                     sumAtraso = sumAtraso + Atraso[u][0];
                     sumJitter = sumJitter + Jitter[u][0];
                     std::cout << " " <<std::endl;
-               
-                if (t.destinationAddress == ipAp[0][0].c_str()){
-                 for(int j = 0; j<nAll; ++j){
-                    ipc = "192.168.1." + std::to_string(j+1);
-                    if(t.sourceAddress == ipc.c_str()){
-                      install[u][0] = j;
-                      std::cout << "Client "<< install[u][0] <<std::endl;
-                      break;
-                    }else{
-                      install[u][0] = 999;
+                    
+                    for(int j = 0; j<nAll; ++j){
+                      ipc = "192.168.1." + std::to_string(j+1);
+                      if(t.sourceAddress == ipc.c_str()){
+                        install[j][0] = j;
+                        std::cout << "Client "<< install[j][0] <<std::endl;
+                       
+                      }else 
+                      install[j][0] = 999;
                     }
-                  }
-                }
-
-                u++;
+                    u++;
                 }
           }
       }else{
@@ -427,29 +395,28 @@ std::string ips;
         nsumLoss = nsumLoss + i->second.txPackets;
       }
   }
-
+      
   
   
 // Obter Média da Simulação
    medLoss = sumLoss / (u+1);
    nmedLoss = (nsumLoss+sumLoss)/nCli;
    medThroughput = sumThroughput / (u+1);
-  
    medAtraso = sumAtraso / (u+1);
    medJitter = sumJitter / (u+1);
 
- double sumDeVazao = 0;
- double sumDeLoss = 0;
- double sumDeAtraso = 0;
- double sumDeJitter = 0;
- double VarVazao = 0;
- double VarLoss = 0;
- double VarAtraso = 0;
- double VarJitter  = 0;
- double DesVazao = 0;
- double DesLoss = 0;
- double DesAtraso  = 0;
- double DesJitter = 0;
+  double sumDeVazao = 0;
+  double sumDeLoss = 0;
+  double sumDeAtraso = 0;
+  double sumDeJitter = 0;
+  double VarVazao = 0;
+  double VarLoss = 0;
+  double VarAtraso = 0;
+  double VarJitter  = 0;
+  double DesVazao = 0;
+  double DesLoss = 0;
+  double DesAtraso  = 0;
+  double DesJitter = 0;
 
 
 
@@ -468,58 +435,75 @@ std::string ips;
       DesLoss = sqrt(VarLoss);
       DesAtraso = sqrt(VarAtraso);
       DesJitter = sqrt(VarJitter);
-
-   std::cout << " " <<std::endl;
-   std::cout << "Média Loss(Conectados): " << medLoss <<std::endl;
-   std::cout << "Média Loss(Total): " << nmedLoss <<std::endl;
-   std::cout << "Média Vazão: " << medThroughput <<std::endl;
-   std::cout << "Média Atraso: " << medAtraso <<std::endl;
-   std::cout << "Média Jitter: " << medJitter <<std::endl;
-   
-   std::cout << " " <<std::endl;
   
-   std::cout << "Desvio Padrão Loss(Conectados): " << DesLoss <<std::endl;
-   std::cout << "Desvio Padrão Vazão: " << DesVazao <<std::endl;
-   std::cout << "Desvio Padrão Atraso: " << DesAtraso <<std::endl;
-   std::cout << "Desvio Padrão Jitter: " << DesJitter <<std::endl;
+   std::cout << " " <<std::endl;
+   std::cout << "Média Loss(Conectados): "<<std::endl;
+   std::cout << "Média Loss(Total): "<<std::endl;
+   std::cout << "Média Vazão: "<<std::endl;
+   std::cout << "Média Atraso: "<<std::endl;
+   std::cout << "Média Jitter: "<<std::endl;
+
+
+  std::cout << " " <<std::endl;
+  std::cout << medLoss <<std::endl;
+  std::cout << nmedLoss <<std::endl;
+  std::cout << medThroughput <<std::endl;
+  std::cout << medAtraso <<std::endl;
+  std::cout << medJitter <<std::endl;
+   
+
+  std::cout << "Desvio Padrão Loss(Conectados): "<<std::endl;
+  std::cout << "Desvio Padrão Vazão: "<<std::endl;
+  std::cout << "Desvio Padrão Atraso: "<<std::endl;
+  std::cout << "Desvio Padrão Jitter: "<<std::endl;
+   
+  std::cout << " " <<std::endl;
+  std::cout << DesLoss <<std::endl;
+  std::cout << DesVazao <<std::endl;
+  std::cout << DesAtraso <<std::endl;
+  std::cout << DesJitter <<std::endl;
+
 
   std::cout << " " <<std::endl;
   std::cout << "Usuários Não Cobertos: "<< cont <<std::endl;
   std::cout << " " <<std::endl;
-  std::cout << "Usuários Cobertos "<< u <<std::endl;
-  std::cout << " " <<std::endl;
-  std::cout << "Quantidade de Retransmissores "<< nRn <<std::endl;
+  std::cout << "Usuários Cobertos "<< u+nRn <<std::endl;
   std::cout << " " <<std::endl;
   std::cout << "Nó Selecionado "<< vet[0][0] <<std::endl;
   
-  std::ofstream myfile ("Master_Node/centroide_Algoritmo/"+gp+"_Results_cen_alg.csv");
+  std::ofstream myfile ("Master_Node/random/"+gp+"_Results_Random.csv");
   if (myfile.is_open())
   {
       myfile << "Nó Selecionado, Qt. Nós Cobertos, Média Loss(Conectados), DP Loss(Conectados), Perda de Pacotes (%), Média Loss(Total), Média Vazão, DP Vazão, Média Atraso, DP Atraso, Média Jitter, DPJitter, PDR\n";
-      myfile << std::to_string(vet[0][0])+", "+std::to_string(u)+", "+std::to_string(medLoss)+", "+std::to_string(DesLoss)+", "+std::to_string(((medLoss/11999)*100))+", "+std::to_string(nmedLoss)+","+std::to_string(medThroughput)+","+std::to_string(DesVazao)+", "+std::to_string(medAtraso)+", "+std::to_string(DesAtraso)+", "+std::to_string(medJitter)+","+std::to_string(DesJitter)+", "+std::to_string(((11999-medLoss)/11999)*100)+"\n";
+      myfile << std::to_string(vet[0][0])+", "+std::to_string(u+nRn)+", "+std::to_string(medLoss)+", "+std::to_string(DesLoss)+", "+std::to_string(((medLoss/11999)*100))+", "+std::to_string(nmedLoss)+","+std::to_string(medThroughput)+","+std::to_string(DesVazao)+", "+std::to_string(medAtraso)+", "+std::to_string(DesAtraso)+", "+std::to_string(medJitter)+","+std::to_string(DesJitter)+", "+std::to_string(((11999-medLoss)/11999)*100)+"\n";
       myfile.close();
   }
   else std::cout << "Unable to open file";
-
-  std::ofstream con ("Master_Node/centroide_Algoritmo/"+gp+"_Conectados_Cen_Alg.csv");
-
+  
+  std::ofstream con ("Master_Node/random/"+gp+"_Conectados_random.txt");
+ 
  if (con.is_open())
   {
-      con<<"Servidor "+std::to_string(rn)<<std::endl;
-      con<<"Clientes"<<std::endl;
+      con<<"Servidores     Clientes"<<std::endl;
 
-     for(int j = 0; j<=u; ++j){
-        if(install[j][0] != 0.000000){
-          con<< std::to_string(install[j][0]) <<std::endl;
-          std::cout<< std::to_string(install[j][0]) <<std::endl;
+    // for(int i = 0; i<nRn; ++i)
+    // {
+      for(int j = 0; j<nAll; ++j){
+        if(install[j][0] != 999){
+          con<< std::to_string(rn)+"             "+std::to_string(install[j][0]) <<std::endl;
         }
       }
-     con.close();
+    // }
+    con.close();
   }
   else std::cout << "Unable to open file";
 
-
-//LÓGICA DE SELEÇÃO
+  std::cout << " " <<std::endl;
+  std::cout << "Usuários Não Cobertos: "<< cont+nRn <<std::endl;
+  std::cout << " " <<std::endl;
+  std::cout << "Usuários Cobertos "<< u <<std::endl;
+  std::cout << " " <<std::endl;
+  std::cout << "Nó Selecionado "<< rn <<std::endl;
 
   Simulator::Destroy();
   return 0;
