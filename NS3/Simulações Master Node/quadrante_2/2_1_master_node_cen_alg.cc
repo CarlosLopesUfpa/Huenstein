@@ -63,7 +63,7 @@ int main (int argc, char *argv[]) {
 
 //Configurações da rede
     // Novo Retransmissor
-    int rn = 23;
+    int rn = 24;
     // Total de usuários da rede
     int nAll = 30; 
     int nRn = cenario;

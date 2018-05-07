@@ -58,13 +58,13 @@ NS_LOG_COMPONENT_DEFINE ("Wifi_Alg");
 
 
 
-int cenario = 2;
+int cenario = 3;
 
 int main (int argc, char *argv[]) {
 
 //Configurações da rede
     // Novo Retransmissor
-    int rn = 23;
+    int rn = 13;
     // Total de usuários da rede
     int nAll = 30; 
     std::string nall = std::to_string(nAll);
@@ -75,13 +75,13 @@ int main (int argc, char *argv[]) {
     // Numero de Clientes NÃO RETRANSMISSORES
     int nCli = nAll - nRn;
     // Numero de nós previamente conectados
-    int nCon = 12;
+    int nCon = 18;
     // Vetor com todos os Retransmissores
-    int vet[nRn][1] = {rn, 19};
+    int vet[nRn][1] = {rn, 19, 24};
     // Vetor com clientes previamente instalados
-    int cli[nCon][1] = {27, 26, 25, 23, 22, 21, 18, 17, 16, 3, 1, 0};
+    int cli[nCon][1] = {27, 26, 25, 23, 22, 21, 18, 17, 16, 3, 1, 0, 6, 9, 13, 14, 15, 29};
     // Vetor com Retransmissores previamente instalados
-    int ser[nCon][1] = {19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19};
+    int ser[nCon][1] = {19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 24, 24, 24, 24, 24, 24};
  
 
     double simTime = 1200;
@@ -302,7 +302,7 @@ uint16_t port = 4000;
           }
         }
           if(entra == true){
-              if(p != rn && p != 19)
+              if(p != rn && p != 19 && p != 24)
               {
                   //Configuração da aplicação   
                   UdpClientHelper client (Ipv4Address (ipAp[0][0].c_str()), port); 
@@ -367,7 +367,7 @@ double medLoss = 0;
 double medAtraso = 0;
 double medJitter = 0;
 double dur = 0;
-double install[nAll][1];
+int install[nAll][1];
 
 for(int x = 0; x< nAll; ++x){
 install[x][0] = 0;
@@ -413,15 +413,18 @@ std::string ips;
                     sumJitter = sumJitter + Jitter[u][0];
                     std::cout << " " <<std::endl;
                     
-                    for(int j = 0; j<nAll; ++j){
-                      ipc = "192.168.1." + std::to_string(j+1);
-                      if(t.sourceAddress == ipc.c_str()){
-                        install[j][0] = j;
-                        std::cout << "Client "<< install[j][0] <<std::endl;
-                       
-                      }else 
-                      install[j][0] = 999;
+                if (t.destinationAddress == ipAp[0][0].c_str()){
+                 for(int j = 0; j<nAll; ++j){
+                    ipc = "192.168.1." + std::to_string(j+1);
+                    if(t.sourceAddress == ipc.c_str()){
+                      install[u][0] = j;
+                      std::cout << "Client "<< install[u][0] <<std::endl;
+                      break;
+                    }else{
+                      install[u][0] = 999;
                     }
+                  }
+                }
 
                     u++;
                 }
