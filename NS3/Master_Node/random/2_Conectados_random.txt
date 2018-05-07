@@ -1,0 +1,6 @@
+Servidores     Clientes
+36             7
+36             10
+36             31
+36             32
+36             45
