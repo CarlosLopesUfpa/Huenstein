@@ -57,26 +57,26 @@ NS_LOG_COMPONENT_DEFINE ("Wifi_Cen_Alg");
 
 
 
-int cenario = 3;
+int cenario = 6;
 
 int main (int argc, char *argv[]) {
 
 //Configurações da rede
     // Novo Retransmissor
-    int rn = 24;
+    int rn = 23;
     // Total de usuários da rede
     int nAll = 30; 
     int nRn = cenario;
     // Numero de Clientes NÃO RETRANSMISSORES
     int nCli = nAll - nRn;
     // Numero de nós previamente conectados
-    int nCon = 14;
+    int nCon = 22;
     // Vetor com todos os Retransmissores
-    int vet[nRn][1] = {rn, 1, 19};
+    int vet[nRn][1] = {rn, 1, 19, 24, 13, 29};
     // Vetor com clientes previamente instalados
-    int cli[nCon][1] = {3, 8, 10, 16, 17, 18, 19, 21, 25, 27, 0, 22, 23, 26};
+    int cli[nCon][1] = {3, 8, 10, 16, 17, 18, 19, 21, 25, 27, 0, 22, 23, 26, 6, 9, 13, 14, 15, 29, 5, 12};
     // Vetor com Retransmissores previamente instalados
-    int ser[nCon][1] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 19, 19, 19, 19};
+    int ser[nCon][1] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 19, 19, 19, 19, 24, 24, 24, 24, 24, 24, 13, 13};
  
  
 
@@ -298,7 +298,7 @@ NetDeviceContainer allDevice;
           }
         }
           if(entra == true){
-              if(p != rn && p != 1 && p != 19)
+              if(p != rn && p != 1 && p != 19 && p != 24 && p != 13 && p != 29)
               {
                   //Configuração da aplicação   
                   UdpClientHelper client (Ipv4Address (ipAp[0][0].c_str()), port); 

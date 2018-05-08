@@ -58,13 +58,13 @@ NS_LOG_COMPONENT_DEFINE ("Wifi_Alg");
 
 
 
-int cenario = 3;
+int cenario = 6;
 
 int main (int argc, char *argv[]) {
 
 //Configurações da rede
     // Novo Retransmissor
-    int rn = 13;
+    int rn = 15;
     // Total de usuários da rede
     int nAll = 30; 
     std::string nall = std::to_string(nAll);
@@ -75,13 +75,13 @@ int main (int argc, char *argv[]) {
     // Numero de Clientes NÃO RETRANSMISSORES
     int nCli = nAll - nRn;
     // Numero de nós previamente conectados
-    int nCon = 18;
+    int nCon = 21;
     // Vetor com todos os Retransmissores
-    int vet[nRn][1] = {rn, 19, 24};
+    int vet[nRn][1] = {rn, 19, 24, 13, 29, 23};
     // Vetor com clientes previamente instalados
-    int cli[nCon][1] = {27, 26, 25, 23, 22, 21, 18, 17, 16, 3, 1, 0, 6, 9, 13, 14, 15, 29};
+    int cli[nCon][1] = {27, 26, 25, 23, 22, 21, 18, 17, 16, 3, 1, 0, 6, 9, 13, 14, 15, 29, 5, 10, 12};
     // Vetor com Retransmissores previamente instalados
-    int ser[nCon][1] = {19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 24, 24, 24, 24, 24, 24};
+    int ser[nCon][1] = {19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 24, 24, 24, 24, 24, 24, 13, 13, 13};
  
 
     double simTime = 1200;
@@ -302,7 +302,7 @@ uint16_t port = 4000;
           }
         }
           if(entra == true){
-              if(p != rn && p != 19 && p != 24)
+              if(p != rn && p != 19 && p != 24 && p != 13 && p != 29 && p != 23)
               {
                   //Configuração da aplicação   
                   UdpClientHelper client (Ipv4Address (ipAp[0][0].c_str()), port); 
